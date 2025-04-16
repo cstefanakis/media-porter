@@ -1,4 +1,4 @@
-package org.sda.mediaporter.Servicies;
+package org.sda.mediaporter.Servicies.Impl;
 
 import lombok.AllArgsConstructor;
 import org.sda.mediaporter.models.User;

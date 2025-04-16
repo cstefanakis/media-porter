@@ -1,4 +1,4 @@
-package org.sda.mediaporter.config;
+package org.sda.mediaporter.security;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

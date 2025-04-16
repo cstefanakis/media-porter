@@ -1,4 +1,4 @@
-package org.sda.mediaporter.Servicies;
+package org.sda.mediaporter.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

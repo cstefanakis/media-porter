@@ -1,4 +1,4 @@
-package org.sda.mediaporter.models.dtos;
+package org.sda.mediaporter.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

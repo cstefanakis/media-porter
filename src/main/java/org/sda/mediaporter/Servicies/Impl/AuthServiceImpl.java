@@ -1,7 +1,9 @@
-package org.sda.mediaporter.Servicies;
+package org.sda.mediaporter.Servicies.Impl;
 
 import lombok.AllArgsConstructor;
-import org.sda.mediaporter.models.dtos.LoginDto;
+import org.sda.mediaporter.Servicies.AuthService;
+import org.sda.mediaporter.dtos.LoginDto;
+import org.sda.mediaporter.security.JwtTokenProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

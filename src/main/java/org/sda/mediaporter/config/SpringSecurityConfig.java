@@ -1,7 +1,8 @@
 package org.sda.mediaporter.config;
 
 import lombok.AllArgsConstructor;
-import org.sda.mediaporter.filters.JwtAuthenticationFilter;
+import org.sda.mediaporter.security.JwtAuthenticationFilter;
+import org.sda.mediaporter.security.JwtAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

@@ -19,17 +19,24 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation("org.springframework.boot:spring-boot-starter-web:3.4.4")
     //Databases
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.xerial:sqlite-jdbc:3.39.2.0'
+    implementation("com.mysql:mysql-connector-j:9.2.0")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation("org.hibernate.orm:hibernate-community-dialects:6.6.13.Final")
     //Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    //tools
+    compileOnly("org.projectlombok:lombok:1.18.38")
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+    //tests
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
 
 
 

@@ -56,17 +56,27 @@ public class LanguageServiceImpl implements LanguageService {
 
     }
     private Language toEntity(Language language, LanguageRequestDto languageRequestDto) {
-        language.setName(languageRequestDto.getName());
-        language.setCode(languageRequestDto.getCode());
+        language.setName(validatedName(language.getName(), languageRequestDto.getName()));
+        language.setCode(validatedCode(language.getCode(), languageRequestDto.getCode()));
         return language;
     }
 
-    private String validatedName(String name) {
+    //Validate if language name exist
+    private String validatedName(String currentName, String name) {
         Optional<Language> languageOptional = languageRepository.findByName(name);
-        if (languageOptional.isPresent()) {
+        if (languageOptional.isPresent() && !currentName.equals(languageOptional.get().getName())) {
             throw new EntityExistsException(String.format("Language with name %s already exists", name));
         }
         return name;
+    }
+
+    //Validate if language code exist
+    private String validatedCode(String currentCode, String code) {
+        Optional<Language> languageCode = languageRepository.findByCode(code);
+        if (languageCode.isPresent() && !currentCode.equals(languageCode.get().getName())) {
+            throw new EntityExistsException(String.format("Language with code %s already exists", code));
+        }
+        return code;
     }
 
 }

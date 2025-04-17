@@ -9,6 +9,7 @@ import org.sda.mediaporter.repositories.LanguageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,6 +22,11 @@ public class LanguageServiceImpl implements LanguageService {
         this.languageRepository = languageRepository;
     }
 
+
+    @Override
+    public List<Language> getLanguages() {
+        return languageRepository.findAll();
+    }
 
     @Override
     public Language getLanguageByName(String name) {
@@ -46,14 +52,15 @@ public class LanguageServiceImpl implements LanguageService {
     }
 
     @Override
-    public void updateLanguageByName(String name, LanguageRequestDto languageRequestDto) {
-        Language language = getLanguageByName(name);
+    public void updateLanguageById(Long languageId, LanguageRequestDto languageRequestDto) {
+        Language language = getLanguageById(languageId);
         languageRepository.save(toEntity(language, languageRequestDto));
     }
 
     @Override
-    public void deleteLanguage(Language language) {
-
+    public void deleteLanguage(Long languageId) {
+        Language language = getLanguageById(languageId);
+        languageRepository.delete(language);
     }
     private Language toEntity(Language language, LanguageRequestDto languageRequestDto) {
         language.setName(validatedName(language.getName(), languageRequestDto.getName()));

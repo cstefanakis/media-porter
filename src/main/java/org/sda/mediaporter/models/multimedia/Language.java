@@ -1,10 +1,12 @@
-package org.sda.mediaporter.models;
+package org.sda.mediaporter.models.multimedia;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.sda.mediaporter.models.multimedia.videoFiles.Movie;
+import org.sda.mediaporter.models.multimedia.videoFiles.TvShow;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package org.sda.mediaporter.Servicies;
 
 import org.sda.mediaporter.dtos.LanguageRequestDto;
-import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.multimedia.Language;
 
 import java.util.List;
 

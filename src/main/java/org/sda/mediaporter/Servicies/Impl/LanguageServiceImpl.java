@@ -4,7 +4,7 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Servicies.LanguageService;
 import org.sda.mediaporter.dtos.LanguageRequestDto;
-import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.multimedia.Language;
 import org.sda.mediaporter.repositories.LanguageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

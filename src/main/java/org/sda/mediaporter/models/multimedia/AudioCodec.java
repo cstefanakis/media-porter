@@ -1,8 +1,6 @@
-package org.sda.mediaporter.models;
+package org.sda.mediaporter.models.multimedia;
 
 import jakarta.persistence.*;
-
-import java.util.List;
 
 @Entity
 public class AudioCodec {

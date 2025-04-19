@@ -1,4 +1,4 @@
-package org.sda.mediaporter.models;
+package org.sda.mediaporter.models.multimedia;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

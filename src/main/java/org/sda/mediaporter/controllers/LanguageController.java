@@ -2,7 +2,7 @@ package org.sda.mediaporter.controllers;
 
 import org.sda.mediaporter.Servicies.LanguageService;
 import org.sda.mediaporter.dtos.LanguageRequestDto;
-import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.multimedia.Language;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

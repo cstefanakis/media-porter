@@ -38,6 +38,11 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     //html parser
     implementation("org.seleniumhq.selenium:htmlunit-driver:4.13.0")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2")
+    //metadata from files
+    implementation("com.drewnoakes:metadata-extractor:2.19.0")
+    //Json
+    implementation("org.json:json:20250107")
 
 
 

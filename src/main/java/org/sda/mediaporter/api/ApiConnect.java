@@ -1,5 +1,6 @@
 package org.sda.mediaporter.api;
 
+import lombok.Getter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -10,15 +11,12 @@ import java.io.IOException;
 
 public class ApiConnect {
     private String url;
+    @Getter
     private String jsonString;
 
     public ApiConnect(String url) {
         this.url = url;
         this.jsonString = jsonString();
-    }
-
-    public String getJsonString() {
-        return jsonString;
     }
 
     private String jsonString() {

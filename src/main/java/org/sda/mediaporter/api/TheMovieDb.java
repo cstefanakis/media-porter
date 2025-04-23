@@ -5,8 +5,7 @@ import org.json.JSONObject;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,9 +14,16 @@ public class TheMovieDb {
     private ApiConnect theMovieDb;
     private final String apiKey = "7c97b163195d9428522398e8f1c32f63";
     private String search;
+    private int resultsObjectIndex;
 
-    public TheMovieDb(String search) {
+    public TheMovieDb(String search, Integer year) {
         String url = String.format("https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s", apiKey, search(search));
+        theMovieDb = new ApiConnect(url);
+        this.resultsObjectIndex = fileIndex(year);
+    }
+
+    public TheMovieDb(String contributorName) {
+        String url = String.format("https://api.themoviedb.org/3/search/person?query=%s&api_key=%s", search(contributorName), apiKey);
         theMovieDb = new ApiConnect(url);
     }
 
@@ -35,13 +41,28 @@ public class TheMovieDb {
         return rootObject().getJSONArray("results");
     }
 
+    private int fileIndex(Integer year){
+        if(year == null){
+            return 0;
+        }
+        for(int i = 0; i < results().length(); i++){
+            if(year == LocalDate.parse(realiseDate(i), theMovieDBFormatter()).getYear()){
+                return i;
+            }
+        }
+        return 0;
+    }
+
     public String getOriginalTitle(){
         if (results().isEmpty()) {
             return this.search;
         }
-        return results()
-                .getJSONObject(0)
+        return resultsIndexJsonObject(0)
                 .getString("original_title");
+    }
+
+    private JSONObject resultsIndexJsonObject(int index){
+        return results().getJSONObject(index);
     }
 
     public String getOverview(){
@@ -50,12 +71,38 @@ public class TheMovieDb {
                 .getString("overview");
     }
 
+    private String realiseDate(int index){
+        return resultsIndexJsonObject(index).getString("release_date");
+    }
+
     public LocalDate getReleaseDate(){
-        String date = results()
-                .getJSONObject(0)
-                .getString("release_date");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
-        return LocalDate.parse(date, formatter);
+        return LocalDate.parse(realiseDate(this.resultsObjectIndex), theMovieDBFormatter());
+    }
+
+    public Integer getYear(){
+        return getReleaseDate().getYear();
+    }
+
+    public String getTitle(){
+        return resultsIndexJsonObject(this.resultsObjectIndex)
+                .getString("title");
+    }
+
+    public List<String> getLanguages(){
+        String[] languages =resultsIndexJsonObject(this.resultsObjectIndex)
+                .getString("original_language")
+                .replace(" ", "")
+                .split(",");
+        return Arrays.stream(languages).collect(Collectors.toList());
+    }
+
+    public Double getRating(){
+        return resultsIndexJsonObject(this.resultsObjectIndex)
+                .getDouble("vote_average");
+    }
+
+    private DateTimeFormatter theMovieDBFormatter(){
+        return DateTimeFormatter.ofPattern("yyyy-MM-dd");
     }
 
     public String getPoster(){
@@ -103,4 +150,22 @@ public class TheMovieDb {
                 Map.entry(37, "Western")  
         );
     }
+
+    public String getContributorName(){
+        return results().getJSONObject(0)
+                .getString("original_name");
+    }
+
+    public String getContributorPoster(){
+        String path =  results().getJSONObject(0)
+                .getString("profile_path");
+        return "https://image.tmdb.org/t/p/w500"+path;
+    }
+
+    public String getContributorWebsite(){
+        int id = results().getJSONObject(0)
+                .getInt("id");
+        return "https://www.themoviedb.org/person/"+id;
+    }
+
 }

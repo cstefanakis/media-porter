@@ -1,136 +1,110 @@
 package org.sda.mediaporter.Servicies.Impl;
 
+import org.json.JSONException;
+import org.sda.mediaporter.Servicies.ContributorService;
+import org.sda.mediaporter.Servicies.GenreService;
+import org.sda.mediaporter.Servicies.LanguageService;
 import org.sda.mediaporter.Servicies.MovieService;
 import org.sda.mediaporter.api.OmdbApi;
 import org.sda.mediaporter.api.TheMovieDb;
+import org.sda.mediaporter.models.Contributor;
+import org.sda.mediaporter.models.Genre;
+import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class MovieServiceImpl implements MovieService {
 
-    @Override
-    public Movie getMovieByTitle(String title, String year) {
-        return toEntity(new Movie(), getOriginalTitle(title), year);
+    private final GenreService genreService;
+    private final ContributorService contributorService;
+    private final LanguageService languageService;
+
+    @Autowired
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService) {
+        this.genreService = genreService;
+        this.contributorService = contributorService;
+        this.languageService = languageService;
     }
 
-    private Movie toEntity(Movie movie, String title, String year){
-        TheMovieDb theMovieDb = new TheMovieDb(title);
-        OmdbApi omdbApi = new OmdbApi(title, year);
-        movie.setTitle(getTitle(omdbApi, theMovieDb));
-        movie.setYear(getYear(omdbApi, theMovieDb));
-        movie.setRating(getRate(omdbApi, theMovieDb));
+    @Override
+    public Movie getMovieByTitle(String title, Integer year) {
+        try{
+            return omdbApiToEntity(new Movie(), title, year);
+        }catch (JSONException e){
+            return theMovieDbToEntity(new Movie(), title, year);
+        }
+    }
+
+    private Movie omdbApiToEntity(Movie movie, String title, Integer year){
+        OmdbApi omdbApi = new OmdbApi(getTitle(title, year), year);
+        TheMovieDb theMovieDb = new TheMovieDb(title, year);
+        movie.setTitle(omdbApi.getTitle());
+        movie.setOriginalTitle(theMovieDb.getOriginalTitle());
+        movie.setYear(omdbApi.getYear());
+        movie.setRating(omdbApi.getImdbRating());
         movie.setReleaseDate(omdbApi.getReleasedDate());
-        movie.setGenre(Arrays.asList(omdbApi.getGenre()));
-        movie.setDirectors(Arrays.asList(omdbApi.getDirector()));
-        movie.setWriters(Arrays.asList(omdbApi.getWriter()));
-        movie.setActors(Arrays.asList(omdbApi.getActors()));
+        movie.setGenres(getGenres(omdbApi.getGenre()));
+        movie.setDirectors(getContributors(omdbApi.getDirector()));
+        movie.setWriters(getContributors(omdbApi.getWriter()));
+        movie.setActors(getContributors(omdbApi.getActors()));
         movie.setPlot(omdbApi.getPlot());
         movie.setCountry(omdbApi.getCountry());
         movie.setPoster(omdbApi.getPoster());
+        movie.setLanguages(getLanguagesByTitle(omdbApi.getLanguages()));
         return movie;
     }
 
-    private String getOriginalTitle(String title){
-        TheMovieDb theMovieDb = new TheMovieDb(title);
-        return theMovieDb.getOriginalTitle();
+    private List<Genre> getGenres(List<String> apiGenres) {
+        List<Genre> genres = new ArrayList<>();
+        for (String genre : apiGenres){
+            genres.add(genreService.autoCreateGenre(genre));
+        }
+        return genres;
     }
 
-    private String getTitle(OmdbApi omdbApi, TheMovieDb theMovieDb){
-        if(omdbApi.getTitle() == null){
-            return theMovieDb.getOriginalTitle();
-        }else if(theMovieDb.getOriginalTitle() == null){
-            return null;
-        }else{
-            return omdbApi.getTitle();
+    private List<Contributor> getContributors(List<String> apiContributors) {
+        List<Contributor> contributors = new ArrayList<>();
+        for (String contributor : apiContributors){
+            contributors.add(contributorService.autoCreateContributor(contributor));
         }
+        return contributors;
     }
 
-    private Integer getYear(OmdbApi omdbApi, TheMovieDb theMovieDb){
-        if(omdbApi.getYear() == null && theMovieDb.getReleaseDate() == null){
-            return null;
+    private List<Language> getLanguagesByTitle(List<String> apiLanguages) {
+        List<Language> languages = new ArrayList<>();
+        for (String language : apiLanguages){
+            languages.add(languageService.autoCreateLanguageByTitle(language));
         }
-        if (omdbApi.getYear() == null){
-            return theMovieDb.getReleaseDate().getYear();
-        }
-        return omdbApi.getYear();
+        return languages;
     }
 
-    private Double getRate(OmdbApi omdbApi, TheMovieDb theMovieDb){
-        if(omdbApi.getImdbRating() == null){
-            return null;
-        }else{
-            return omdbApi.getImdbRating();
-        }
+    private List<Language> getLanguagesByCode(List<String> apiLanguages) {
+        return apiLanguages.stream().map(languageService::autoCreateLanguageByCode).toList();
     }
 
-    private LocalDate getReleasedDate(OmdbApi omdbApi, TheMovieDb theMovieDb){
-        if(omdbApi.getReleasedDate() == null && theMovieDb.getReleaseDate() == null){
-            return null;
-        }
-        if(omdbApi.getReleasedDate() == null){
-            return theMovieDb.getReleaseDate();
-        }
-        return omdbApi.getReleasedDate();
+    private Movie theMovieDbToEntity(Movie movie, String title, Integer year){
+        TheMovieDb theMovieDb = new TheMovieDb(title, year);
+        movie.setTitle(theMovieDb.getTitle());
+        movie.setOriginalTitle(theMovieDb.getOriginalTitle());
+        movie.setYear(theMovieDb.getYear());
+        movie.setRating(theMovieDb.getRating());
+        movie.setReleaseDate(theMovieDb.getReleaseDate());
+        movie.setGenres(getGenres(theMovieDb.getGenres()));
+        movie.setPlot(theMovieDb.getOverview());
+        movie.setCountry(null);
+        movie.setPoster(theMovieDb.getPoster());
+        movie.setLanguages(getLanguagesByCode(theMovieDb.getLanguages()));
+        return movie;
     }
 
-    private List<String> getGenre(OmdbApi omdbApi){
-        if(omdbApi.getGenre() == null){
-            return null;
-        }
-        return Arrays.asList(omdbApi.getGenre());
-    }
-
-    private List<String> getDirectors(OmdbApi omdbApi){
-        if(omdbApi.getDirector() == null){
-            return null;
-        }
-        return Arrays.asList(omdbApi.getDirector());
-    }
-
-    private List<String> getWriters(OmdbApi omdbApi){
-        if(omdbApi.getWriter() == null){
-            return null;
-        }
-        return Arrays.asList(omdbApi.getWriter());
-    }
-
-    private List<String> getActors(OmdbApi omdbApi){
-        if(omdbApi.getActors() == null){
-            return null;
-        }
-        return Arrays.asList(omdbApi.getActors());
-    }
-
-    private String getPlot(OmdbApi omdbApi, TheMovieDb theMovieDb){
-        if(omdbApi.getPlot() == null && theMovieDb.getOverview() == null){
-            return null;
-        }
-        if(omdbApi.getPlot() == null){
-            return theMovieDb.getOverview();
-        }
-        return omdbApi.getPlot();
-    }
-
-    private String getCountry(OmdbApi omdbApi){
-        if(omdbApi.getCountry() == null){
-            return null;
-        }
-        return omdbApi.getCountry();
-    }
-
-    private String getPoster(OmdbApi omdbApi, TheMovieDb theMovieDb){
-        if(omdbApi.getPoster() == null && theMovieDb.getOverview() == null){
-            return null;
-        }
-        if (omdbApi.getPoster() == null){
-            return theMovieDb.getPoster();
-        }
-        return omdbApi.getPoster();
+    private String getTitle(String title, Integer year){
+        TheMovieDb theMovieDb = new TheMovieDb(title, year);
+        return theMovieDb.getTitle();
     }
 }

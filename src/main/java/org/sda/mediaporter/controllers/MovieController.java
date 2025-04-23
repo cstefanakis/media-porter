@@ -21,7 +21,7 @@ public class MovieController {
     @GetMapping("/generate")
     public ResponseEntity <Movie> getMovieByTitle(
             @RequestParam String title,
-            @RequestParam String year) {
+            @RequestParam(required = false) Integer year) {
         Movie movie = movieService.getMovieByTitle(title, year);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }

@@ -10,7 +10,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 
 public class ApiConnect {
-    private String url;
+    private final String url;
     @Getter
     private String jsonString;
 

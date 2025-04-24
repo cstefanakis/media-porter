@@ -1,13 +1,10 @@
 package org.sda.mediaporter.controllers;
 
-import org.sda.mediaporter.Servicies.Impl.MovieServiceImpl;
 import org.sda.mediaporter.Servicies.MovieService;
 import org.sda.mediaporter.models.Movie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/movies")

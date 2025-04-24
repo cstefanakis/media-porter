@@ -26,17 +26,6 @@ public class GenreServiceImpl implements GenreService {
                 .orElseThrow(() -> new RuntimeException("Genre not found"));
     }
 
-    @Override
-    public Genre getGenreByTitle(String title) {
-        return genreRepository.findGenreByTitle(title)
-                .orElseThrow(() -> new RuntimeException("Genre not found"));
-    }
-
-    @Override
-    public Genre createGenre(GenreResponseDto genreResponseDto) {
-        return genreRepository.save(toEntity(new Genre(), genreResponseDto));
-    }
-
     private Genre toEntity(Genre genre, GenreResponseDto genreResponseDto) {
         genre.setTitle(genreTitleValidated(genre, genreResponseDto.getTitle()));
         return genre;
@@ -48,16 +37,6 @@ public class GenreServiceImpl implements GenreService {
             throw new RuntimeException("Genre with title " + title + " already exists");
         }
         return title;
-    }
-
-    @Override
-    public void deleteGenre(Long id) {
-        genreRepository.delete(getGenreById(id));
-    }
-
-    @Override
-    public void updateGenre(long id, GenreResponseDto genreResponseDto) {
-        toEntity(getGenreById(id), genreResponseDto);
     }
 
     public Genre autoCreateGenre(String title) {

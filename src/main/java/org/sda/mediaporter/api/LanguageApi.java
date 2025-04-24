@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LanguageApi {
-    private ApiConnect theMovieDb;
-    private final String apiKey = "7c97b163195d9428522398e8f1c32f63";
+    private final ApiConnect theMovieDb;
 
     public LanguageApi() {
-        String url = String.format("https://api.themoviedb.org/3/configuration/languages?api_key=%s",this.apiKey);
+        String apiKey = "7c97b163195d9428522398e8f1c32f63";
+        String url = String.format("https://api.themoviedb.org/3/configuration/languages?api_key=%s", apiKey);
         this.theMovieDb = new ApiConnect(url);
     }
 

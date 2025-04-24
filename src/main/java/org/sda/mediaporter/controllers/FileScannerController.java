@@ -1,7 +1,6 @@
 package org.sda.mediaporter.controllers;
 
 import org.sda.mediaporter.Servicies.FileScannerService;
-import org.sda.mediaporter.Servicies.MovieService;
 import org.sda.mediaporter.models.Movie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

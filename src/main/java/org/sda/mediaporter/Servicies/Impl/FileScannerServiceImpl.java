@@ -56,7 +56,7 @@ public class FileScannerServiceImpl implements FileScannerService {
                 System.out.println("title: " + title + " year: " + this.year);
                 this.movie = movieService.getMovieByTitle(title, this.year);
                 return true;
-            }catch (JSONException e){
+            }catch (JSONException ignored){
 
             }
         }
@@ -76,7 +76,7 @@ public class FileScannerServiceImpl implements FileScannerService {
             if(year(element) != null){
                 this.year = year(element);
             }
-        }return titleElements.toArray(new String[titleElements.size()]);
+        }return titleElements.toArray(new String[0]);
     }
 
     //words that can't be title

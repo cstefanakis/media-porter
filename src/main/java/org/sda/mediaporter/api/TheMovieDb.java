@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TheMovieDb {
-    private ApiConnect theMovieDb;
+    private final ApiConnect theMovieDb;
     private final String apiKey = "7c97b163195d9428522398e8f1c32f63";
     private String search;
     private int resultsObjectIndex;

@@ -21,14 +21,10 @@ public class LanguageServiceImpl implements LanguageService {
     @Override
     public Language autoCreateLanguageByTitle(String title) {
         Optional <Language> optional = languageRepository.findByTitle(title);
-        if(optional.isPresent()) {
-            return optional.get();
-        }
-        return languageRepository.save(Objects.requireNonNull(findLanguageByTitle(title)));
+        return optional.orElseGet(() -> languageRepository.save(Objects.requireNonNull(findLanguageByTitle(title))));
     }
 
     private Language findLanguageByTitle(String title) {
-        title.replace(" ", "");
         List<Language> languages = new LanguageApi().getLanguages();
         for(Language language : languages) {
             if(language.getEnglishTitle().equalsIgnoreCase(title)) {

@@ -1,9 +1,6 @@
 package org.sda.mediaporter.api;
 
 import org.json.JSONObject;
-import org.sda.mediaporter.models.Genre;
-import org.sda.mediaporter.models.Movie;
-import org.sda.mediaporter.models.TvShow;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -24,10 +21,8 @@ public class OmdbApi {
 
     private String url(String movieTitle, Integer movieYear){
         if(movieYear == null){
-            System.out.println(String.format("https://www.omdbapi.com/?t=%s&apikey=%s", search(movieTitle), this.apiKey));
             return String.format("https://www.omdbapi.com/?t=%s&apikey=%s", search(movieTitle), this.apiKey);
         }
-        System.out.println(String.format("https://www.omdbapi.com/?t=%s+&y=%s&apikey=%s", search(movieTitle), movieYear, this.apiKey));
         return String.format("https://www.omdbapi.com/?t=%s+&y=%s&apikey=%s", search(movieTitle), movieYear, this.apiKey);
     }
 

@@ -60,4 +60,5 @@ public class Movie {
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
     private List<Language> languages = new ArrayList<>();
+    private String path;
 }

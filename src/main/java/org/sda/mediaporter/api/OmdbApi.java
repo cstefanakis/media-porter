@@ -8,7 +8,6 @@ import org.sda.mediaporter.models.TvShow;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,8 +24,10 @@ public class OmdbApi {
 
     private String url(String movieTitle, Integer movieYear){
         if(movieYear == null){
+            System.out.println(String.format("https://www.omdbapi.com/?t=%s&apikey=%s", search(movieTitle), this.apiKey));
             return String.format("https://www.omdbapi.com/?t=%s&apikey=%s", search(movieTitle), this.apiKey);
         }
+        System.out.println(String.format("https://www.omdbapi.com/?t=%s+&y=%s&apikey=%s", search(movieTitle), movieYear, this.apiKey));
         return String.format("https://www.omdbapi.com/?t=%s+&y=%s&apikey=%s", search(movieTitle), movieYear, this.apiKey);
     }
 
@@ -51,67 +52,98 @@ public class OmdbApi {
     }
 
     public LocalDate getReleasedDate(){
-        String date = rootObject().getString("Released");
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
-        return LocalDate.parse(date, formatter);
+
+            String date = rootObject().getString("Released");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
+            return LocalDate.parse(date, formatter);
+
     }
 
     public List<String> getGenre(){
-        List<String> genres = new ArrayList<>();
-        String[] apiGenres = rootObject().getString("Genre")
-                .replace(" ", "")
-                .split(",");
-        Collections.addAll(genres, apiGenres);
-        return genres;
+
+            List<String> genres = new ArrayList<>();
+            String[] apiGenres = rootObject().getString("Genre")
+                    .replace(" ", "")
+                    .split(",");
+            Collections.addAll(genres, apiGenres);
+            return genres;
+
     }
 
     public List<String> getDirector(){
-        String[] directors =  rootObject().getString("Director")
-                .split(",");
-        return Arrays.stream(directors).toList();
+        if(rootObject().has("Director")) {
+            String[] directors = rootObject().getString("Director")
+                    .split(",");
+            return Arrays.stream(directors).toList();
+        }
+        return Collections.emptyList();
     }
     public List<String> getWriter(){
-        String[] writers = rootObject().getString("Writer")
-                .replace(", ", ",")
-                .split(",");
-        return Arrays.stream(writers).toList();
+        if(rootObject().has("Writer")) {
+            String[] writers = rootObject().getString("Writer")
+                    .replace(", ", ",")
+                    .split(",");
+            return Arrays.stream(writers).toList();
+        }
+        return Collections.emptyList();
     }
 
     public List<String> getActors(){
-        String[] actors =  rootObject().getString("Actors")
-                .replace(", ", ",")
-                .split(",");
-        return Arrays.stream(actors).toList();
+        if(rootObject().has("Actors")){
+            String[] actors =  rootObject().getString("Actors")
+                    .replace(", ", ",")
+                    .split(",");
+            return Arrays.stream(actors).toList();
+        }
+        return Collections.emptyList();
     }
 
     public String getPlot(){
-        return rootObject().getString("Plot");
+        if(rootObject().has("Plot")){
+            return rootObject().getString("Plot");
+        }
+        return null;
     }
 
     public List<String> getLanguages(){
-        String[] languages = rootObject().getString("Language")
-                .replace(" ", "")
-                .split(",");
-        return Arrays.stream(languages).toList();
+            String[] languages = rootObject().getString("Language")
+                    .replace(" ", "")
+                    .split(",");
+            return Arrays.asList(languages);
     }
 
     public String getCountry(){
-        return  rootObject().getString("Country");
+        if(rootObject().has("Country")) {
+            return rootObject().getString("Country");
+        }
+        return null;
     }
 
     public String getPoster(){
-        return  rootObject().getString("Poster");
+        if(rootObject().has("Poster")) {
+            return rootObject().getString("Poster");
+        }
+        return null;
     }
     public Double getImdbRating(){
-        return  rootObject().getDouble("imdbRating");
+        if(rootObject().has("imdbRating")){
+            return  rootObject().getDouble("imdbRating");
+        }
+        return null;
     }
 
     public String getType(){
-        return  rootObject().getString("Type");
+        if(rootObject().has("Type")){
+            return  rootObject().getString("Type");
+        }
+        return null;
     }
 
     public String getBoxOffice(){
-        return  rootObject().getString("BoxOffice");
+        if(rootObject().has("BoxOffice")){
+            return  rootObject().getString("BoxOffice");
+        }
+        return null;
     }
 
 }

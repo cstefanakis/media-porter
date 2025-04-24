@@ -38,7 +38,8 @@ public class TheMovieDb {
     }
 
     private JSONArray results(){
-        return rootObject().getJSONArray("results");
+        String key = "results";
+        return rootObject().getJSONArray(key);
     }
 
     private int fileIndex(Integer year){
@@ -46,7 +47,7 @@ public class TheMovieDb {
             return 0;
         }
         for(int i = 0; i < results().length(); i++){
-            if(year == LocalDate.parse(realiseDate(i), theMovieDBFormatter()).getYear()){
+            if(year == LocalDate.parse(realiseDate(), theMovieDBFormatter()).getYear()){
                 return i;
             }
         }
@@ -54,29 +55,27 @@ public class TheMovieDb {
     }
 
     public String getOriginalTitle(){
+        String key = "original_title";
         if (results().isEmpty()) {
             return this.search;
         }
-        return resultsIndexJsonObject(0)
-                .getString("original_title");
-    }
-
-    private JSONObject resultsIndexJsonObject(int index){
-        return results().getJSONObject(index);
+        return jsonStringObjectResult(key);
     }
 
     public String getOverview(){
+        String key = "overview";
         return results()
                 .getJSONObject(0)
                 .getString("overview");
     }
 
-    private String realiseDate(int index){
-        return resultsIndexJsonObject(index).getString("release_date");
+    private String realiseDate(){
+        String key = "release_date";
+        return jsonStringObjectResult(key);
     }
 
     public LocalDate getReleaseDate(){
-        return LocalDate.parse(realiseDate(this.resultsObjectIndex), theMovieDBFormatter());
+        return LocalDate.parse(realiseDate(), theMovieDBFormatter());
     }
 
     public Integer getYear(){
@@ -84,21 +83,21 @@ public class TheMovieDb {
     }
 
     public String getTitle(){
-        return resultsIndexJsonObject(this.resultsObjectIndex)
-                .getString("title");
+        String key = "title";
+        return jsonStringObjectResult(key);
     }
 
     public List<String> getLanguages(){
-        String[] languages =resultsIndexJsonObject(this.resultsObjectIndex)
-                .getString("original_language")
+        String key = "original_language";
+        String[] languages =jsonStringObjectResult(key)
                 .replace(" ", "")
                 .split(",");
         return Arrays.stream(languages).collect(Collectors.toList());
     }
 
     public Double getRating(){
-        return resultsIndexJsonObject(this.resultsObjectIndex)
-                .getDouble("vote_average");
+        String key = "vote_average";
+        return jsonDoubleObjectResult(key);
     }
 
     private DateTimeFormatter theMovieDBFormatter(){
@@ -106,9 +105,8 @@ public class TheMovieDb {
     }
 
     public String getPoster(){
-        String poster = results()
-                .getJSONObject(0)
-                .getString("poster_path");
+        String key = "poster_path";
+                String poster = jsonStringObjectResult(key);
         return "https://image.tmdb.org/t/p/w500"+poster;
     }
 
@@ -122,9 +120,10 @@ public class TheMovieDb {
     }
     
     private JSONArray genreIds(){
-        JSONObject movie = results().getJSONObject(0);
+        String key = "genre_ids";
+        JSONObject movie = results().getJSONObject(resultsObjectIndex);
         return movie
-                .getJSONArray("genre_ids");
+                .getJSONArray(key);
     }
 
     private Map<Integer, String> genreIdsMap(){
@@ -152,20 +151,50 @@ public class TheMovieDb {
     }
 
     public String getContributorName(){
-        return results().getJSONObject(0)
-                .getString("original_name");
+        String key = "original_name";
+        return jsonStringObjectResult(key);
     }
 
     public String getContributorPoster(){
-        String path =  results().getJSONObject(0)
-                .getString("profile_path");
-        return "https://image.tmdb.org/t/p/w500"+path;
+        String key = "profile_path";
+        if(checkJsonObjectExists(key)) {
+            String path = jsonStringObjectResult(key);
+            return "https://image.tmdb.org/t/p/w500"+path;
+        }
+        return null;
+
     }
 
     public String getContributorWebsite(){
-        int id = results().getJSONObject(0)
-                .getInt("id");
-        return "https://www.themoviedb.org/person/"+id;
+        String key = "id";
+        if(checkJsonObjectExists(key)) {
+            int id = jsonIntegerObjectResult(key);
+            return "https://www.themoviedb.org/person/" + id;
+        }return null;
+    }
+
+    private Integer jsonIntegerObjectResult(String key){
+        return  resultsObjectIndexJsonObject()
+                .getInt(key);
+    }
+
+    private String jsonStringObjectResult(String key){
+       return  resultsObjectIndexJsonObject()
+                .getString(key);
+    }
+
+    private Double jsonDoubleObjectResult(String key){
+        return  resultsObjectIndexJsonObject()
+                .getDouble(key);
+    }
+
+    private boolean checkJsonObjectExists(String key){
+        return (resultsObjectIndexJsonObject().has(key) && !resultsObjectIndexJsonObject().isNull(key));
+    }
+
+    private JSONObject resultsObjectIndexJsonObject(){
+        return results()
+                .getJSONObject(this.resultsObjectIndex);
     }
 
 }

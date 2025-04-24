@@ -14,7 +14,6 @@ import org.sda.mediaporter.models.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +36,7 @@ public class MovieServiceImpl implements MovieService {
         try{
             return omdbApiToEntity(new Movie(), title, year);
         }catch (JSONException e){
+            System.out.println("JSONException: "+e.getMessage());
             return theMovieDbToEntity(new Movie(), title, year);
         }
     }
@@ -107,4 +107,6 @@ public class MovieServiceImpl implements MovieService {
         TheMovieDb theMovieDb = new TheMovieDb(title, year);
         return theMovieDb.getTitle();
     }
+
+
 }

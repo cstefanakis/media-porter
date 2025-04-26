@@ -34,12 +34,12 @@ public class ContributorServiceImpl implements ContributorService {
     @Override
     public Contributor autoCreateContributor(String fullName) {
         TheMovieDb apiContributor = new TheMovieDb(fullName);
-        Optional<Contributor> contributor = contributorRepository.findByFullName(fullName);
-        return contributor.orElseGet(() -> contributorRepository.save(generatedContributor(fullName)));
+        String contributorName = apiContributor.getContributorName();
+        Optional<Contributor> contributor = contributorRepository.findByFullName(contributorName);
+        return contributor.orElseGet(() -> contributorRepository.save(generatedContributor(apiContributor)));
     }
 
-    private Contributor generatedContributor(String fullName){
-        TheMovieDb apiContributor = new TheMovieDb(fullName);
+    private Contributor generatedContributor(TheMovieDb apiContributor){
         Contributor contributor = new Contributor();
         contributor.setFullName(apiContributor.getContributorName());
         contributor.setPoster(apiContributor.getContributorPoster());

@@ -50,7 +50,10 @@ public class OmdbApi {
 
             String date = rootObject().getString("Released");
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
-            return LocalDate.parse(date, formatter);
+            if (date != null && !date.isEmpty() && !date.equalsIgnoreCase("N/A")){
+                return LocalDate.parse(date, formatter);
+            }
+            return null;
 
     }
 

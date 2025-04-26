@@ -1,12 +1,13 @@
 package org.sda.mediaporter.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -19,4 +20,8 @@ public class Language {
     private String title;
     private String code;
     private String englishTitle;
+
+    @ManyToMany(mappedBy = "languages", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<Movie> movies = new ArrayList<>();
 }

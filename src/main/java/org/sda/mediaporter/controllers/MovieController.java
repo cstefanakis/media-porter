@@ -19,7 +19,7 @@ public class MovieController {
     public ResponseEntity <Movie> getMovieByTitle(
             @RequestParam String title,
             @RequestParam(required = false) Integer year) {
-        Movie movie = movieService.getMovieByTitle(title, year);
+        Movie movie = movieService.getMovieFromApiByTitle(title, year);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 }

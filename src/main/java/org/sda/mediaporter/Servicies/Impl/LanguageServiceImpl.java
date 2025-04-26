@@ -7,7 +7,6 @@ import org.sda.mediaporter.repositories.LanguageRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -20,27 +19,40 @@ public class LanguageServiceImpl implements LanguageService {
 
     @Override
     public Language autoCreateLanguageByTitle(String title) {
-        Optional <Language> optional = languageRepository.findByTitle(title);
-        return optional.orElseGet(() -> languageRepository.save(Objects.requireNonNull(findLanguageByTitle(title))));
+        Optional<Language> optional = languageRepository.findByTitle(title.trim().toLowerCase());
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+
+        Language language = findLanguageByTitle(title);
+        if (language != null) {
+            return languageRepository.save(language);
+        }
+        return null;
     }
 
     private Language findLanguageByTitle(String title) {
         List<Language> languages = new LanguageApi().getLanguages();
-        for(Language language : languages) {
-            if(language.getEnglishTitle().equalsIgnoreCase(title)) {
-                return language;
-            }
-        }return null;
+        return languages.stream().filter(l -> l.getEnglishTitle().equalsIgnoreCase(title)).findFirst().orElse(null);
     }
 
     private Language findLanguageByCode(String code) {
         List<Language> languages = new LanguageApi().getLanguages();
-        return languages.stream().filter(l -> l.getCode().equals(code)).toList().getFirst();
+        return languages.stream().filter(l -> l.getCode().trim().equals(code.trim())).toList().getFirst();
     }
 
     @Override
     public Language autoCreateLanguageByCode(String code) {
-       Optional<Language> optional = languageRepository.findByCode(code);
-       return optional.orElseGet(() -> languageRepository.save(findLanguageByCode(code)));
+        Optional<Language> optional = languageRepository.findByCode(code.trim().toLowerCase());
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+
+        Language language = findLanguageByCode(code);
+        if (language != null) {
+            return languageRepository.save(language);
+        }
+
+       return null;
     }
 }

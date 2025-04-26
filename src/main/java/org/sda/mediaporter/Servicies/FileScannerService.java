@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface FileScannerService {
     List<Path> files(String path);
-    List<Movie> scannedMoviesPath (String path);
+    void scannedMoviesPath (String path);
 }

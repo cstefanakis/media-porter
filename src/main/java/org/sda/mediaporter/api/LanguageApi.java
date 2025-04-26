@@ -16,7 +16,7 @@ public class LanguageApi {
         this.theMovieDb = new ApiConnect(url);
     }
 
-    private JSONArray rootObject(){
+        private JSONArray rootObject(){
         return new JSONArray(this.theMovieDb.getJsonString());
     }
 

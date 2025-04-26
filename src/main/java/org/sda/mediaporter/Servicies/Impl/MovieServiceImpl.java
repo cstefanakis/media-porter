@@ -11,9 +11,13 @@ import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.repositories.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,22 +27,50 @@ public class MovieServiceImpl implements MovieService {
     private final GenreService genreService;
     private final ContributorService contributorService;
     private final LanguageService languageService;
+    private final MovieRepository movieRepository;
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
+        this.movieRepository = movieRepository;
     }
 
     @Override
-    public Movie getMovieByTitle(String title, Integer year) {
+    public Movie getMovieFromApiByTitle(String title, Integer year) {
         try{
             return omdbApiToEntity(new Movie(), title, year);
         }catch (JSONException e){
             System.out.println("JSONException: "+e.getMessage());
             return theMovieDbToEntity(new Movie(), title, year);
         }
+    }
+
+    @Override
+    public Movie getMovieById(Long movieId) {
+        return movieRepository.findById(movieId).orElseThrow(() -> new RuntimeException(String.format("Movie with id %s not found", movieId)));
+    }
+
+    @Override
+    public void deleteMovieById(Long id) {
+        Movie movie = getMovieById(id);
+        deleteFile(movie.getPath());
+        movieRepository.delete(movie);
+    }
+
+    private void deleteFile(String pathStr){
+        Path path = Path.of(pathStr);
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Cannot delete file: %s", pathStr));
+        }
+    }
+
+    private boolean isFileExists(String pathStr){
+        Path path = Path.of(pathStr);
+        return Files.exists(path);
     }
 
     private Movie omdbApiToEntity(Movie movie, String title, Integer year){
@@ -107,6 +139,4 @@ public class MovieServiceImpl implements MovieService {
         TheMovieDb theMovieDb = new TheMovieDb(title, year);
         return theMovieDb.getTitle();
     }
-
-
 }

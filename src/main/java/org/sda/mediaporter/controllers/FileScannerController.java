@@ -18,10 +18,15 @@ public class FileScannerController {
         this.fileScannerService = fileScannerService;
     }
 
-    @GetMapping("/movies")
-    public ResponseEntity<List<Movie>> getScannedMovies (@RequestParam String path) {
-        List<Movie> movies =  fileScannerService.scannedMoviesPath(path);
-        return ResponseEntity.ok(movies);
+    @PostMapping("/movies")
+    public ResponseEntity<Void> createMovies (@RequestParam String path) {
+        fileScannerService.scannedMoviesPath(path);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/generate-download-movies/")
+    public ResponseEntity<Void> generateDownloadMovies (@RequestParam String path) {
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/files")

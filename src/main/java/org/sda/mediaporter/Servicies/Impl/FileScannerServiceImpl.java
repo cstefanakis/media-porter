@@ -4,6 +4,7 @@ import org.json.JSONException;
 import org.sda.mediaporter.Servicies.FileScannerService;
 import org.sda.mediaporter.Servicies.MovieService;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.repositories.MovieRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,9 +20,11 @@ import java.util.List;
 public class FileScannerServiceImpl implements FileScannerService {
 
     private final MovieService movieService;
+    private final MovieRepository movieRepository;
 
-    public FileScannerServiceImpl(MovieService movieService) {
+    public FileScannerServiceImpl(MovieService movieService, MovieRepository movieRepository) {
         this.movieService = movieService;
+        this.movieRepository = movieRepository;
     }
 
     private Integer year;
@@ -33,18 +36,14 @@ public class FileScannerServiceImpl implements FileScannerService {
     }
 
     @Override
-    public List<Movie> scannedMoviesPath(String path) {
-        List<Movie> movies = new ArrayList<>();
+    public void scannedMoviesPath(String path) {
         List<Path> files = videoFiles(path);
         for (Path file : files) {
-            if(checkMovie(title(file.getFileName().toString()))){
+            if (checkMovie(title(file.getFileName().toString()))) {
                 this.movie.setPath(file.toString().replace(path, ""));
             }
-            movies.add(movie);
-            System.out.println(movie);
-            System.out.println("saved year: "+this.year);
+            movieRepository.save(movie);
         }
-        return movies;
     }
 
     //try to find movie in api
@@ -54,7 +53,7 @@ public class FileScannerServiceImpl implements FileScannerService {
             try{
                 String title = String.join(" ",subArray);
                 System.out.println("title: " + title + " year: " + this.year);
-                this.movie = movieService.getMovieByTitle(title, this.year);
+                this.movie = movieService.getMovieFromApiByTitle(title, this.year);
                 return true;
             }catch (JSONException ignored){
 
@@ -70,7 +69,12 @@ public class FileScannerServiceImpl implements FileScannerService {
         for (int i = 0; i < splittedFilename(filename).length; i++) {
             String element = splittedFilename(filename)[i];
             if(!yearMatched(element) &&
-                    !resolutionMatches(element) && !noTitleWords(element)){
+                    !resolutionMatches(element) &&
+                    !elementFilter(noTitleWords(), element) &&
+                    !elementFilter(codecs(),element) &&
+                    !elementFilter(languageCodes(), element) &&
+                    !elementFilter(videoExtensions(), element)
+            ){
                 titleElements.add(element);
             }
             if(year(element) != null){
@@ -80,14 +84,31 @@ public class FileScannerServiceImpl implements FileScannerService {
     }
 
     //words that can't be title
-    private boolean noTitleWords(String filename){
-        String [] words = {"cz", "cze", "en", "eng", "dabing", "czdab"};
-        for(String element : words){
-            if(filename.equalsIgnoreCase(element)){
+    private boolean elementFilter(String[] ignoredStrings, String fileElement){
+        for(String element : ignoredStrings){
+            if(fileElement.trim().equalsIgnoreCase(element)){
                 return true;
             }
         }return false;
     }
+
+    private String[] noTitleWords(){
+        return new String[] {"dabing", "czdab", "genres"};
+    }
+
+    private String[] codecs(){
+        return new String[] {"H.264","x264","AVC", "H.265", "AV1", "VP9", "VP8", "MPEG-2", "MPEG-4", "Xvid", "DivX","EAC3", "AAC", "MP3", "FLAC", "ALAC", "Opus", "Vorbis", "PCM", "WMA", "AC-3","AC3", "DTS"};
+    }
+
+    private String[] languageCodes(){
+        return new String[] {"en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ko",
+                "ar", "hi", "tr", "pl", "nl", "sv", "fi", "no", "da", "el",
+                "cs", "ro", "hu", "th", "id", "he", "uk", "vi", "ms", "fa", "bn",
+                "eng", "spa", "fra", "deu", "ita", "por", "rus", "zho", "jpn", "kor",
+                "ara", "hin", "tur", "pol", "nld", "swe", "fin", "nor", "dan", "ell",
+                "ces", "ron", "hun", "tha", "ind", "heb", "ukr", "vie", "msa", "fas", "ben"};
+    }
+
 
     //find resolution
     private boolean resolutionMatches(String resolution){
@@ -141,4 +162,5 @@ public class FileScannerServiceImpl implements FileScannerService {
     private String[] videoExtensions(){
         return new String[] {".mp4",".mkv",".avi",".mov",".wmv",".flv",".webm",".mpeg",".mpg",".m4v",".3gp",".ts",".vob"};
     }
+
 }

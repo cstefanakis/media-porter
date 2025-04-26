@@ -47,11 +47,12 @@ public class TheMovieDb {
             return 0;
         }
         for(int i = 0; i < results().length(); i++){
-            if(year == LocalDate.parse(realiseDate(), theMovieDBFormatter()).getYear()){
-                return i;
+            if(checkYear(i) !=null && !checkYear(i).isEmpty()) {
+                if (year == LocalDate.parse(checkYear(i), theMovieDBFormatter()).getYear()) {
+                    return i;
+                }
             }
-        }
-        return 0;
+        }return 0;
     }
 
     public String getOriginalTitle(){
@@ -65,20 +66,35 @@ public class TheMovieDb {
     public String getOverview(){
         String key = "overview";
         return results()
-                .getJSONObject(0)
-                .getString("overview");
+                .getJSONObject(this.resultsObjectIndex)
+                .getString(key);
+    }
+
+    private String checkYear(int index){
+        String key = "release_date";
+        return results()
+                .getJSONObject(index)
+                .optString(key);
     }
 
     private String realiseDate(){
         String key = "release_date";
-        return jsonStringObjectResult(key);
+        return results()
+                .getJSONObject(this.resultsObjectIndex)
+                .getString(key);
     }
 
     public LocalDate getReleaseDate(){
+        if(realiseDate() == null || realiseDate().isEmpty()) {
+            return null;
+        }
         return LocalDate.parse(realiseDate(), theMovieDBFormatter());
     }
 
     public Integer getYear(){
+        if(getReleaseDate() == null){
+            return null;
+        }
         return getReleaseDate().getYear();
     }
 

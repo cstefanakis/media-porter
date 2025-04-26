@@ -11,9 +11,9 @@ import java.util.Optional;
 @Repository
 public interface LanguageRepository extends JpaRepository<Language, Long> {
 
-    @Query("select l from Language l where l.title = :title")
+    @Query("select l from Language l where l.englishTitle = :title")
     Optional<Language> findByTitle(@Param("title") String title);
 
-    @Query("select l from Language l where l.code = :code")
+    @Query("select l from Language l where lower(trim(l.code)) = :code")
     Optional<Language> findByCode(@Param("code") String code);
 }

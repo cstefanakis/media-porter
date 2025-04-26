@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @Entity
@@ -22,6 +23,7 @@ public class Movie {
     private Integer year;
     private Double rating;
     private LocalDate releaseDate;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name= "movie_genres",
@@ -29,36 +31,43 @@ public class Movie {
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
     private List<Genre> genres = new ArrayList<>();
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_directors",
             joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn (name = "director_id")
+            inverseJoinColumns = @JoinColumn(name = "director_id")
     )
     private List<Contributor> directors = new ArrayList<>();
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_writers",
             joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn (name = "writer_id")
+            inverseJoinColumns = @JoinColumn(name = "writer_id")
     )
-    private List<Contributor> writers;
+    private List<Contributor> writers = new ArrayList<>();
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_actors",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "actor_id")
     )
-    private List<Contributor> actors;
+    private List<Contributor> actors = new ArrayList<>();
+
+    @Column(columnDefinition = "TEXT")
     private String plot;
     private String country;
     private String poster;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "movie_laguages",
+            name = "movie_languages",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
     private List<Language> languages = new ArrayList<>();
+
     private String path;
 }

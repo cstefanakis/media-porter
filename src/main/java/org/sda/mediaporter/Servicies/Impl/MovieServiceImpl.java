@@ -1,5 +1,6 @@
 package org.sda.mediaporter.Servicies.Impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.json.JSONException;
 import org.sda.mediaporter.Servicies.ContributorService;
 import org.sda.mediaporter.Servicies.GenreService;
@@ -20,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MovieServiceImpl implements MovieService {
@@ -49,7 +51,18 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public Movie getMovieById(Long movieId) {
-        return movieRepository.findById(movieId).orElseThrow(() -> new RuntimeException(String.format("Movie with id %s not found", movieId)));
+        Optional<Movie> movieOptional =  movieRepository.findById(movieId);
+        if (movieOptional.isPresent()){
+            if(isFileExists(movieOptional.get().getPath())){
+                return movieOptional.get();
+            }deleteFile(movieOptional.get().getPath());
+        }throw new EntityNotFoundException(String.format("Movie with id %s not found", movieId));
+    }
+
+    @Override
+    public Movie getMovieByPath(String moviePath) {
+        return movieRepository.findByPath(moviePath).orElseThrow(() -> new EntityNotFoundException(String.format("Movie with path %s not found", moviePath)));
+
     }
 
     @Override

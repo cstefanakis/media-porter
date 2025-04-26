@@ -1,7 +1,7 @@
 package org.sda.mediaporter.Servicies.Impl;
 
 import org.json.JSONException;
-import org.sda.mediaporter.Servicies.FileScannerService;
+import org.sda.mediaporter.Servicies.FileService;
 import org.sda.mediaporter.Servicies.MovieService;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.repositories.MovieRepository;
@@ -17,12 +17,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class FileScannerServiceImpl implements FileScannerService {
+public class FileServiceImpl implements FileService {
 
     private final MovieService movieService;
     private final MovieRepository movieRepository;
 
-    public FileScannerServiceImpl(MovieService movieService, MovieRepository movieRepository) {
+    public FileServiceImpl(MovieService movieService, MovieRepository movieRepository) {
         this.movieService = movieService;
         this.movieRepository = movieRepository;
     }
@@ -44,6 +44,67 @@ public class FileScannerServiceImpl implements FileScannerService {
             }
             movieRepository.save(movie);
         }
+    }
+
+    @Override
+    public void copyFile(Path fromPath, Path toPath) {
+            if(Files.exists(toPath) && isSameSizeBetweenTowFiles(fromPath,toPath)){
+                try {
+                    Files.copy(fromPath, toPath);
+                } catch (IOException e) {
+                    throw new RuntimeException(String.format("Failed to copy file %s to %s", fromPath, toPath));
+                }
+            }
+    }
+
+    private boolean isSameSizeBetweenTowFiles(Path file1, Path file2)  {
+        try {
+            if (Files.size(file1) ==  Files.size(file2)){
+                return true;
+            }
+        } catch (IOException e) {
+            return false;
+        }
+        return false;
+    }
+
+    @Override
+    public void deleteFile(Path path) {
+        try {
+            Files.delete(path);
+        }catch (IOException e){
+            throw new RuntimeException(String.format("Failed to delete %s", path));
+        }
+    }
+
+    @Override
+    public void moveFile(Path fromPath, Path pathWithoutFileName) {
+        Path newFullPath = pathWithoutFileName.resolve(fromPath);
+        if(!Files.exists(newFullPath)){
+            try {
+                Files.copy(fromPath, newFullPath);
+            } catch (IOException e) {
+                throw new RuntimeException(String.format("Failed to move file %s to %s", fromPath, newFullPath));
+            }
+        }
+    }
+
+    @Override
+    public void renameFile(Path filePath, String newName) {
+        String newNameWithExtension = newName.trim() + getFileExtensionWithDot(filePath);
+            try {
+                Files.move(filePath, filePath.resolveSibling(newName + newNameWithExtension));
+            } catch (IOException e) {
+                throw new RuntimeException(String.format("Failed to rename file %s to %s", filePath.getFileName(), newNameWithExtension));
+            }
+    }
+
+    private String getFileExtensionWithDot(Path file) {
+        int dotIndex = file.getFileName().toString().lastIndexOf(".");
+        if(dotIndex > 0){
+            return file.getFileName().toString().substring(dotIndex);
+        }
+        return "";
     }
 
     //try to find movie in api

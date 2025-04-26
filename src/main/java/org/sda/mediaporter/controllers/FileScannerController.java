@@ -1,7 +1,6 @@
 package org.sda.mediaporter.controllers;
 
-import org.sda.mediaporter.Servicies.FileScannerService;
-import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.Servicies.FileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +11,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/file-scanner")
 public class FileScannerController {
-    private final FileScannerService fileScannerService;
+    private final FileService fileScannerService;
 
-    public FileScannerController(FileScannerService fileScannerService) {
+    public FileScannerController(FileService fileScannerService) {
         this.fileScannerService = fileScannerService;
     }
 

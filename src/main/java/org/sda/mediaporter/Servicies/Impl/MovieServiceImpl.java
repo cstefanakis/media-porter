@@ -2,12 +2,10 @@ package org.sda.mediaporter.Servicies.Impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.json.JSONException;
-import org.sda.mediaporter.Servicies.ContributorService;
-import org.sda.mediaporter.Servicies.GenreService;
-import org.sda.mediaporter.Servicies.LanguageService;
-import org.sda.mediaporter.Servicies.MovieService;
+import org.sda.mediaporter.Servicies.*;
 import org.sda.mediaporter.api.OmdbApi;
 import org.sda.mediaporter.api.TheMovieDb;
+import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
@@ -19,7 +17,11 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,13 +32,18 @@ public class MovieServiceImpl implements MovieService {
     private final ContributorService contributorService;
     private final LanguageService languageService;
     private final MovieRepository movieRepository;
+    private final FileService fileService;
+
+    private Integer year;
+    private Movie movie = new Movie();
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
         this.movieRepository = movieRepository;
+        this.fileService = fileService;
     }
 
     @Override
@@ -62,7 +69,6 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Movie getMovieByPath(String moviePath) {
         return movieRepository.findByPath(moviePath).orElseThrow(() -> new EntityNotFoundException(String.format("Movie with path %s not found", moviePath)));
-
     }
 
     @Override
@@ -70,6 +76,43 @@ public class MovieServiceImpl implements MovieService {
         Movie movie = getMovieById(id);
         deleteFile(movie.getPath());
         movieRepository.delete(movie);
+    }
+
+    @Override
+    public Movie moveMovie(Long movieId, Path toPathWithoutFileName) {
+        Movie movie = getMovieById(movieId);
+        Path moviePath = Path.of(movie.getPath());
+        Path destinationFullPath = toPathWithoutFileName.resolve(moviePath.getFileName());
+        fileService.moveFile(moviePath, destinationFullPath);
+        movie.setPath(destinationFullPath.toString());
+        movieRepository.save(movie);
+        return movie;
+    }
+
+    @Override
+    public Movie updateMovie(Long movieId, MovieUpdateDto movieUpdateDto) {
+        Movie movie = getMovieById(movieId);
+        Path moviePath = Path.of(movie.getPath());
+        fileService.renameFile(Path.of(movie.getPath()), movieUpdateDto.getTitle(), movieUpdateDto.getYear());
+        movieRepository.delete(movie);
+        Path renamedFullPath = fileService.renamedPath(moviePath, movieUpdateDto.getTitle(), movieUpdateDto.getYear());
+        Movie updatedMovie = organizeMovieByPath(renamedFullPath);
+        updatedMovie.setPath(renamedFullPath.toString());
+        movieRepository.save(updatedMovie);
+        return movie;
+    }
+
+    @Override
+    public void copyMovie(Long movieId, Path toPathWithoutFileName) {
+        Movie movie = getMovieById(movieId);
+        Path moviePath = Path.of(movie.getPath());
+        Path destinationPath = toPathWithoutFileName.resolve(moviePath.getFileName());
+        fileService.copyFile(Path.of(movie.getPath()), destinationPath);
+        try {
+            Files.setLastModifiedTime(destinationPath, FileTime.from(Instant.now()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void deleteFile(String pathStr){
@@ -148,8 +191,153 @@ public class MovieServiceImpl implements MovieService {
         return movie;
     }
 
+    @Override
+    public List<Movie> organizedDownloadMovieFiles(Path moviesDownloadPath, Path destinationPath){
+        List<Path> files = fileService.getVideoFiles(moviesDownloadPath);
+        List<Movie> organizedMovies = new ArrayList<>();
+        for (Path file : files){
+            Movie movie = organizeMovieByPath(file);
+            generateDownloadMovieFile(movie, destinationPath);
+            movieRepository.save(movie);
+            organizedMovies.add(movie);
+        }
+        return organizedMovies;
+    }
+
+    @Override
+    public List<Movie> getMoviesFromPath(String path) {
+        Path movieFilePath = Path.of(path);
+        List<Path> videoFiles = fileService.getVideoFiles(movieFilePath);
+        List<Movie> movies = new ArrayList<>();
+        for (Path file : videoFiles) {
+            if (checkMovie(title(file.getFileName().toString()))) {
+                this.movie.setPath(file.toString());
+            }
+            movieRepository.save(movie);
+            movies.add(movie);
+        } return movies;
+    }
+
+    private void generateDownloadMovieFile(Movie movie, Path destinationPath){
+        Path moviePath = Path.of(movie.getPath());
+        String moviePathExtension = fileService.getFileExtensionWithDot(moviePath);
+        Path destinationFullPath = destinationPath.resolve(getGeneratedMovieFileName(movie) + moviePathExtension);
+        fileService.moveFile(moviePath, destinationFullPath);
+        movie.setPath(destinationFullPath.toString());
+    }
+
     private String getTitle(String title, Integer year){
         TheMovieDb theMovieDb = new TheMovieDb(title, year);
         return theMovieDb.getTitle();
     }
+
+    private String getGeneratedMovieFileName(Movie movie){
+        return String.format("%s (%s)", movie.getTitle(), movie.getYear());
+    }
+
+    public Movie organizeMovieByPath(Path path) {
+        if(checkMovie(title(path.getFileName().toString()))){
+            return this.movie;
+        }
+        return null;
+    }
+
+    //try to find movie in api
+    private boolean checkMovie(String[] titleElements) {
+        for (int i = titleElements.length-1; i > 0; i--) {
+            String[] subArray = Arrays.copyOfRange(titleElements, 0, i);
+            try{
+                String title = String.join(" ",subArray);
+                System.out.println("title: " + title + " year: " + this.year);
+                this.movie = getMovieFromApiByTitle(title, this.year);
+                return true;
+            }catch (JSONException ignored){
+
+            }
+        }
+        return false;
+    }
+
+    //create filtered splitted filename without year, resolution. no title words
+    private String[] title(String filename){
+        this.year = null;
+        List<String> titleElements = new ArrayList<>();
+        for (int i = 0; i < splittedFilename(filename).length; i++) {
+            String element = splittedFilename(filename)[i];
+            if(!yearMatched(element) &&
+                    !resolutionMatches(element) &&
+                    !elementFilter(noTitleWords(), element) &&
+                    !elementFilter(codecs(),element) &&
+                    !elementFilter(languageCodes(), element) &&
+                    !elementFilter(videoExtensions(), element)
+            ){
+                titleElements.add(element);
+            }
+            if(year(element) != null){
+                this.year = year(element);
+            }
+        }return titleElements.toArray(new String[0]);
+    }
+
+    //words that can't be title
+    private boolean elementFilter(String[] ignoredStrings, String fileElement){
+        for(String element : ignoredStrings){
+            if(fileElement.trim().equalsIgnoreCase(element)){
+                return true;
+            }
+        }return false;
+    }
+
+    private String[] noTitleWords(){
+        return new String[] {"dabing", "czdab", "genres"};
+    }
+
+    private String[] codecs(){
+        return new String[] {"H.264","x264","AVC", "H.265", "AV1", "VP9", "VP8", "MPEG-2", "MPEG-4", "Xvid", "DivX","EAC3", "AAC", "MP3", "FLAC", "ALAC", "Opus", "Vorbis", "PCM", "WMA", "AC-3","AC3", "DTS"};
+    }
+
+    private String[] languageCodes(){
+        return new String[] {"en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ko",
+                "ar", "hi", "tr", "pl", "nl", "sv", "fi", "no", "da", "el",
+                "cs", "ro", "hu", "th", "id", "he", "uk", "vi", "ms", "fa", "bn",
+                "eng", "spa", "fra", "deu", "ita", "por", "rus", "zho", "jpn", "kor",
+                "ara", "hin", "tur", "pol", "nld", "swe", "fin", "nor", "dan", "ell",
+                "ces", "ron", "hun", "tha", "ind", "heb", "ukr", "vie", "msa", "fas", "ben"};
+    }
+
+    //find resolution
+    private boolean resolutionMatches(String resolution){
+        return resolution.toLowerCase().matches("^[0-9].*p$");
+    }
+
+    //find year
+    private boolean yearMatched(String year){
+        return year.matches("^[0-9]{4}$");
+    }
+
+    //get year if string element is integer between 1900 and this year + 2
+    private Integer year(String element){
+        try {
+            int parsed = Integer.parseInt(element);
+            int currentYear = LocalDate.now().getYear();
+            if (parsed > 1900 && parsed < currentYear + 2) {
+                return parsed;
+            }
+        } catch (NumberFormatException ignored) {}
+        return null;
+    }
+
+    //replace special characters with space and split filename by space
+    private String[] splittedFilename(String filename){
+        return filename
+                .replaceAll("[!@#$%^&*()\\-_+=\\{\\}\\[\\]:;\"',.<>?/\\\\|+\\-*/%~^€©™®]", " ")
+                .trim()
+                .split("\\s+");
+    }
+
+    private String[] videoExtensions(){
+        return new String[] {".mp4",".mkv",".avi",".mov",".wmv",".flv",".webm",".mpeg",".mpg",".m4v",".3gp",".ts",".vob"};
+    }
+
+
 }

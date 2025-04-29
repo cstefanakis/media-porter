@@ -125,7 +125,11 @@ public class OmdbApi {
     }
     public Double getImdbRating(){
         if(rootObject().has("imdbRating")){
-            return  rootObject().getDouble("imdbRating");
+            String rate = rootObject().getString("imdbRating");
+            if (rate != null && !rate.isEmpty() && !rate.equalsIgnoreCase("N/A")){
+                return rootObject().getDouble("imdbRating");
+            }
+            return  null;
         }
         return null;
     }

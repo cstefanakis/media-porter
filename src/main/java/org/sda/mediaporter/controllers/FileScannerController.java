@@ -17,20 +17,10 @@ public class FileScannerController {
         this.fileScannerService = fileScannerService;
     }
 
-    @PostMapping("/movies")
-    public ResponseEntity<Void> createMovies (@RequestParam String path) {
-        fileScannerService.scannedMoviesPath(path);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/generate-download-movies/")
-    public ResponseEntity<Void> generateDownloadMovies (@RequestParam String path) {
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/files")
     public ResponseEntity<List<Path>> getScannedFiles (@RequestParam String path) {
+        Path filePath = Path.of(path);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(fileScannerService.files(path));
+                .body(fileScannerService.getVideoFiles(filePath));
     }
 }

@@ -1,29 +1,27 @@
 package org.sda.mediaporter.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.sda.mediaporter.models.enums.MediaTypes;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class Language {
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+public class Codec {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String title;
-    private String code;
-    private String englishTitle;
-
-    @ManyToMany(mappedBy = "languages", fetch = FetchType.LAZY)
-    @JsonBackReference
+    private String name;
+    @Enumerated(EnumType.STRING)
+    private MediaTypes mediaType;
+    @OneToMany(mappedBy = "videoCodec", fetch = FetchType.LAZY)
     private List<Movie> movies = new ArrayList<>();
 }

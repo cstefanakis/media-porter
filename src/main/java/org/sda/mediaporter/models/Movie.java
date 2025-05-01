@@ -68,6 +68,10 @@ public class Movie {
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
     private List<Language> languages = new ArrayList<>();
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "codec_id")
+    private Codec videoCodec;
+    @ManyToMany(fetch = FetchType.LAZY)
+    private List<Codec> audioCodecs = new ArrayList<>();
     private String path;
 }

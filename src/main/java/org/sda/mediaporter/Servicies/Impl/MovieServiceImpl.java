@@ -10,6 +10,7 @@ import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.enums.*;
 import org.sda.mediaporter.repositories.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class MovieServiceImpl implements MovieService {
@@ -235,6 +238,10 @@ public class MovieServiceImpl implements MovieService {
         return String.format("%s (%s)", movie.getTitle(), movie.getYear());
     }
 
+    private String getGeneratedMovieSubFolder(Movie movie){
+        return String.format("%s (%s)", movie.getTitle(), movie.getYear());
+    }
+
     public Movie organizeMovieByPath(Path path) {
         if(checkMovie(title(path.getFileName().toString()))){
             return this.movie;
@@ -260,49 +267,56 @@ public class MovieServiceImpl implements MovieService {
 
     //create filtered splitted filename without year, resolution. no title words
     private String[] title(String filename){
-        this.year = null;
+        this.year = getYearOfFileName(filename);
         List<String> titleElements = new ArrayList<>();
         for (int i = 0; i < splittedFilename(filename).length; i++) {
             String element = splittedFilename(filename)[i];
             if(!yearMatched(element) &&
                     !resolutionMatches(element) &&
-                    !elementFilter(noTitleWords(), element) &&
-                    !elementFilter(codecs(),element) &&
-                    !elementFilter(languageCodes(), element) &&
-                    !elementFilter(videoExtensions(), element)
+                    !isStampedWords(element) &&
+                    !isCodec(element) &&
+                    !isLanguageCode(element) &&
+                    !isExtension(element)
             ){
                 titleElements.add(element);
-            }
-            if(year(element) != null){
-                this.year = year(element);
             }
         }return titleElements.toArray(new String[0]);
     }
 
-    //words that can't be title
-    private boolean elementFilter(String[] ignoredStrings, String fileElement){
-        for(String element : ignoredStrings){
-            if(fileElement.trim().equalsIgnoreCase(element)){
+    //check if element is language code
+    private boolean isLanguageCode(String element){
+        for(LanguageCodes languageCode : LanguageCodes.values()){
+            if(element.equalsIgnoreCase(languageCode.getIso2()) || element.equalsIgnoreCase(languageCode.getIso3())){
                 return true;
             }
         }return false;
     }
 
-    private String[] noTitleWords(){
-        return new String[] {"dabing", "czdab", "genres"};
+    //check if element is codec
+    private boolean isCodec(String element){
+        for(Codecs codec : Codecs.values()){
+            if(element.equalsIgnoreCase(codec.getName())){
+                return true;
+            }
+        }return false;
     }
 
-    private String[] codecs(){
-        return new String[] {"H.264","x264","AVC", "H.265", "AV1", "VP9", "VP8", "MPEG-2", "MPEG-4", "Xvid", "DivX","EAC3", "AAC", "MP3", "FLAC", "ALAC", "Opus", "Vorbis", "PCM", "WMA", "AC-3","AC3", "DTS"};
+    //check if element is extension
+    private boolean isExtension(String element){
+        for(Extensions extension : Extensions.values()){
+            if(element.equalsIgnoreCase(extension.getName()) && extension.getMediaTypes().equals(MediaTypes.VIDEO)){
+                return true;
+            }
+        }return false;
     }
 
-    private String[] languageCodes(){
-        return new String[] {"en", "es", "fr", "de", "it", "pt", "ru", "zh", "ja", "ko",
-                "ar", "hi", "tr", "pl", "nl", "sv", "fi", "no", "da", "el",
-                "cs", "ro", "hu", "th", "id", "he", "uk", "vi", "ms", "fa", "bn",
-                "eng", "spa", "fra", "deu", "ita", "por", "rus", "zho", "jpn", "kor",
-                "ara", "hin", "tur", "pol", "nld", "swe", "fin", "nor", "dan", "ell",
-                "ces", "ron", "hun", "tha", "ind", "heb", "ukr", "vie", "msa", "fas", "ben"};
+    //check if element is stamped word
+    private boolean isStampedWords(String element){
+        for(StampedWords stampedWords : StampedWords.values()){
+            if(element.equalsIgnoreCase(stampedWords.getName())){
+                return true;
+            }
+        }return false;
     }
 
     //find resolution
@@ -312,32 +326,30 @@ public class MovieServiceImpl implements MovieService {
 
     //find year
     private boolean yearMatched(String year){
-        return year.matches("^[0-9]{4}$");
-    }
-
-    //get year if string element is integer between 1900 and this year + 2
-    private Integer year(String element){
-        try {
-            int parsed = Integer.parseInt(element);
-            int currentYear = LocalDate.now().getYear();
-            if (parsed > 1900 && parsed < currentYear + 2) {
-                return parsed;
-            }
-        } catch (NumberFormatException ignored) {}
-        return null;
+        return year.matches("\\b\\d{4}\\b");
     }
 
     //replace special characters with space and split filename by space
     private String[] splittedFilename(String filename){
         return filename
+                .replaceAll("\\[[^\\]]*\\]", "")
+                .replaceAll("\\([^\\)]*\\)", "")
                 .replaceAll("[!@#$%^&*()\\-_+=\\{\\}\\[\\]:;\"',.<>?/\\\\|+\\-*/%~^€©™®]", " ")
                 .trim()
                 .split("\\s+");
     }
 
-    private String[] videoExtensions(){
-        return new String[] {".mp4",".mkv",".avi",".mov",".wmv",".flv",".webm",".mpeg",".mpg",".m4v",".3gp",".ts",".vob"};
+    //get year of file name if exist
+    private Integer getYearOfFileName(String filename){
+        List<Integer> years = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\b\\d{4}\\b");
+        Matcher matcher = pattern.matcher(filename);
+        while (matcher.find()) {
+            years.add(Integer.parseInt(matcher.group()));
+        }
+        if (years.isEmpty()) {
+            return null;
+        }
+        return years.getLast();
     }
-
-
 }

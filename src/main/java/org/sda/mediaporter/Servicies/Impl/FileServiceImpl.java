@@ -136,20 +136,25 @@ public class FileServiceImpl implements FileService {
     }
 
     //get video codec from video file
-    public String getVideoCodecFromVideoPath(Path videoPath){
+    @Override
+    public Codec getVideoCodecFromVideoPath(Path videoPath){
         String videoFile = videoPath.toString();
-        return runCommand(new String[]{
+        Codec videoCodec = new Codec();
+        String codecName = runCommand(new String[]{
                 "ffprobe", "-v", "error", "-select_streams", "v:0",
                 "-show_entries", "stream=codec_name",
                 "-of", "default=noprint_wrappers=1:nokey=1",
                 videoFile});
+        videoCodec.setName(codecName);
+        videoCodec.setMediaType(MediaTypes.VIDEO);
+        return videoCodec;
     }
 
     //get audio codec from video file
     @Override
     public Map<Codec, Language> getAudiosCodecAndLanguageFromAudioPath(Path videoPath) {
         Map<Codec, Language> audioCodecAndLanguage = new HashMap<>();
-        String audio = getVideoCodecFromVideoPath(videoPath);
+        String audio = audioInfo(videoPath);
         String[] audios = audio.split("index=");
         for (String a : audios) {
             Codec codec = getGenerateCodecFromString(a);

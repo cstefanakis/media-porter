@@ -1,5 +1,6 @@
 package org.sda.mediaporter.Servicies;
 
+import org.sda.mediaporter.models.Audio;
 import org.sda.mediaporter.models.Codec;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
@@ -17,5 +18,6 @@ public interface FileService {
     String getFileExtensionWithDot(Path file);
     Path renamedPath(Path filePath, String newName, Integer year);
     List<Path> getVideoFilesOfSource(Path path);
-    Map<Codec, Language> getAudiosCodecAndLanguageFromAudioPath(Path videoPath);
+    List<Audio> getAudiosFromPath(Path videoPath);
+    Codec getVideoCodecFromVideoPath(Path videoPath);
 }

@@ -19,9 +19,10 @@ public class Language {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String title;
-    private String code;
     private String englishTitle;
+    private String originalTitle;
+    private String iso2;
+    private String iso3;
 
     @ManyToMany(mappedBy = "languages", fetch = FetchType.LAZY)
     @JsonBackReference

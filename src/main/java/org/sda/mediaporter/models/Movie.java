@@ -1,5 +1,7 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -70,8 +72,9 @@ public class Movie {
     private List<Language> languages = new ArrayList<>();
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "codec_id")
+    @JsonManagedReference
     private Codec videoCodec;
-    @ManyToMany(fetch = FetchType.LAZY)
-    private List<Codec> audioCodecs = new ArrayList<>();
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Audio> audios = new ArrayList<>();
     private String path;
 }

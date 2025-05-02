@@ -1,38 +1,38 @@
 package org.sda.mediaporter.Servicies.Impl;
 
 import org.sda.mediaporter.Servicies.FileService;
-import org.sda.mediaporter.Servicies.LanguageService;
-import org.sda.mediaporter.api.LanguageApi;
+import org.sda.mediaporter.models.Audio;
 import org.sda.mediaporter.models.Codec;
 import org.sda.mediaporter.models.Language;
-import org.sda.mediaporter.models.enums.Codecs;
 import org.sda.mediaporter.models.enums.Extensions;
 import org.sda.mediaporter.models.enums.LanguageCodes;
 import org.sda.mediaporter.models.enums.MediaTypes;
+import org.sda.mediaporter.repositories.AudioRepository;
+import org.sda.mediaporter.repositories.CodecRepository;
 import org.sda.mediaporter.repositories.LanguageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Service
 public class FileServiceImpl implements FileService {
 
-    private final LanguageService languageService;
     private final LanguageRepository languageRepository;
+    private final CodecRepository codecRepository;
+    private final AudioRepository audioRepository;
 
-    public FileServiceImpl(LanguageService languageService, LanguageRepository languageRepository) {
-        this.languageService = languageService;
+    @Autowired
+    public FileServiceImpl(LanguageRepository languageRepository, CodecRepository codecRepository, AudioRepository audioRepository) {
         this.languageRepository = languageRepository;
+        this.codecRepository = codecRepository;
+        this.audioRepository = audioRepository;
     }
 
     @Override
@@ -138,60 +138,70 @@ public class FileServiceImpl implements FileService {
     //get video codec from video file
     @Override
     public Codec getVideoCodecFromVideoPath(Path videoPath){
-        String videoFile = videoPath.toString();
-        Codec videoCodec = new Codec();
-        String codecName = runCommand(new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "v:0",
-                "-show_entries", "stream=codec_name",
-                "-of", "default=noprint_wrappers=1:nokey=1",
-                videoFile});
-        videoCodec.setName(codecName);
-        videoCodec.setMediaType(MediaTypes.VIDEO);
-        return videoCodec;
+        String codecName = videoCodec(videoPath);
+        return videoCodec(codecName);
     }
 
-    //get audio codec from video file
+    //create video codec from string
+    private Codec videoCodec(String codecName){
+        Optional<Codec> codecOptional = codecRepository.findByName(codecName);
+        if (codecOptional.isPresent()){
+            return codecOptional.get();
+        }else{
+            Codec videoCodec = Codec.builder()
+                    .name(codecName.trim())
+                    .mediaType(MediaTypes.VIDEO)
+                    .build();
+            return codecRepository.save(videoCodec);
+        }
+    }
+
     @Override
-    public Map<Codec, Language> getAudiosCodecAndLanguageFromAudioPath(Path videoPath) {
-        Map<Codec, Language> audioCodecAndLanguage = new HashMap<>();
-        String audio = audioInfo(videoPath);
-        String[] audios = audio.split("index=");
-        for (String a : audios) {
-            Codec codec = getGenerateCodecFromString(a);
-            Language language = getGenerateLanguageFromString(a);
-            audioCodecAndLanguage.put(codec, language);
-        }return audioCodecAndLanguage;
+    public List<Audio> getAudiosFromPath(Path videoPath){
+        List<Audio> audios = new ArrayList<>();
+        String audioInfo = audioInfo(videoPath);
+        String[] audioInfoArray = audioInfo.split("\n");
+        for(String audio : audioInfoArray){
+            String[] audioItems = audio.split(",");
+            audios.add(audioRepository.save(Audio.builder()
+                            .codec(createdCodecFromString(audioItems[1]))
+                            .channels(Integer.parseInt(audioItems[2]))
+                            .bitrate(Integer.parseInt(audioItems[3])/1000)
+                            .language(createdLanguageFromString(audioItems[4]))
+                    .build()));
+        }return audios;
     }
 
-    //get language from String
-    private Language getGenerateLanguageFromString(String ffmpeg){
-        for (LanguageCodes l : LanguageCodes.values()) {
-            if (ffmpeg.toLowerCase().contains(l.getIso3().toLowerCase())) {
-                Optional<Language> languageOptional = languageRepository.findByCode(l.getIso2().toLowerCase());
-                if (languageOptional.isPresent()) {
-                    return languageOptional.get();
+    private Codec createdCodecFromString(String codecName){
+        Optional<Codec> codecOptional = codecRepository.findByName(codecName);
+        if (codecOptional.isPresent()){
+            return codecOptional.get();
+        }else{
+            return codecRepository.save(
+                    Codec.builder()
+                            .name(codecName.trim())
+                            .mediaType(MediaTypes.AUDIO)
+                            .build()
+            );
+        }
+    }
 
-                } else {
-                    LanguageApi languageApi = new LanguageApi();
-                    List<Language> languages = languageApi.getLanguages();
-                    for (Language lang : languages) {
-                        if (lang.getCode().equalsIgnoreCase(l.getIso2().toLowerCase())) {
-                            return languageRepository.save(lang);
-                        }
-                    }
+    private Language createdLanguageFromString(String languageCode){
+        Optional <Language> languageOptional = languageRepository.findByCode(languageCode.trim().toLowerCase());
+        if (languageOptional.isPresent()){
+            return languageOptional.get();
+        }else{
+            for(LanguageCodes lc : LanguageCodes.values()){
+                if(lc.getIso3().equalsIgnoreCase(languageCode.trim()) || lc.getIso2().equalsIgnoreCase(languageCode.trim())){
+                    return languageRepository.save(
+                            Language.builder()
+                                    .englishTitle(lc.getEnglishTitle())
+                                    .originalTitle(lc.getOriginalTitle())
+                                    .iso2(lc.getIso2())
+                                    .iso3(lc.getIso3())
+                                    .build()
+                    );
                 }
-            }
-        }return null;
-    }
-
-    //get codec from String
-    private Codec getGenerateCodecFromString(String ffmpeg){
-        for (Codecs c : Codecs.values()) {
-            if (ffmpeg.toLowerCase().contains(c.name().toLowerCase())) {
-                return Codec.builder()
-                        .name(c.name())
-                        .mediaType(MediaTypes.AUDIO)
-                        .build();
             }
         }return null;
     }
@@ -200,9 +210,33 @@ public class FileServiceImpl implements FileService {
     private String audioInfo(Path videoPath){
         String videoFile = videoPath.toString();
         return  runCommand(new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "a",
-                "-show_entries", "stream=codec_name:stream_tags=language",
-                "-of", "default=noprint_wrappers=1",
+                "ffprobe",
+                "-v", "error",
+                "-select_streams", "a",
+                "-show_entries", "stream=index,codec_name,channels,bit_rate:stream_tags=language",
+                "-of", "csv=p=0",
+                videoFile
+        });
+    }
+
+    private String videoCodec(Path videoPath){
+        String videoFile = videoPath.toString();
+        return  runCommand(new String[]{
+                "ffprobe", "-v", "error", "-select_streams", "v:0",
+                "-show_entries", "stream=codec_name",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                videoFile
+        });
+    }
+
+    private String videoResolution(Path videoPath){
+        String videoFile = videoPath.toString();
+        return runCommand(new String[]{
+                "ffprobe",
+                "-v", "error",
+                "-select_streams", "v:0",
+                "-show_entries", "stream=width,height",
+                "-of", "csv=s=x:p=0",
                 videoFile
         });
     }
@@ -220,6 +254,7 @@ public class FileServiceImpl implements FileService {
             }
 
             process.waitFor();
+            System.out.println(output);
             return output.toString();
         }catch (IOException | InterruptedException e){
             throw new RuntimeException("not fount video command");

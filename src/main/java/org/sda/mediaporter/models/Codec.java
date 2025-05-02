@@ -1,5 +1,7 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,5 +25,6 @@ public class Codec {
     @Enumerated(EnumType.STRING)
     private MediaTypes mediaType;
     @OneToMany(mappedBy = "videoCodec", fetch = FetchType.LAZY)
+    @JsonBackReference
     private List<Movie> movies = new ArrayList<>();
 }

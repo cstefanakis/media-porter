@@ -75,7 +75,7 @@ public class MovieController {
     }
 
     @PostMapping("/create-movies-from-path")
-    public ResponseEntity<List<Movie>> getMoviesFromPath(@RequestParam String path) {
+    public ResponseEntity<List<Movie>> getMoviesFromPath(@RequestParam(name = "path") String path) {
         List<Movie> movies = movieService.getMoviesFromPath(path);
         return ResponseEntity.status(HttpStatus.OK).body(movies);
     }

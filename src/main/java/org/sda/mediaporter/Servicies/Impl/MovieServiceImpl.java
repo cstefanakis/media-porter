@@ -36,17 +36,19 @@ public class MovieServiceImpl implements MovieService {
     private final LanguageService languageService;
     private final MovieRepository movieRepository;
     private final FileService fileService;
+    private final AudioService audioService;
 
     private Integer year;
     private Movie movie = new Movie();
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
         this.movieRepository = movieRepository;
         this.fileService = fileService;
+        this.audioService = audioService;
     }
 
     @Override
@@ -215,12 +217,15 @@ public class MovieServiceImpl implements MovieService {
         for (Path file : videoFiles) {
             if (checkMovie(title(file.getFileName().toString()))) {
                 this.movie.setPath(file.toString());
-                this.movie.setVideoCodec(fileService);
+                this.movie.setVideoCodec(fileService.getVideoCodecFromVideoPath(file));
+                this.movie.setAudios(fileService.getAudiosFromPath(file));
             }
             movieRepository.save(movie);
             movies.add(movie);
         } return movies;
     }
+
+
 
     private void generateDownloadMovieFile(Movie movie, Path destinationPath){
         Path moviePath = Path.of(movie.getPath());

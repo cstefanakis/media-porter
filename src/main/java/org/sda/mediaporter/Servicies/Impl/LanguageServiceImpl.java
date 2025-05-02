@@ -1,8 +1,8 @@
 package org.sda.mediaporter.Servicies.Impl;
 
 import org.sda.mediaporter.Servicies.LanguageService;
-import org.sda.mediaporter.api.LanguageApi;
 import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.enums.LanguageCodes;
 import org.sda.mediaporter.repositories.LanguageRepository;
 import org.springframework.stereotype.Service;
 
@@ -31,14 +31,30 @@ public class LanguageServiceImpl implements LanguageService {
         return null;
     }
 
-    private Language findLanguageByTitle(String title) {
-        List<Language> languages = new LanguageApi().getLanguages();
-        return languages.stream().filter(l -> l.getEnglishTitle().equalsIgnoreCase(title)).findFirst().orElse(null);
+    private Language findLanguageByTitle(String englishTitle) {
+        for(LanguageCodes languageCode : LanguageCodes.values()) {
+            if(englishTitle.trim().equalsIgnoreCase(languageCode.getEnglishTitle())){
+                return Language.builder()
+                        .englishTitle(languageCode.getEnglishTitle())
+                        .originalTitle(languageCode.getOriginalTitle())
+                        .iso2(languageCode.getIso2())
+                        .iso3(languageCode.getIso3())
+                        .build();
+            }
+        }return null;
     }
 
     private Language findLanguageByCode(String code) {
-        List<Language> languages = new LanguageApi().getLanguages();
-        return languages.stream().filter(l -> l.getCode().trim().equals(code.trim())).toList().getFirst();
+        for(LanguageCodes languageCode : LanguageCodes.values()) {
+            if(code.trim().equalsIgnoreCase(languageCode.getIso2()) || code.trim().equalsIgnoreCase(languageCode.getEnglishTitle())){
+                return Language.builder()
+                        .englishTitle(languageCode.getEnglishTitle())
+                        .originalTitle(languageCode.getOriginalTitle())
+                        .iso3(languageCode.getIso2())
+                        .iso2(languageCode.getIso3())
+                        .build();
+            }
+        }return null;
     }
 
     @Override

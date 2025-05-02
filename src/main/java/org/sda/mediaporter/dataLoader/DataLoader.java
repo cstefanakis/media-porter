@@ -1,19 +1,11 @@
 package org.sda.mediaporter.dataLoader;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.sda.mediaporter.api.ApiConnect;
-import org.sda.mediaporter.api.LanguageApi;
-import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.repositories.ContributorRepository;
 import org.sda.mediaporter.repositories.GenreRepository;
 import org.sda.mediaporter.repositories.LanguageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class DataLoader implements CommandLineRunner {

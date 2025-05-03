@@ -29,13 +29,23 @@ public enum Codecs {
     WMA("WMA", MediaTypes.AUDIO),
     AC3("AC-3", MediaTypes.AUDIO),
     AC3_ALT("AC3", MediaTypes.AUDIO),
-    DTS("DTS", MediaTypes.AUDIO);
+    DTS("DTS", MediaTypes.AUDIO),
 
-    private final String name;
+    //Subtitles
+    SUBRIP("subrip", MediaTypes.SUBTITLE),
+    ASS("ass", MediaTypes.SUBTITLE),
+    SSA("ssa", MediaTypes.SUBTITLE),
+    MOV_TEXT("mov_text", MediaTypes.SUBTITLE),
+    WEBVTT("webvtt", MediaTypes.SUBTITLE),
+    DVB_SUBTITLE("dvb_subtitle", MediaTypes.SUBTITLE),
+    HDMV_PGS_SUBTITLE("hdmv_pgs_subtitle", MediaTypes.SUBTITLE),
+    DVD_SUBTITLE("dvd_subtitle", MediaTypes.SUBTITLE);
+
+    private final String codecName;
     private final MediaTypes mediaTypes;
 
-    Codecs(String name, MediaTypes mediaTypes) {
-        this.name = name;
+    Codecs(String codecName, MediaTypes mediaTypes) {
+        this.codecName = codecName;
         this.mediaTypes = mediaTypes;
     }
 

@@ -4,6 +4,7 @@ import org.sda.mediaporter.models.Audio;
 import org.sda.mediaporter.models.Codec;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.metadata.Video;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -18,6 +19,6 @@ public interface FileService {
     String getFileExtensionWithDot(Path file);
     Path renamedPath(Path filePath, String newName, Integer year);
     List<Path> getVideoFilesOfSource(Path path);
-    List<Audio> getAudiosFromPath(Path videoPath);
-    Codec getVideoCodecFromVideoPath(Path videoPath);
+    List<Audio> getAudiosInfoFromPath(Path videoPath);
+    Video getVideoInfoFromPath(Path videoPath);
 }

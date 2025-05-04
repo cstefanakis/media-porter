@@ -21,8 +21,9 @@ public class Language {
     private Long id;
     private String englishTitle;
     private String originalTitle;
-    private String iso2;
-    private String iso3;
+    private String iso6391;
+    private String iso6392B;
+    private String iso6392T;
 
     @ManyToMany(mappedBy = "languages", fetch = FetchType.LAZY)
     @JsonBackReference

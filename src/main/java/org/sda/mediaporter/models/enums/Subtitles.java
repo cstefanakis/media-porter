@@ -14,11 +14,11 @@ public enum Subtitles {
     DVD_SUBTITLE("dvd_subtitle", ".sub"),
     UNKNOWN("unknown", "");
 
-    private final String ffmpegName;
+    private final String fileFormat;
     private final String extension;
 
-    Subtitles(String ffmpegName, String extension) {
-        this.ffmpegName = ffmpegName;
+    Subtitles(String fileFormat, String extension) {
+        this.fileFormat = fileFormat;
         this.extension = extension;
     }
 }

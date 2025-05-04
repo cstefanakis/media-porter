@@ -292,7 +292,9 @@ public class MovieServiceImpl implements MovieService {
     //check if element is language code
     private boolean isLanguageCode(String element){
         for(LanguageCodes languageCode : LanguageCodes.values()){
-            if(element.equalsIgnoreCase(languageCode.getIso2()) || element.equalsIgnoreCase(languageCode.getIso3())){
+            if(element.equalsIgnoreCase(languageCode.getIso6391())
+                    || element.equalsIgnoreCase(languageCode.getIso6392T()) ||
+            element.equalsIgnoreCase(languageCode.getIso6392B())){
                 return true;
             }
         }return false;
@@ -301,7 +303,7 @@ public class MovieServiceImpl implements MovieService {
     //check if element is codec
     private boolean isCodec(String element){
         for(Codecs codec : Codecs.values()){
-            if(element.equalsIgnoreCase(codec.getName())){
+            if(element.equalsIgnoreCase(codec.getCodecName())){
                 return true;
             }
         }return false;

@@ -20,5 +20,5 @@ public class Subtitle {
     @ManyToOne
     private Language language;
     @ManyToOne
-    private Codec codec;
+    private Codec format;
 }

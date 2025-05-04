@@ -24,7 +24,4 @@ public class Codec {
     private String name;
     @Enumerated(EnumType.STRING)
     private MediaTypes mediaType;
-    @OneToMany(mappedBy = "videoCodec", fetch = FetchType.LAZY)
-    @JsonBackReference
-    private List<Movie> movies = new ArrayList<>();
 }

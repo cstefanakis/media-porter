@@ -4,6 +4,7 @@ import org.sda.mediaporter.models.Audio;
 import org.sda.mediaporter.models.Codec;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
 
 import java.nio.file.Path;
@@ -21,4 +22,5 @@ public interface FileService {
     List<Path> getVideoFilesOfSource(Path path);
     List<Audio> getAudiosInfoFromPath(Path videoPath);
     Video getVideoInfoFromPath(Path videoPath);
+    List<Subtitle> getSubtitlesInfoFromPath(Path videoPath);
 }

@@ -37,8 +37,9 @@ public class LanguageServiceImpl implements LanguageService {
                 return Language.builder()
                         .englishTitle(languageCode.getEnglishTitle())
                         .originalTitle(languageCode.getOriginalTitle())
-                        .iso2(languageCode.getIso2())
-                        .iso3(languageCode.getIso3())
+                        .iso6391(languageCode.getIso6391())
+                        .iso6392B(languageCode.getIso6392B())
+                        .iso6392T(languageCode.getIso6392T())
                         .build();
             }
         }return null;
@@ -46,12 +47,15 @@ public class LanguageServiceImpl implements LanguageService {
 
     private Language findLanguageByCode(String code) {
         for(LanguageCodes languageCode : LanguageCodes.values()) {
-            if(code.trim().equalsIgnoreCase(languageCode.getIso2()) || code.trim().equalsIgnoreCase(languageCode.getEnglishTitle())){
+            if(code.trim().equalsIgnoreCase(languageCode.getIso6391()) ||
+                    code.trim().equalsIgnoreCase(languageCode.getIso6392B()) ||
+                    code.trim().equalsIgnoreCase(languageCode.getIso6392T())) {
                 return Language.builder()
                         .englishTitle(languageCode.getEnglishTitle())
                         .originalTitle(languageCode.getOriginalTitle())
-                        .iso3(languageCode.getIso2())
-                        .iso2(languageCode.getIso3())
+                        .iso6391(languageCode.getIso6391())
+                        .iso6392B(languageCode.getIso6392B())
+                        .iso6392T(languageCode.getIso6392T())
                         .build();
             }
         }return null;

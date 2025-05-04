@@ -217,8 +217,10 @@ public class MovieServiceImpl implements MovieService {
         for (Path file : videoFiles) {
             if (checkMovie(title(file.getFileName().toString()))) {
                 this.movie.setPath(file.toString());
-                this.movie.setVideoCodec(fileService.getVideoCodecFromVideoPath(file));
-                this.movie.setAudios(fileService.getAudiosFromPath(file));
+                this.movie.setVideo(fileService.getVideoInfoFromPath(file));
+                this.movie.setAudios(fileService.getAudiosInfoFromPath(file));
+                this.movie.setSubtitles(fileService.getSubtitlesInfoFromPath(file));
+
             }
             movieRepository.save(movie);
             movies.add(movie);

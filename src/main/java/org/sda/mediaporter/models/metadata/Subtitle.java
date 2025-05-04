@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.sda.mediaporter.models.Codec;
 import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.Movie;
 
 @Entity
 @Data
@@ -21,4 +22,8 @@ public class Subtitle {
     private Language language;
     @ManyToOne
     private Codec format;
+
+    @ManyToOne
+    @JoinColumn (name = "movie_id")
+    private Movie movie;
 }

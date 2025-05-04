@@ -11,6 +11,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.sda.mediaporter.models.metadata.Subtitle;
+import org.sda.mediaporter.models.metadata.Video;
 
 @Data
 @Entity
@@ -70,11 +72,11 @@ public class Movie {
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
     private List<Language> languages = new ArrayList<>();
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "codec_id")
-    @JsonManagedReference
-    private Codec videoCodec;
+    @OneToOne(fetch = FetchType.LAZY)
+    private Video video;
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Audio> audios = new ArrayList<>();
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Subtitle> subtitles = new ArrayList<>();
     private String path;
 }

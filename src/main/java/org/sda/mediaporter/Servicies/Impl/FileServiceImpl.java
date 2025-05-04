@@ -6,6 +6,7 @@ import org.sda.mediaporter.models.Audio;
 import org.sda.mediaporter.models.Codec;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.enums.*;
+import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
 import org.sda.mediaporter.repositories.AudioRepository;
 import org.sda.mediaporter.repositories.CodecRepository;
@@ -146,7 +147,7 @@ public class FileServiceImpl implements FileService {
         String[] properties = videoInfo(videoPath).split(",");
         return videoRepository.save(
                 Video.builder()
-                        .codec(getCodecFromEnum(properties[1]))
+                        .codec(createdCodecFromString(properties[1]))
                         .resolution(generatedResolution(properties[2], properties[3]))
                         .bitrate(convertStringToInt(properties[4]))
                         .build()
@@ -193,6 +194,22 @@ public class FileServiceImpl implements FileService {
         }return audios;
     }
 
+    public List<Subtitle> getSubtitlesInfoFromPath(Path filePath){
+        List<Subtitle> subtitlesList = new ArrayList<>();
+        String[] subtitles = subtitleInfo(filePath).split("\n");
+        if(subtitles.length >= 1) {
+            for (String subtitle : subtitles) {
+                String[] properties = subtitle.split(",");
+                if(properties.length >= 3) {
+                    subtitlesList.add(Subtitle.builder()
+                            .language(createdLanguageFromString(properties[1]))
+                            .format(createdCodecFromString(properties[2]))
+                            .build());
+                }
+            }
+        }return subtitlesList;
+    }
+
     private Codec createdCodecFromString(String codecName){
         Optional<Codec> codecOptional = codecRepository.findByName(codecName);
         if (codecOptional.isPresent()){
@@ -216,6 +233,8 @@ public class FileServiceImpl implements FileService {
             }
         }return null;
     }
+
+
 
     private Language createdLanguageFromString(String languageCode){
         Optional <Language> languageOptional = languageRepository.findByCode(languageCode.trim().toLowerCase());
@@ -241,39 +260,36 @@ public class FileServiceImpl implements FileService {
     }
 
 
-    private String audioInfo(Path videoPath){
-        String videoFile = videoPath.toString();
+    private String audioInfo(Path filePath){
         return  runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "a",
                 "-show_entries", "stream=index,codec_name,channels,bit_rate:stream_tags=language",
                 "-of", "csv=p=0",
-                videoFile
+                filePath.toString()
         });
     }
 
-    private String videoInfo(Path videoPath){
-        String videoFile = videoPath.toString();
+    private String videoInfo(Path filePath){
         return  runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "v:0",
                 "-show_entries", "stream=index,codec_name,width,height,bit_rate",
                 "-of", "csv=p=0",
-                videoFile
+                filePath.toString()
         });
     }
 
-    private String subtitleInfo(Path videoPath){
-        String videoFile = videoPath.toString();
+    private String subtitleInfo(Path filePath){
         return runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "s",
                 "-show_entries", "stream=index,codec_name:stream_tags=language",
                 "-of", "csv=p=0",
-                videoFile
+                filePath.toString()
         });
     }
 

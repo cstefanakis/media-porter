@@ -20,7 +20,4 @@ public interface FileService {
     String getFileExtensionWithDot(Path file);
     Path renamedPath(Path filePath, String newName, Integer year);
     List<Path> getVideoFilesOfSource(Path path);
-    List<Audio> getAudiosInfoFromPath(Path videoPath);
-    Video getVideoInfoFromPath(Path videoPath);
-    List<Subtitle> getSubtitlesInfoFromPath(Path videoPath);
 }

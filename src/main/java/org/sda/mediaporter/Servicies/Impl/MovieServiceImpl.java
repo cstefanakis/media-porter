@@ -37,18 +37,22 @@ public class MovieServiceImpl implements MovieService {
     private final MovieRepository movieRepository;
     private final FileService fileService;
     private final AudioService audioService;
+    private final SubtitleService subtitleService;
+    private final VideoService videoService;
 
     private Integer year;
     private Movie movie = new Movie();
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, SubtitleService subtitleService, VideoService videoService) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
         this.movieRepository = movieRepository;
         this.fileService = fileService;
         this.audioService = audioService;
+        this.subtitleService = subtitleService;
+        this.videoService = videoService;
     }
 
     @Override
@@ -217,9 +221,9 @@ public class MovieServiceImpl implements MovieService {
         for (Path file : videoFiles) {
             if (checkMovie(title(file.getFileName().toString()))) {
                 this.movie.setPath(file.toString());
-                this.movie.setVideo(fileService.getVideoInfoFromPath(file));
-                this.movie.setAudios(fileService.getAudiosInfoFromPath(file));
-                this.movie.setSubtitles(fileService.getSubtitlesInfoFromPath(file));
+                this.movie.setVideo(videoService.createVideoFromPath(file));
+                this.movie.setAudios(audioService.createAudioListFromFile(file));
+                this.movie.setSubtitles(subtitleService.createSubtitleListFromFile(file));
 
             }
             movieRepository.save(movie);

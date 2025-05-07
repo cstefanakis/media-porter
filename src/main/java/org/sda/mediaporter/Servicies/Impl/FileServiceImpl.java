@@ -143,37 +143,7 @@ public class FileServiceImpl implements FileService {
         }return false;
     }
 
-    //get video codec from video file
-    @Override
-    public Video getVideoInfoFromPath(Path videoPath){
-        String[] properties = videoInfo(videoPath).split(",");
-        System.out.println(properties[4]);
-        return videoService.createVideo(
-                Video.builder()
-                        .codec(codecService.autoCreateCodec(properties[1]))
-                        .resolution(generatedResolution(properties[2], properties[3]))
-                        .bitrate(convertStringToInt(properties[4]))
-                        .build()
-        );
-    }
-
-    private String generatedResolution(String widthStr, String heightStr){
-        Integer width = convertStringToInt(widthStr);
-        Integer height = convertStringToInt(heightStr);
-        for(Resolutions resolution : Resolutions.values()){
-            if(width !=null &&
-                    resolution.getWidth() == width && height != null &&
-                    resolution.getHeight() == height ){
-                return resolution.getLabel();
-            }
-
-            if(width != null && resolution.getWidth() == width){
-                return resolution.getLabel();
-            }
-        }return null;
-    }
-
-    private Integer convertStringToInt(String string){
+    public static Integer convertStringToInt(String string){
         Pattern pattern = Pattern.compile("^\\d+$");
         Matcher matcher = pattern.matcher(string.trim());
         if(matcher.matches()){
@@ -181,75 +151,7 @@ public class FileServiceImpl implements FileService {
         }return null;
     }
 
-    @Override
-    public List<Audio> getAudiosInfoFromPath(Path videoPath){
-        List<Audio> audios = new ArrayList<>();
-        String audioInfo = audioInfo(videoPath);
-        String[] audioInfoArray = audioInfo.split("\n");
-        for(String audio : audioInfoArray){
-            String[] audioItems = audio.split(",");
-            Audio createdAudio = audioService.createAudio(Audio.builder()
-                    .codec(codecService.autoCreateCodec(audioItems[1]))
-                    .channels(Integer.parseInt(audioItems[2]))
-                    .bitrate(convertStringToInt(audioItems[3]))
-                    .language(languageService.autoCreateLanguageByCode(audioItems[4]))
-                    .build());
-            audios.add(createdAudio);
-        }
-        return audios;
-    }
-
-    public List<Subtitle> getSubtitlesInfoFromPath(Path filePath){
-        List<Subtitle> subtitlesList = new ArrayList<>();
-        String[] subtitles = subtitleInfo(filePath).split("\n");
-        if(subtitles.length >= 1) {
-            for (String subtitle : subtitles) {
-                String[] properties = subtitle.split(",");
-
-                if(properties.length >= 3) {
-                    subtitlesList.add(Subtitle.builder()
-                            .language(languageService.autoCreateLanguageByCode(properties[2]))
-                            .format(codecService.autoCreateCodec(properties[1]))
-                            .build());
-                }
-            }
-        }return subtitlesList;
-    }
-
-    private String audioInfo(Path filePath){
-        return  runCommand(new String[]{
-                "ffprobe",
-                "-v", "error",
-                "-select_streams", "a",
-                "-show_entries", "stream=index,codec_name,channels,bit_rate:stream_tags=language",
-                "-of", "csv=p=0",
-                filePath.toString()
-        });
-    }
-
-    private String videoInfo(Path filePath){
-        return  runCommand(new String[]{
-                "ffprobe",
-                "-v", "error",
-                "-select_streams", "v:0",
-                "-show_entries", "stream=index,codec_name,width,height,bit_rate",
-                "-of", "csv=p=0",
-                filePath.toString()
-        });
-    }
-
-    private String subtitleInfo(Path filePath){
-        return runCommand(new String[]{
-                "ffprobe",
-                "-v", "error",
-                "-select_streams", "s",
-                "-show_entries", "stream=index,codec_name:stream_tags=language",
-                "-of", "csv=p=0",
-                filePath.toString()
-        });
-    }
-
-    private String runCommand(String[] command) {
+    public static String runCommand(String[] command) {
         ProcessBuilder pb = new ProcessBuilder(command);
         try {
             Process process = pb.start();

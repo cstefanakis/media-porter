@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface AudioService {
     Audio createAudio(Audio audio);
+    List<Audio> createAudioListFromFile(Path file);
 }

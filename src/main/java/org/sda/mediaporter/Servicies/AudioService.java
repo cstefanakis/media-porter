@@ -7,5 +7,5 @@ import java.nio.file.Path;
 import java.util.List;
 
 public interface AudioService {
-
+    Audio createAudio(Audio audio);
 }

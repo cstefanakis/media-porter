@@ -1,6 +1,7 @@
 package org.sda.mediaporter.Servicies.Impl;
 
 import org.sda.mediaporter.Servicies.AudioService;
+import org.sda.mediaporter.Servicies.CodecService;
 import org.sda.mediaporter.Servicies.FileService;
 import org.sda.mediaporter.models.Audio;
 import org.sda.mediaporter.models.Codec;
@@ -14,20 +15,21 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AudioServiceImpl implements AudioService {
 
     private final AudioRepository audioRepository;
-    private final LanguageRepository languageRepository;
-    private final CodecRepository codecRepository;
-    private final FileService fileService;
+    private final CodecService codecService;
 
-    public AudioServiceImpl(AudioRepository audioRepository, LanguageRepository languageRepository, CodecRepository codecRepository, FileService fileService) {
+    public AudioServiceImpl(AudioRepository audioRepository, CodecService codecService) {
         this.audioRepository = audioRepository;
-        this.languageRepository = languageRepository;
-        this.codecRepository = codecRepository;
-        this.fileService = fileService;
+        this.codecService = codecService;
     }
 
+    @Override
+    public Audio createAudio(Audio audio) {
+        return audioRepository.save(audio);
+    }
 }

@@ -19,13 +19,6 @@ public class GenreServiceImpl implements GenreService {
         this.genreRepository = genreRepository;
     }
 
-
-    @Override
-    public Genre getGenreById(long id) {
-        return genreRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Genre not found"));
-    }
-
     private Genre toEntity(Genre genre, GenreResponseDto genreResponseDto) {
         genre.setTitle(genreTitleValidated(genre, genreResponseDto.getTitle()));
         return genre;

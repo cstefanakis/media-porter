@@ -1,7 +1,7 @@
 package org.sda.mediaporter.Servicies.Impl;
 
 import org.hibernate.engine.spi.Resolution;
-import org.sda.mediaporter.Servicies.FileService;
+import org.sda.mediaporter.Servicies.*;
 import org.sda.mediaporter.models.Audio;
 import org.sda.mediaporter.models.Codec;
 import org.sda.mediaporter.models.Language;
@@ -28,17 +28,19 @@ import java.util.regex.Pattern;
 @Service
 public class FileServiceImpl implements FileService {
 
-    private final LanguageRepository languageRepository;
-    private final CodecRepository codecRepository;
-    private final AudioRepository audioRepository;
+    private final LanguageService languageService;
+    private final CodecService codecService;
+    private final AudioService audioService;
     private final VideoRepository videoRepository;
+    private final VideoService videoService;
 
     @Autowired
-    public FileServiceImpl(LanguageRepository languageRepository, CodecRepository codecRepository, AudioRepository audioRepository, VideoRepository videoRepository) {
-        this.languageRepository = languageRepository;
-        this.codecRepository = codecRepository;
-        this.audioRepository = audioRepository;
+    public FileServiceImpl(LanguageService languageService, CodecService codecService, AudioService audioService, VideoRepository videoRepository, VideoService videoService) {
+        this.languageService = languageService;
+        this.codecService = codecService;
+        this.audioService = audioService;
         this.videoRepository = videoRepository;
+        this.videoService = videoService;
     }
 
     @Override
@@ -145,9 +147,10 @@ public class FileServiceImpl implements FileService {
     @Override
     public Video getVideoInfoFromPath(Path videoPath){
         String[] properties = videoInfo(videoPath).split(",");
-        return videoRepository.save(
+        System.out.println(properties[4]);
+        return videoService.createVideo(
                 Video.builder()
-                        .codec(createdCodecFromString(properties[1]))
+                        .codec(codecService.autoCreateCodec(properties[1]))
                         .resolution(generatedResolution(properties[2], properties[3]))
                         .bitrate(convertStringToInt(properties[4]))
                         .build()
@@ -172,7 +175,7 @@ public class FileServiceImpl implements FileService {
 
     private Integer convertStringToInt(String string){
         Pattern pattern = Pattern.compile("^\\d+$");
-        Matcher matcher = pattern.matcher(string);
+        Matcher matcher = pattern.matcher(string.trim());
         if(matcher.matches()){
             return Integer.parseInt(matcher.group());
         }return null;
@@ -185,13 +188,15 @@ public class FileServiceImpl implements FileService {
         String[] audioInfoArray = audioInfo.split("\n");
         for(String audio : audioInfoArray){
             String[] audioItems = audio.split(",");
-            audios.add(audioRepository.save(Audio.builder()
-                            .codec(createdCodecFromString(audioItems[1]))
-                            .channels(Integer.parseInt(audioItems[2]))
-                            .bitrate(convertStringToInt(audioItems[3]))
-                            .language(createdLanguageFromString(audioItems[4]))
-                    .build()));
-        }return audios;
+            Audio createdAudio = audioService.createAudio(Audio.builder()
+                    .codec(codecService.autoCreateCodec(audioItems[1]))
+                    .channels(Integer.parseInt(audioItems[2]))
+                    .bitrate(convertStringToInt(audioItems[3]))
+                    .language(languageService.autoCreateLanguageByCode(audioItems[4]))
+                    .build());
+            audios.add(createdAudio);
+        }
+        return audios;
     }
 
     public List<Subtitle> getSubtitlesInfoFromPath(Path filePath){
@@ -200,65 +205,16 @@ public class FileServiceImpl implements FileService {
         if(subtitles.length >= 1) {
             for (String subtitle : subtitles) {
                 String[] properties = subtitle.split(",");
+
                 if(properties.length >= 3) {
                     subtitlesList.add(Subtitle.builder()
-                            .language(createdLanguageFromString(properties[1]))
-                            .format(createdCodecFromString(properties[2]))
+                            .language(languageService.autoCreateLanguageByCode(properties[2]))
+                            .format(codecService.autoCreateCodec(properties[1]))
                             .build());
                 }
             }
         }return subtitlesList;
     }
-
-    private Codec createdCodecFromString(String codecName){
-        Optional<Codec> codecOptional = codecRepository.findByName(codecName);
-        if (codecOptional.isPresent()){
-            return codecOptional.get();
-        }else{
-            Codec codec = getCodecFromEnum(codecName.trim());
-            if (codec != null){
-                return codecRepository.save(codec);
-            }
-        }return null;
-    }
-
-    private Codec getCodecFromEnum(String codecName){
-        for(Codecs codec : Codecs.values()){
-            if(codecName.equalsIgnoreCase(codec.getCodecName()) ||
-            codecName.equalsIgnoreCase(codec.name())){
-                return Codec.builder()
-                        .name(codec.getCodecName())
-                        .mediaType(codec.getMediaTypes())
-                        .build();
-            }
-        }return null;
-    }
-
-
-
-    private Language createdLanguageFromString(String languageCode){
-        Optional <Language> languageOptional = languageRepository.findByCode(languageCode.trim().toLowerCase());
-        if (languageOptional.isPresent()){
-            return languageOptional.get();
-        }else{
-            for(LanguageCodes lc : LanguageCodes.values()){
-                if(lc.getIso6391().equalsIgnoreCase(languageCode.trim()) ||
-                        lc.getIso6392B().equalsIgnoreCase(languageCode.trim()) ||
-                        lc.getIso6392T().equalsIgnoreCase(languageCode.trim())){
-                    return languageRepository.save(
-                            Language.builder()
-                                    .englishTitle(lc.getEnglishTitle())
-                                    .originalTitle(lc.getOriginalTitle())
-                                    .iso6392B(lc.getIso6392B())
-                                    .iso6392T(lc.getIso6392T())
-                                    .iso6391(lc.getIso6391())
-                                    .build()
-                    );
-                }
-            }
-        }return null;
-    }
-
 
     private String audioInfo(Path filePath){
         return  runCommand(new String[]{

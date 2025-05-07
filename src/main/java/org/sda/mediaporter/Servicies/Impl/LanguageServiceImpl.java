@@ -45,7 +45,8 @@ public class LanguageServiceImpl implements LanguageService {
         }return null;
     }
 
-    private Language findLanguageByCode(String code) {
+    @Override
+    public Language getLanguageByCode(String code) {
         for(LanguageCodes languageCode : LanguageCodes.values()) {
             if(code.trim().equalsIgnoreCase(languageCode.getIso6391()) ||
                     code.trim().equalsIgnoreCase(languageCode.getIso6392B()) ||
@@ -68,7 +69,7 @@ public class LanguageServiceImpl implements LanguageService {
             return optional.get();
         }
 
-        Language language = findLanguageByCode(code);
+        Language language = getLanguageByCode(code);
         if (language != null) {
             return languageRepository.save(language);
         }

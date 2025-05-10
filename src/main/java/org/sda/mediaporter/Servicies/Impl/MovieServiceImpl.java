@@ -229,14 +229,17 @@ public class MovieServiceImpl implements MovieService {
                 this.movie.setVideo(videoService.createVideoFromPath(file));
                 this.movie.setAudios(audioService.createAudioListFromFile(file));
                 this.movie.setSubtitles(subtitleService.createSubtitleListFromFile(file));
-                movieRepository.save(movie);
-                movies.add(movie);
+                createdMovie(this.movie);
+                movies.add(this.movie);
 
             }
         } return movies;
     }
 
-
+    private Movie createdMovie(Movie movie){
+        Optional <Movie> movieOptional = movieRepository.findByPath(movie.getPath());
+        return movieOptional.orElseGet(() -> movieRepository.save(movie));
+    }
 
     private void generateDownloadMovieFile(Movie movie, Path destinationPath){
         Path moviePath = Path.of(movie.getPath());

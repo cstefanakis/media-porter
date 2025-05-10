@@ -1,15 +1,7 @@
 package org.sda.mediaporter.Servicies;
 
-import org.sda.mediaporter.models.Audio;
-import org.sda.mediaporter.models.Codec;
-import org.sda.mediaporter.models.Language;
-import org.sda.mediaporter.models.Movie;
-import org.sda.mediaporter.models.metadata.Subtitle;
-import org.sda.mediaporter.models.metadata.Video;
-
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 public interface FileService {
     List<Path> getVideoFiles(Path path);

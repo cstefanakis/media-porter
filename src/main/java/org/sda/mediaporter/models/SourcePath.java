@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 @Entity
 public class SourcePath {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String path;
     @Column(columnDefinition = "TEXT")

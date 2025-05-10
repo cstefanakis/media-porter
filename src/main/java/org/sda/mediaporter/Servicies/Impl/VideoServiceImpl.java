@@ -30,13 +30,17 @@ public class VideoServiceImpl implements VideoService {
     public Video createVideoFromPath(Path file) {
         String[] properties = videoInfo(file).split(",");
         System.out.println(properties[4]);
-        return createVideo(
-                Video.builder()
-                        .codec(codecService.autoCreateCodec(properties[1]))
-                        .resolution(generatedResolution(properties[2], properties[3]))
-                        .bitrate(FileServiceImpl.convertStringToInt(properties[4]))
-                        .build()
-        );
+        Video video = new Video();
+        if(properties.length > 1){
+            video.setCodec(codecService.autoCreateCodec(properties[1]));
+        }
+        if(properties.length > 3){
+            video.setResolution(generatedResolution(properties[2], properties[3]));
+        }
+        if(properties.length > 3){
+            video.setBitrate(FileServiceImpl.convertStringToInt(properties[4]));
+        }
+        return videoRepository.save(video);
     }
 
     private String generatedResolution(String widthStr, String heightStr){

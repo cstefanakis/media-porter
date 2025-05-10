@@ -1,8 +1,7 @@
 package org.sda.mediaporter.Servicies.Impl;
 
-import jakarta.persistence.EntityExistsException;
 import org.sda.mediaporter.Servicies.CodecService;
-import org.sda.mediaporter.models.Codec;
+import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.enums.Codecs;
 import org.sda.mediaporter.repositories.CodecRepository;
 import org.springframework.beans.factory.annotation.Autowired;

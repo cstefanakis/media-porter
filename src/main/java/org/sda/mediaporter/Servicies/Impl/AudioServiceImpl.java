@@ -2,21 +2,15 @@ package org.sda.mediaporter.Servicies.Impl;
 
 import org.sda.mediaporter.Servicies.AudioService;
 import org.sda.mediaporter.Servicies.CodecService;
-import org.sda.mediaporter.Servicies.FileService;
 import org.sda.mediaporter.Servicies.LanguageService;
-import org.sda.mediaporter.models.Audio;
-import org.sda.mediaporter.models.Codec;
-import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.repositories.AudioRepository;
-import org.sda.mediaporter.repositories.CodecRepository;
-import org.sda.mediaporter.repositories.LanguageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class AudioServiceImpl implements AudioService {
@@ -25,6 +19,7 @@ public class AudioServiceImpl implements AudioService {
     private final CodecService codecService;
     private final LanguageService languageService;
 
+    @Autowired
     public AudioServiceImpl(AudioRepository audioRepository, CodecService codecService, LanguageService languageService) {
         this.audioRepository = audioRepository;
         this.codecService = codecService;
@@ -43,12 +38,21 @@ public class AudioServiceImpl implements AudioService {
         String[] audioInfoArray = audioInfo.split("\n");
         for(String audio : audioInfoArray) {
             String[] audioItems = audio.split(",");
-             audios.add(createAudio(Audio.builder()
-                    .codec(codecService.autoCreateCodec(audioItems[1]))
-                    .channels(Integer.parseInt(audioItems[2]))
-                    .bitrate(FileServiceImpl.convertStringToInt(audioItems[3]))
-                    .language(languageService.autoCreateLanguageByCode(audioItems[4]))
-                    .build()));
+            Audio newAudio = new Audio();
+            System.out.println("audio length: "+audioItems.length);
+            if(audioItems.length > 1) {
+                newAudio.setCodec(codecService.autoCreateCodec(audioItems[1]));
+            }
+            if(audioItems.length > 2) {
+                newAudio.setChannels(Integer.parseInt(audioItems[2]));
+            }
+            if(audioItems.length > 3) {
+                newAudio.setBitrate(FileServiceImpl.convertStringToInt(audioItems[3]));
+            }
+            if(audioItems.length > 4) {
+                newAudio.setLanguage(languageService.autoCreateLanguageByCode(audioItems[4]));
+            }
+             audios.add(newAudio);
         }return audios;
     }
 

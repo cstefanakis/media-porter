@@ -37,22 +37,27 @@ public class MovieServiceImpl implements MovieService {
     private final MovieRepository movieRepository;
     private final FileService fileService;
     private final AudioService audioService;
-    private final SubtitleService subtitleService;
     private final VideoService videoService;
+    private final SubtitleService subtitleService;
 
     private Integer year;
     private Movie movie = new Movie();
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, SubtitleService subtitleService, VideoService videoService) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
         this.movieRepository = movieRepository;
         this.fileService = fileService;
         this.audioService = audioService;
-        this.subtitleService = subtitleService;
         this.videoService = videoService;
+        this.subtitleService = subtitleService;
+    }
+
+    @Override
+    public List<Movie> getMovies() {
+        return movieRepository.findAll();
     }
 
     @Override
@@ -224,10 +229,10 @@ public class MovieServiceImpl implements MovieService {
                 this.movie.setVideo(videoService.createVideoFromPath(file));
                 this.movie.setAudios(audioService.createAudioListFromFile(file));
                 this.movie.setSubtitles(subtitleService.createSubtitleListFromFile(file));
+                movieRepository.save(movie);
+                movies.add(movie);
 
             }
-            movieRepository.save(movie);
-            movies.add(movie);
         } return movies;
     }
 

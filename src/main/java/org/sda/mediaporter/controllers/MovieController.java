@@ -3,21 +3,31 @@ package org.sda.mediaporter.controllers;
 import org.sda.mediaporter.Servicies.MovieService;
 import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.Movie;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/movies")
+@CrossOrigin(origins = "http://localhost:5173")
 public class MovieController {
     private final MovieService movieService;
 
+    @Autowired
     public MovieController(MovieService movieService) {
         this.movieService = movieService;
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<Movie>> getAllMovies() {
+        List<Movie> movies = movieService.getMovies();
+        return ResponseEntity.ok(movies);
     }
 
     @GetMapping("/get-movies-by-title-and-year")

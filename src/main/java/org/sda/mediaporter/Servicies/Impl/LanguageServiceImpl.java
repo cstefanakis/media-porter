@@ -4,6 +4,7 @@ import org.sda.mediaporter.Servicies.LanguageService;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.enums.LanguageCodes;
 import org.sda.mediaporter.repositories.LanguageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Optional;
 public class LanguageServiceImpl implements LanguageService {
     private final LanguageRepository languageRepository;
 
+    @Autowired
     public LanguageServiceImpl(LanguageRepository languageRepository) {
         this.languageRepository = languageRepository;
     }

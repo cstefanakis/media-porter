@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface MovieService {
 
+    List<Movie> getMovies();
     Movie getMovieFromApiByTitle(String movieTitle, Integer movieYear);
     Movie getMovieById(Long movieId);
     Movie getMovieByPath(String moviePath);

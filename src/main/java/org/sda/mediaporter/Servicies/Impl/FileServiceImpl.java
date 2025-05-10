@@ -1,16 +1,7 @@
 package org.sda.mediaporter.Servicies.Impl;
 
-import org.hibernate.engine.spi.Resolution;
 import org.sda.mediaporter.Servicies.*;
-import org.sda.mediaporter.models.Audio;
-import org.sda.mediaporter.models.Codec;
-import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.enums.*;
-import org.sda.mediaporter.models.metadata.Subtitle;
-import org.sda.mediaporter.models.metadata.Video;
-import org.sda.mediaporter.repositories.AudioRepository;
-import org.sda.mediaporter.repositories.CodecRepository;
-import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

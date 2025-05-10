@@ -52,7 +52,7 @@ public class AudioServiceImpl implements AudioService {
             if(audioItems.length > 4) {
                 newAudio.setLanguage(languageService.autoCreateLanguageByCode(audioItems[4]));
             }
-             audios.add(newAudio);
+             audios.add(audioRepository.save(newAudio));
         }return audios;
     }
 

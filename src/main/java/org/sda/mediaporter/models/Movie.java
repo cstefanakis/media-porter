@@ -72,7 +72,7 @@ public class Movie {
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
     private List<Language> languages = new ArrayList<>();
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Video video;
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -82,4 +82,6 @@ public class Movie {
     @JsonManagedReference
     private List<Subtitle> subtitles = new ArrayList<>();
     private String path;
+
+
 }

@@ -3,15 +3,13 @@ package org.sda.mediaporter.models.metadata;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -19,7 +17,7 @@ import org.sda.mediaporter.models.Movie;
 public class Audio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
     private Integer bitrate;
     private Integer channels;
     @ManyToOne(fetch = FetchType.LAZY)

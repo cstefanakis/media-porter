@@ -11,7 +11,13 @@ import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.enums.*;
+import org.sda.mediaporter.models.metadata.Audio;
+import org.sda.mediaporter.models.metadata.Subtitle;
+import org.sda.mediaporter.models.metadata.Video;
+import org.sda.mediaporter.repositories.AudioRepository;
 import org.sda.mediaporter.repositories.MovieRepository;
+import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
+import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +45,15 @@ public class MovieServiceImpl implements MovieService {
     private final AudioService audioService;
     private final VideoService videoService;
     private final SubtitleService subtitleService;
+    private final AudioRepository audioRepository;
+    private final VideoRepository videoRepository;
+    private final SubtitleRepository subtitleRepository;
 
     private Integer year;
     private Movie movie = new Movie();
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, AudioRepository audioRepository, VideoRepository videoRepository, SubtitleRepository subtitleRepository) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
@@ -53,6 +62,9 @@ public class MovieServiceImpl implements MovieService {
         this.audioService = audioService;
         this.videoService = videoService;
         this.subtitleService = subtitleService;
+        this.audioRepository = audioRepository;
+        this.videoRepository = videoRepository;
+        this.subtitleRepository = subtitleRepository;
     }
 
     @Override
@@ -110,7 +122,8 @@ public class MovieServiceImpl implements MovieService {
         fileService.renameFile(Path.of(movie.getPath()), movieUpdateDto.getTitle(), movieUpdateDto.getYear());
         movieRepository.delete(movie);
         Path renamedFullPath = fileService.renamedPath(moviePath, movieUpdateDto.getTitle(), movieUpdateDto.getYear());
-        Movie updatedMovie = organizeMovieByPath(renamedFullPath);
+
+        Movie updatedMovie = getMovieFromApi(title(renamedFullPath.getFileName().toString()));
         updatedMovie.setPath(renamedFullPath.toString());
         movieRepository.save(updatedMovie);
         return movie;
@@ -210,7 +223,7 @@ public class MovieServiceImpl implements MovieService {
         List<Path> files = fileService.getVideoFiles(moviesDownloadPath);
         List<Movie> organizedMovies = new ArrayList<>();
         for (Path file : files){
-            Movie movie = organizeMovieByPath(file);
+            Movie movie = getMovieFromApi(title(file.getFileName().toString()));
             generateDownloadMovieFile(movie, destinationPath);
             movieRepository.save(movie);
             organizedMovies.add(movie);
@@ -224,17 +237,30 @@ public class MovieServiceImpl implements MovieService {
         List<Path> videoFiles = fileService.getVideoFiles(movieFilePath);
         List<Movie> movies = new ArrayList<>();
         for (Path file : videoFiles) {
-            if (checkMovie(title(file.getFileName().toString()))) {
-                this.movie.setPath(file.toString());
-                this.movie.setVideo(videoService.createVideoFromPath(file));
-                this.movie.setAudios(audioService.createAudioListFromFile(file));
-                this.movie.setSubtitles(subtitleService.createSubtitleListFromFile(file));
-                createdMovie(this.movie);
-                movies.add(this.movie);
-
+            List<Audio> audios = audioService.createAudioListFromFile(file);
+            List<Subtitle> subtitles = subtitleService.createSubtitleListFromFile(file);
+            Movie movie = getMovieFromApi(title(file.getFileName().toString()));
+            movie.setPath(file.toString());
+            Video video = videoService.createVideoFromPath(file);
+            movie.setVideo(video);
+            movie.setAudios(audios);
+            movie.setSubtitles(subtitles);
+            Movie createdMovie = createdMovie(movie);
+            video.setMovie(createdMovie);
+            videoService.updateMovieVideo(video.getId(), video, createdMovie);
+            for (Subtitle subtitle : subtitles){
+                subtitle.setMovie(movie);
+                subtitleRepository.save(subtitle);
             }
+            for (Audio audio : audios){
+                audio.setMovie(movie);
+                audioRepository.save(audio);
+            }
+
+            movies.add(createdMovie);
         } return movies;
     }
+
 
     private Movie createdMovie(Movie movie){
         Optional <Movie> movieOptional = movieRepository.findByPath(movie.getPath());
@@ -262,27 +288,20 @@ public class MovieServiceImpl implements MovieService {
         return String.format("%s (%s)", movie.getTitle(), movie.getYear());
     }
 
-    public Movie organizeMovieByPath(Path path) {
-        if(checkMovie(title(path.getFileName().toString()))){
-            return this.movie;
-        }
-        return null;
-    }
 
     //try to find movie in api
-    private boolean checkMovie(String[] titleElements) {
+    private Movie getMovieFromApi(String[] titleElements) {
         for (int i = titleElements.length-1; i > 0; i--) {
             String[] subArray = Arrays.copyOfRange(titleElements, 0, i);
             try{
                 String title = String.join(" ",subArray);
                 System.out.println("title: " + title + " year: " + this.year);
-                this.movie = getMovieFromApiByTitle(title, this.year);
-                return true;
+                return getMovieFromApiByTitle(title, this.year);
             }catch (JSONException ignored){
 
             }
         }
-        return false;
+        return new Movie();
     }
 
     //create filtered splitted filename without year, resolution. no title words

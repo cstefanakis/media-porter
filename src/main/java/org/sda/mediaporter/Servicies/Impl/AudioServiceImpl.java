@@ -1,8 +1,10 @@
 package org.sda.mediaporter.Servicies.Impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Servicies.AudioService;
 import org.sda.mediaporter.Servicies.CodecService;
 import org.sda.mediaporter.Servicies.LanguageService;
+import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.repositories.AudioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AudioServiceImpl implements AudioService {
@@ -52,8 +55,26 @@ public class AudioServiceImpl implements AudioService {
             if(audioItems.length > 4) {
                 newAudio.setLanguage(languageService.autoCreateLanguageByCode(audioItems[4]));
             }
-             audios.add(audioRepository.save(newAudio));
+            audios.add(audioRepository.save(newAudio));
         }return audios;
+    }
+
+    @Override
+    public Audio updateMovieAudio(Long id, Audio audio, Movie movie) {
+        Optional<Audio> audioOptional = audioRepository.findById(id);
+        if(audioOptional.isPresent()) {
+            Audio audioToUpdate = audioOptional.get();
+            audioToUpdate.setMovie(movie);
+            return audioRepository.save(toEntity(audioToUpdate, audio));
+        }throw new EntityNotFoundException(String.format("Audio with id %s not found", id));
+    }
+
+    private Audio toEntity(Audio toUpdateAudio, Audio audio) {
+        toUpdateAudio.setCodec(audio.getCodec() == null? toUpdateAudio.getCodec(): audio.getCodec());
+        toUpdateAudio.setLanguage(audio.getLanguage() == null? toUpdateAudio.getLanguage(): audio.getLanguage());
+        toUpdateAudio.setChannels(audio.getChannels() == null? toUpdateAudio.getChannels(): audio.getChannels());
+        toUpdateAudio.setBitrate(audio.getBitrate() == null? toUpdateAudio.getBitrate(): audio.getBitrate());
+        return toUpdateAudio;
     }
 
     private String audioInfo(Path filePath){

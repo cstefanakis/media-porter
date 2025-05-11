@@ -1,8 +1,10 @@
 package org.sda.mediaporter.Servicies.Impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Servicies.CodecService;
 import org.sda.mediaporter.Servicies.LanguageService;
 import org.sda.mediaporter.Servicies.SubtitleService;
+import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SubtitleServiceImpl implements SubtitleService {
@@ -38,15 +41,32 @@ public class SubtitleServiceImpl implements SubtitleService {
         if(subtitles.length >= 1) {
             for (String subtitle : subtitles) {
                 String[] properties = subtitle.split(",");
-
-                if(properties.length >= 3) {
-                    subtitlesList.add(Subtitle.builder()
-                            .language(languageService.autoCreateLanguageByCode(properties[2]))
-                            .format(codecService.autoCreateCodec(properties[1]))
-                            .build());
+                Subtitle subtitleEntity = new Subtitle();
+                if(properties.length > 1) {
+                    subtitleEntity.setFormat(codecService.autoCreateCodec(properties[1]));
                 }
+                if(properties.length > 2) {
+                    subtitleEntity.setLanguage(languageService.autoCreateLanguageByCode(properties[2]));
+                }
+                subtitlesList.add(subtitleRepository.save(subtitleEntity));
             }
         }return subtitlesList;
+    }
+
+    @Override
+    public Subtitle updateMovieSubtitle(Long id, Subtitle subtitle, Movie movie) {
+        Optional<Subtitle> subtitleEntity = subtitleRepository.findById(id);
+        if (subtitleEntity.isPresent()) {
+            Subtitle subtitleToUpdate = subtitleEntity.get();
+            subtitleToUpdate.setMovie(movie);
+            subtitleRepository.save(toEntity(subtitleToUpdate, subtitle));
+        }throw new EntityNotFoundException(String.format("Subtitle with id %s not found", id));
+    }
+
+    private Subtitle toEntity(Subtitle toUpdateSubtitle, Subtitle subtitle) {
+        toUpdateSubtitle.setLanguage(subtitle.getLanguage() == null? toUpdateSubtitle.getLanguage() : subtitle.getLanguage());
+        toUpdateSubtitle.setFormat(subtitle.getFormat() == null? toUpdateSubtitle.getFormat() : subtitle.getFormat());
+        return toUpdateSubtitle;
     }
 
     private String subtitleInfo(Path filePath){

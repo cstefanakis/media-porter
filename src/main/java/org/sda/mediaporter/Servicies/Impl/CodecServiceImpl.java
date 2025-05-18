@@ -3,7 +3,7 @@ package org.sda.mediaporter.Servicies.Impl;
 import org.sda.mediaporter.Servicies.CodecService;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.enums.Codecs;
-import org.sda.mediaporter.repositories.CodecRepository;
+import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

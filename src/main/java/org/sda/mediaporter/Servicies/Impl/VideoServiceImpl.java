@@ -32,7 +32,6 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public Video createVideoFromPath(Path file) {
         String[] properties = videoInfo(file).split(",");
-        System.out.println(properties[4]);
         Video video = new Video();
         if(properties.length > 1){
             video.setCodec(codecService.autoCreateCodec(properties[1]));

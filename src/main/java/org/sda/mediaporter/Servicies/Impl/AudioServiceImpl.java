@@ -6,7 +6,7 @@ import org.sda.mediaporter.Servicies.CodecService;
 import org.sda.mediaporter.Servicies.LanguageService;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.metadata.Audio;
-import org.sda.mediaporter.repositories.AudioRepository;
+import org.sda.mediaporter.repositories.metadata.AudioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

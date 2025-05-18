@@ -34,50 +34,55 @@ public class MovieController {
     public ResponseEntity <Movie> getMovieByTitle(
             @RequestParam String title,
             @RequestParam(required = false) Integer year) {
-        Movie movie = movieService.getMovieFromApiByTitle(title, year);
+        Movie movie = movieService.getMovieFromApiByTitle(new Movie(), title, year);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Movie> getMovieById(@PathVariable Long id) {
+    public ResponseEntity<Movie> getMovieById(@PathVariable("id") Long id) {
         Movie movie = movieService.getMovieById(id);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
     @GetMapping("/get-by-path")
-    public ResponseEntity<Movie> getMovieByPath(@RequestParam String path) {
+    public ResponseEntity<Movie> getMovieByPath(@RequestParam(name = "path") String path) {
         Movie movie = movieService.getMovieByPath(path);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMovieById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteMovieById(@PathVariable("id") Long id) {
         movieService.deleteMovieById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PutMapping("/move/{id}")
-    public ResponseEntity<Movie> moveMovie(@PathVariable Long id, @RequestParam String path) {
+    public ResponseEntity<Movie> moveMovie(@PathVariable("id") Long id,
+                                           @RequestParam(name = "path") String path) {
         Path destinationPath = Paths.get(path);
         Movie movie = movieService.moveMovie(id, destinationPath);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Movie> updateMovie(@PathVariable Long id, @RequestBody MovieUpdateDto movieUpdateDto) {
-        Movie movie = movieService.updateMovie(id, movieUpdateDto);
+    public ResponseEntity<Movie> updateMovie(@PathVariable("id") Long id,
+                                             @RequestParam(name = "title") String title,
+                                             @RequestParam(name = "year") Integer year) {
+        Movie movie = movieService.updateMovie(id, title, year);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
     @PostMapping("/copy/{id}")
-    public ResponseEntity<Void> copyMovie(@PathVariable Long id, @RequestParam String path) {
+    public ResponseEntity<Void> copyMovie(@PathVariable("id") Long id,
+                                          @RequestParam(name = "path") String path) {
         Path destinationPath = Paths.get(path);
         movieService.copyMovie(id, destinationPath);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping("/organize-download-movies")
-    public ResponseEntity<List<Movie>> organizeDownloadMovies(@RequestParam String downloadPath, @RequestParam String destinationPath) {
+    public ResponseEntity<List<Movie>> organizeDownloadMovies(@RequestParam(name = "downloadPath") String downloadPath,
+                                                              @RequestParam(name = "destinationPath") String destinationPath) {
         Path downloadMoviesPath = Paths.get(downloadPath);
         Path destinationMoviesPath = Paths.get(destinationPath);
         List<Movie> organizedMovies = movieService.organizedDownloadMovieFiles(downloadMoviesPath, destinationMoviesPath);
@@ -87,6 +92,7 @@ public class MovieController {
     @PostMapping("/create-movies-from-path")
     public ResponseEntity<List<Movie>> getMoviesFromPath(@RequestParam(name = "path") String path) {
         List<Movie> movies = movieService.getMoviesFromPath(path);
+        System.out.println("Path: " + path);
         return ResponseEntity.status(HttpStatus.OK).body(movies);
     }
 }

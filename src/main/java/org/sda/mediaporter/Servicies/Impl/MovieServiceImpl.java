@@ -14,19 +14,19 @@ import org.sda.mediaporter.models.enums.*;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
-import org.sda.mediaporter.repositories.AudioRepository;
+import org.sda.mediaporter.repositories.metadata.AudioRepository;
 import org.sda.mediaporter.repositories.MovieRepository;
 import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
 import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +50,6 @@ public class MovieServiceImpl implements MovieService {
     private final SubtitleRepository subtitleRepository;
 
     private Integer year;
-    private Movie movie = new Movie();
 
     @Autowired
     public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, AudioRepository audioRepository, VideoRepository videoRepository, SubtitleRepository subtitleRepository) {
@@ -73,12 +72,12 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public Movie getMovieFromApiByTitle(String title, Integer year) {
+    public Movie getMovieFromApiByTitle(Movie movie, String title, Integer year) {
         try{
-            return omdbApiToEntity(new Movie(), title, year);
+            return omdbApiToEntity(movie, title, year);
         }catch (JSONException e){
             System.out.println("JSONException: "+e.getMessage());
-            return theMovieDbToEntity(new Movie(), title, year);
+            return theMovieDbToEntity(movie, title, year);
         }
     }
 
@@ -116,14 +115,14 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public Movie updateMovie(Long movieId, MovieUpdateDto movieUpdateDto) {
+    public Movie updateMovie(Long movieId, String title, Integer year) {
         Movie movie = getMovieById(movieId);
         Path moviePath = Path.of(movie.getPath());
-        fileService.renameFile(Path.of(movie.getPath()), movieUpdateDto.getTitle(), movieUpdateDto.getYear());
-        movieRepository.delete(movie);
-        Path renamedFullPath = fileService.renamedPath(moviePath, movieUpdateDto.getTitle(), movieUpdateDto.getYear());
+        fileService.renameFile(Path.of(movie.getPath()), title, year);
+        Path renamedFullPath = fileService.renamedPath(moviePath, title, year);
 
-        Movie updatedMovie = getMovieFromApi(title(renamedFullPath.getFileName().toString()));
+        Movie updatedMovie = getMovieFromApi(movie, title(renamedFullPath.getFileName().toString()));
+
         updatedMovie.setPath(renamedFullPath.toString());
         movieRepository.save(updatedMovie);
         return movie;
@@ -223,7 +222,7 @@ public class MovieServiceImpl implements MovieService {
         List<Path> files = fileService.getVideoFiles(moviesDownloadPath);
         List<Movie> organizedMovies = new ArrayList<>();
         for (Path file : files){
-            Movie movie = getMovieFromApi(title(file.getFileName().toString()));
+            Movie movie = getMovieFromApi(new Movie(), title(file.getFileName().toString()));
             generateDownloadMovieFile(movie, destinationPath);
             movieRepository.save(movie);
             organizedMovies.add(movie);
@@ -237,34 +236,62 @@ public class MovieServiceImpl implements MovieService {
         List<Path> videoFiles = fileService.getVideoFiles(movieFilePath);
         List<Movie> movies = new ArrayList<>();
         for (Path file : videoFiles) {
-            List<Audio> audios = audioService.createAudioListFromFile(file);
-            List<Subtitle> subtitles = subtitleService.createSubtitleListFromFile(file);
-            Movie movie = getMovieFromApi(title(file.getFileName().toString()));
-            movie.setPath(file.toString());
-            Video video = videoService.createVideoFromPath(file);
-            movie.setVideo(video);
-            movie.setAudios(audios);
-            movie.setSubtitles(subtitles);
-            Movie createdMovie = createdMovie(movie);
-            video.setMovie(createdMovie);
-            videoService.updateMovieVideo(video.getId(), video, createdMovie);
-            for (Subtitle subtitle : subtitles){
-                subtitle.setMovie(movie);
-                subtitleRepository.save(subtitle);
+            Optional <Movie> movieFromDb = movieRepository.findByPath(file.toString());
+            if(movieFromDb.isEmpty()){
+                movies.add(createdMovie(file));
+            }else{
+                movies.add(movieFromDb.get());
             }
-            for (Audio audio : audios){
-                audio.setMovie(movie);
-                audioRepository.save(audio);
-            }
-
-            movies.add(createdMovie);
-        } return movies;
+        }
+        deleteMovieFromDbWithoutFile(movies);
+        return movies;
     }
 
+    //clean movie without file
+    private void deleteMovieFromDbWithoutFile(List<Movie> movies){
+        for(Movie movie : movies){
+            if(!new File(movie.getPath()).exists()){
+                movieRepository.delete(movie);
+            }
+        }
+    }
 
-    private Movie createdMovie(Movie movie){
-        Optional <Movie> movieOptional = movieRepository.findByPath(movie.getPath());
-        return movieOptional.orElseGet(() -> movieRepository.save(movie));
+    //create movie with metadata options and details from api
+    private Movie createdMovie(Path file){
+        List<Audio> audios = audioService.createAudioListFromFile(file);
+        List<Subtitle> subtitles = subtitleService.createSubtitleListFromFile(file);
+        //get data for movie from Api
+        Movie movie = getMovieFromApi(new Movie(), title(file.getFileName().toString()));
+
+        //get data for movie from ffmpeg metadata
+        movie.setPath(file.toString());
+        Video video = videoService.createVideoFromPath(file);
+        movie.setVideo(video);
+        movie.setAudios(audios);
+        movie.setSubtitles(subtitles);
+        movieRepository.save(movie);
+        video.setMovie(movie);
+        videoService.updateMovieVideo(video.getId(), video, movie);
+        for (Subtitle subtitle : subtitles){
+            subtitle.setMovie(movie);
+            subtitleRepository.save(subtitle);
+        }
+        for (Audio audio : audios){
+            audio.setMovie(movie);
+            audioRepository.save(audio);
+        }
+        if(movie.getTitle() == null){
+            movie.setTitle(Path.of(movie.getPath()).getFileName().toString());
+            movieRepository.save(movie);
+        }
+        return movie;
+    }
+
+    private void setMovieTitleIfIsEmpty(Movie movie, Path path){
+        if(movie.getTitle() == null || movie.getTitle().isEmpty()){
+            movie.setTitle(path.getFileName().toString());
+            movieRepository.save(movie);
+        }
     }
 
     private void generateDownloadMovieFile(Movie movie, Path destinationPath){
@@ -290,13 +317,13 @@ public class MovieServiceImpl implements MovieService {
 
 
     //try to find movie in api
-    private Movie getMovieFromApi(String[] titleElements) {
+    private Movie getMovieFromApi(Movie movie, String[] titleElements) {
         for (int i = titleElements.length-1; i > 0; i--) {
             String[] subArray = Arrays.copyOfRange(titleElements, 0, i);
             try{
                 String title = String.join(" ",subArray);
                 System.out.println("title: " + title + " year: " + this.year);
-                return getMovieFromApiByTitle(title, this.year);
+                return getMovieFromApiByTitle(movie, title, this.year);
             }catch (JSONException ignored){
 
             }

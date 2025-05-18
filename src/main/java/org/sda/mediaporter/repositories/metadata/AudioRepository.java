@@ -1,4 +1,4 @@
-package org.sda.mediaporter.repositories;
+package org.sda.mediaporter.repositories.metadata;
 
 import org.sda.mediaporter.models.metadata.Audio;
 import org.springframework.data.jpa.repository.JpaRepository;

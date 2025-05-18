@@ -102,8 +102,8 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Path renamedPath(Path filePath, String newName, Integer year){
-        String newNameWithExtension = newName.trim() + getFileExtensionWithDot(filePath);
-        return filePath.resolveSibling(String.format("%s (%s)%s", newName, year, newNameWithExtension));
+        String newNameWithExtension = getFileExtensionWithDot(filePath);
+        return filePath.resolveSibling(String.format("%s %s%s", newName, year, newNameWithExtension));
     }
 
     @Override

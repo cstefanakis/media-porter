@@ -1,7 +1,6 @@
 package org.sda.mediaporter.controllers;
 
 import org.sda.mediaporter.Servicies.MovieService;
-import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,8 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

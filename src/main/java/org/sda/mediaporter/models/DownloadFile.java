@@ -15,7 +15,7 @@ import org.sda.mediaporter.models.enums.LibraryItems;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class DownloadFiles {
+public class DownloadFile {
     @Id
     private Long id;
     private String url;

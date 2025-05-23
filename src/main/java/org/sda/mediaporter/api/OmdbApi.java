@@ -15,23 +15,20 @@ public class OmdbApi {
     private ApiConnect omdbApi;
     private final String apiKey = "c30304ec";
 
-    public OmdbApi(String movieTitle, Integer movieYear) {
-        this.omdbApi = new ApiConnect(url(movieTitle, movieYear));
-    }
-
-    private String url(String movieTitle, Integer movieYear){
-        if(movieYear == null){
-            return String.format("https://www.omdbapi.com/?t=%s&apikey=%s", search(movieTitle), this.apiKey);
-        }
-        return String.format("https://www.omdbapi.com/?t=%s+&y=%s&apikey=%s", search(movieTitle), movieYear, this.apiKey);
-    }
-
-    public OmdbApi(String tvShowTitle, Integer seasonNumber, Integer episodeNumber) {
-        String url = String.format("https://www.omdbapi.com/?t=%s&Season=%s&Episode=%s+&apikey=%s", search(tvShowTitle), seasonNumber, episodeNumber, this.apiKey);
+    public OmdbApi(String imdbId) {
+        String url = String.format("http://www.omdbapi.com/?i=%s&apikey=%s", imdbId, apiKey);
+        this.omdbApi = new ApiConnect(url);
     }
 
     private String search(String search){
-        return URLEncoder.encode(search, StandardCharsets.UTF_8);
+        System.out.println(search);
+        try {
+            String text = URLEncoder.encode(search, StandardCharsets.UTF_8);
+            System.out.println("text: " + text);
+            return text;
+        }catch (Exception e){
+            return "";
+        }
     }
 
     private JSONObject rootObject(){

@@ -1,6 +1,7 @@
 package org.sda.mediaporter.api;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.time.LocalDate;
@@ -12,14 +13,17 @@ import java.util.stream.Collectors;
 
 public class TheMovieDb {
     private final ApiConnect theMovieDb;
+    private ApiConnect movie;
     private final String apiKey = "7c97b163195d9428522398e8f1c32f63";
     private String search;
     private int resultsObjectIndex;
 
     public TheMovieDb(String search, Integer year) {
-        String url = String.format("https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s", apiKey, search(search));
+        String url = String.format("https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s", apiKey, search(search), year);
         theMovieDb = new ApiConnect(url);
         this.resultsObjectIndex = fileIndex(year);
+        System.out.println(getMovieId());
+        this.movie = new ApiConnect(String.format("https://api.themoviedb.org/3/movie/%s?api_key=%s", getMovieId(), apiKey));
     }
 
     public TheMovieDb(String contributorName) {
@@ -31,6 +35,13 @@ public class TheMovieDb {
         this.search = search;
         return search.replace(" ", "+")
                 .replace(".", "+");
+    }
+
+    public String getImdbId(){
+        JSONObject jsonObject = new JSONObject(this.movie.getJsonString());
+        System.out.println(jsonObject);
+        String key = "imdb_id";
+        return jsonObject.getString(key);
     }
 
     private JSONObject rootObject(){
@@ -55,33 +66,54 @@ public class TheMovieDb {
         }return 0;
     }
 
+    public int getMovieId(){
+        String key = "id";
+        return results().getJSONObject(this.resultsObjectIndex).getInt(key);
+    }
+
     public String getOriginalTitle(){
         String key = "original_title";
-        if (results().isEmpty()) {
-            return this.search;
+        try {
+            if (results().isEmpty()) {
+                return this.search;
+            }
+            return jsonStringObjectResult(key);
+        }catch (JSONException e){
+            return null;
         }
-        return jsonStringObjectResult(key);
     }
 
     public String getOverview(){
         String key = "overview";
-        return results()
-                .getJSONObject(this.resultsObjectIndex)
-                .getString(key);
+        try {
+            return results()
+                    .getJSONObject(this.resultsObjectIndex)
+                    .getString(key);
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     private String checkYear(int index){
         String key = "release_date";
-        return results()
-                .getJSONObject(index)
-                .optString(key);
+        try {
+            return results()
+                    .getJSONObject(index)
+                    .optString(key);
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     private String realiseDate(){
         String key = "release_date";
-        return results()
-                .getJSONObject(this.resultsObjectIndex)
-                .getString(key);
+        try {
+            return results()
+                    .getJSONObject(this.resultsObjectIndex)
+                    .getString(key);
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     public LocalDate getReleaseDate(){
@@ -100,20 +132,32 @@ public class TheMovieDb {
 
     public String getTitle(){
         String key = "title";
-        return jsonStringObjectResult(key);
+        try {
+            return jsonStringObjectResult(key);
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     public List<String> getLanguages(){
         String key = "original_language";
-        String[] languages =jsonStringObjectResult(key)
-                .replace(" ", "")
-                .split(",");
-        return Arrays.stream(languages).collect(Collectors.toList());
+        try {
+            String[] languages = jsonStringObjectResult(key)
+                    .replace(" ", "")
+                    .split(",");
+            return Arrays.stream(languages).collect(Collectors.toList());
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     public Double getRating(){
         String key = "vote_average";
-        return jsonDoubleObjectResult(key);
+        try {
+            return jsonDoubleObjectResult(key);
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     private DateTimeFormatter theMovieDBFormatter(){
@@ -122,8 +166,8 @@ public class TheMovieDb {
 
     public String getPoster(){
         String key = "poster_path";
-                String poster = jsonStringObjectResult(key);
-        return "https://image.tmdb.org/t/p/w500"+poster;
+            String poster = jsonStringObjectResult(key);
+            return "https://image.tmdb.org/t/p/w500"+poster;
     }
 
     public List<String> getGenres(){
@@ -137,9 +181,13 @@ public class TheMovieDb {
     
     private JSONArray genreIds(){
         String key = "genre_ids";
-        JSONObject movie = results().getJSONObject(resultsObjectIndex);
-        return movie
-                .getJSONArray(key);
+        try {
+            JSONObject movie = results().getJSONObject(resultsObjectIndex);
+            return movie
+                    .getJSONArray(key);
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     private Map<Integer, String> genreIdsMap(){
@@ -168,25 +216,31 @@ public class TheMovieDb {
 
     public String getContributorName(){
         String key = "original_name";
-        return jsonStringObjectResult(key);
+        try {
+            return jsonStringObjectResult(key);
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     public String getContributorPoster(){
         String key = "profile_path";
-        if(checkJsonObjectExists(key)) {
+        try {
             String path = jsonStringObjectResult(key);
-            return "https://image.tmdb.org/t/p/w500"+path;
+            return "https://image.tmdb.org/t/p/w500" + path;
+        }catch (JSONException e) {
+            return null;
         }
-        return null;
-
     }
 
     public String getContributorWebsite(){
         String key = "id";
-        if(checkJsonObjectExists(key)) {
+        try {
             int id = jsonIntegerObjectResult(key);
             return "https://www.themoviedb.org/person/" + id;
-        }return null;
+        }catch (JSONException e){
+            return null;
+        }
     }
 
     private Integer jsonIntegerObjectResult(String key){

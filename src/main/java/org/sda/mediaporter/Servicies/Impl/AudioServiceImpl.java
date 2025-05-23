@@ -38,6 +38,7 @@ public class AudioServiceImpl implements AudioService {
     public List<Audio> createAudioListFromFile(Path file) {
         List<Audio> audios = new ArrayList<>();
         String audioInfo = audioInfo(file);
+        if(!audioInfo.isEmpty()) {
         String[] audioInfoArray = audioInfo.split("\n");
         for(String audio : audioInfoArray) {
             String[] audioItems = audio.split(",");
@@ -56,6 +57,7 @@ public class AudioServiceImpl implements AudioService {
                 newAudio.setLanguage(languageService.autoCreateLanguageByCode(audioItems[4]));
             }
             audios.add(audioRepository.save(newAudio));
+        }
         }return audios;
     }
 

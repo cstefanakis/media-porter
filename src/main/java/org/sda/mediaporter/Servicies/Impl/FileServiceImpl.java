@@ -6,6 +6,7 @@ import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,19 +20,7 @@ import java.util.regex.Pattern;
 @Service
 public class FileServiceImpl implements FileService {
 
-    private final LanguageService languageService;
-    private final CodecService codecService;
-    private final AudioService audioService;
-    private final VideoRepository videoRepository;
-    private final VideoService videoService;
-
-    @Autowired
-    public FileServiceImpl(LanguageService languageService, CodecService codecService, AudioService audioService, VideoRepository videoRepository, VideoService videoService) {
-        this.languageService = languageService;
-        this.codecService = codecService;
-        this.audioService = audioService;
-        this.videoRepository = videoRepository;
-        this.videoService = videoService;
+    public FileServiceImpl() {
     }
 
     @Override
@@ -71,19 +60,21 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteFile(Path path) {
+    public void deleteFile(Path path, String fileNameContain) {
         try {
             Files.delete(path);
         }catch (IOException e){
             throw new RuntimeException(String.format("Failed to delete %s", path));
         }
+        deleteSubDirectories(path, fileNameContain);
     }
 
     @Override
-    public void moveFile(Path fromFullPath, Path toFullPath) {
+    public void moveFile(Path fromFullPath, String filenameTitleAndYear, Path toFullPath) {
         if(!Files.exists(toFullPath)){
             try {
-                Files.copy(fromFullPath, toFullPath);
+                Files.move(fromFullPath, toFullPath);
+                deleteSubDirectories(fromFullPath, filenameTitleAndYear);
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Failed to move file %s to %s", fromFullPath, toFullPath));
             }
@@ -91,20 +82,42 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void renameFile(Path filePath, String newName, Integer year) {
+    public Path renameFile(Path filePath,String oldSubDirectoryName, String newName) {
         String newNameWithExtension = newName.trim() + getFileExtensionWithDot(filePath);
+        Path destinationPath = generatedDestinationPathFromFilePath(filePath, oldSubDirectoryName, newNameWithExtension);
             try {
-                Files.move(filePath, renamedPath(filePath, newName, year));
+                Files.move(filePath, destinationPath);
             } catch (IOException e) {
-                throw new RuntimeException(String.format("Failed to rename file %s to %s", filePath.getFileName(), newNameWithExtension));
+                throw new RuntimeException(String.format("Failed to rename file %s to %s", filePath, destinationPath));
             }
+        deleteSubDirectories(filePath, oldSubDirectoryName);
+        return destinationPath;
     }
 
-    @Override
-    public Path renamedPath(Path filePath, String newName, Integer year){
-        String newNameWithExtension = getFileExtensionWithDot(filePath);
-        return filePath.resolveSibling(String.format("%s %s%s", newName, year, newNameWithExtension));
+    public Path generatedDestinationPathFromFilePath(Path filePath, String fileNameContain, String nameWithExtension) {
+        while(filePath.toString().contains(fileNameContain)){
+            filePath = filePath.getParent();
+        }
+        return filePath.resolve(nameWithExtension);
     }
+
+    public void deleteSubDirectories(Path filePath, String fileNameContain) {
+        while(filePath.toString().contains(fileNameContain)){
+            File path = filePath.toFile();
+            System.out.println(filePath);
+            if(path.isDirectory() && path.listFiles() != null && path.listFiles().length == 0){
+                try {
+                    Files.delete(filePath);
+                }catch (IOException e){
+                    throw new RuntimeException(String.format("Failed to delete directory %s", filePath));
+                }
+            }
+            filePath = filePath.getParent();
+
+        }
+    }
+
+
 
     @Override
     public String getFileExtensionWithDot(Path file) {
@@ -123,6 +136,26 @@ public class FileServiceImpl implements FileService {
         }catch (IOException e){
             return List.of();
         }
+    }
+
+    @Override
+    public Path createdDirectories(Path sourcePath, String[] directories) {
+        StringBuilder path = new StringBuilder();
+        path.append(sourcePath.toString());
+        for(int i = 0; i < directories.length; i++){
+            path.append(File.separator).append(directories[i]);
+            if(i < directories.length - 1){
+                path.append(File.separator);
+            }
+            Path directoryPath = Path.of(path.toString());
+            if(!Files.exists(directoryPath)){
+                try {
+                    Files.createDirectory(directoryPath);
+                }catch (IOException e){
+                    throw new RuntimeException(String.format("Failed to create directory %s", path));
+                }
+            }
+        }return Path.of(path.toString());
     }
 
     //check if fileName is video type

@@ -31,18 +31,20 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public Video createVideoFromPath(Path file) {
-        String[] properties = videoInfo(file).split(",");
-        Video video = new Video();
-        if(properties.length > 1){
-            video.setCodec(codecService.autoCreateCodec(properties[1]));
-        }
-        if(properties.length > 3){
-            video.setResolution(generatedResolution(properties[2], properties[3]));
-        }
-        if(properties.length > 4){
-            video.setBitrate(FileServiceImpl.convertStringToInt(properties[4]));
-        }
-        return videoRepository.save(video);
+        if(!videoInfo(file).isEmpty()) {
+            String[] properties = videoInfo(file).split(",");
+            Video video = new Video();
+            if (properties.length > 1) {
+                video.setCodec(codecService.autoCreateCodec(properties[1]));
+            }
+            if (properties.length > 3) {
+                video.setResolution(generatedResolution(properties[2], properties[3]));
+            }
+            if (properties.length > 4) {
+                video.setBitrate(FileServiceImpl.convertStringToInt(properties[4]));
+            }
+            return videoRepository.save(video);
+        }return null;
     }
 
     @Override

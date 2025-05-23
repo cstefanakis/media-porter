@@ -12,6 +12,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -25,15 +27,15 @@ public class MovieController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<Movie>> getAllMovies() {
-        List<Movie> movies = movieService.getMovies();
+    public ResponseEntity<Page<Movie>> getAllMovies(Pageable pageable) {
+        Page<Movie> movies = movieService.getMovies(pageable);
         return ResponseEntity.ok(movies);
     }
 
     @GetMapping("/get-movies-by-title-and-year")
     public ResponseEntity <Movie> getMovieByTitle(
-            @RequestParam String title,
-            @RequestParam(required = false) Integer year) {
+            @RequestParam(name = "title") String title,
+            @RequestParam(name = "year", required = false) Integer year) {
         Movie movie = movieService.getMovieFromApiByTitle(new Movie(), title, year);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
@@ -60,7 +62,8 @@ public class MovieController {
     public ResponseEntity<Movie> moveMovie(@PathVariable("id") Long id,
                                            @RequestParam(name = "path") String path) {
         Path destinationPath = Paths.get(path);
-        Movie movie = movieService.moveMovie(id, destinationPath);
+        Movie movieFromDb = movieService.getMovieById(id);
+        Movie movie = movieService.generateAndMoveMovieFile(movieFromDb, destinationPath);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
@@ -81,18 +84,19 @@ public class MovieController {
     }
 
     @PostMapping("/organize-download-movies")
-    public ResponseEntity<List<Movie>> organizeDownloadMovies(@RequestParam(name = "downloadPath") String downloadPath,
+    public ResponseEntity<Page<Movie>> organizeDownloadMovies(Pageable page,
+                                                              @RequestParam(name = "sourcePath") String sourcePath,
                                                               @RequestParam(name = "destinationPath") String destinationPath) {
-        Path downloadMoviesPath = Paths.get(downloadPath);
+        Path downloadMoviesPath = Paths.get(sourcePath);
         Path destinationMoviesPath = Paths.get(destinationPath);
-        List<Movie> organizedMovies = movieService.organizedDownloadMovieFiles(downloadMoviesPath, destinationMoviesPath);
+        Page<Movie> organizedMovies = movieService.organizedDownloadMovieFiles(page, downloadMoviesPath, destinationMoviesPath);
         return ResponseEntity.status(HttpStatus.OK).body(organizedMovies);
     }
 
-    @PostMapping("/create-movies-from-path")
-    public ResponseEntity<List<Movie>> getMoviesFromPath(@RequestParam(name = "path") String path) {
-        List<Movie> movies = movieService.getMoviesFromPath(path);
-        System.out.println("Path: " + path);
-        return ResponseEntity.status(HttpStatus.OK).body(movies);
+    @GetMapping("/create-movies-from-path")
+    public ResponseEntity<Page<Movie>> getMoviesFromPath(Pageable page,
+                                                         @RequestParam(name = "path") String path) {
+        Page<Movie> movies = movieService.getMoviesFromPath(page, path);
+        return ResponseEntity.ok(movies);
     }
 }

@@ -37,18 +37,20 @@ public class SubtitleServiceImpl implements SubtitleService {
     @Override
     public List<Subtitle> createSubtitleListFromFile(Path file) {
         List<Subtitle> subtitlesList = new ArrayList<>();
-        String[] subtitles = subtitleInfo(file).split("\n");
-        if(subtitles.length >= 1) {
-            for (String subtitle : subtitles) {
-                String[] properties = subtitle.split(",");
-                Subtitle subtitleEntity = new Subtitle();
-                if(properties.length > 1) {
-                    subtitleEntity.setFormat(codecService.autoCreateCodec(properties[1]));
+        if(!subtitleInfo(file).isEmpty()) {
+            String[] subtitles = subtitleInfo(file).split("\n");
+            if(subtitles.length >= 1) {
+                for (String subtitle : subtitles) {
+                    String[] properties = subtitle.split(",");
+                    Subtitle subtitleEntity = new Subtitle();
+                    if (properties.length > 1) {
+                        subtitleEntity.setFormat(codecService.autoCreateCodec(properties[1]));
+                    }
+                    if (properties.length > 2) {
+                        subtitleEntity.setLanguage(languageService.autoCreateLanguageByCode(properties[2]));
+                    }
+                    subtitlesList.add(subtitleRepository.save(subtitleEntity));
                 }
-                if(properties.length > 2) {
-                    subtitleEntity.setLanguage(languageService.autoCreateLanguageByCode(properties[2]));
-                }
-                subtitlesList.add(subtitleRepository.save(subtitleEntity));
             }
         }return subtitlesList;
     }
@@ -70,7 +72,7 @@ public class SubtitleServiceImpl implements SubtitleService {
     }
 
     private String subtitleInfo(Path filePath){
-        return FileServiceImpl.runCommand(new String[]{
+        String subtitlesOptions =  FileServiceImpl.runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "s",
@@ -78,5 +80,7 @@ public class SubtitleServiceImpl implements SubtitleService {
                 "-of", "csv=p=0",
                 filePath.toString()
         });
+        System.out.println("subtitles options: "+subtitlesOptions);
+        return subtitlesOptions;
     }
 }

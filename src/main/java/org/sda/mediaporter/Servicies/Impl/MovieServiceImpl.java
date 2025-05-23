@@ -5,7 +5,6 @@ import org.json.JSONException;
 import org.sda.mediaporter.Servicies.*;
 import org.sda.mediaporter.api.OmdbApi;
 import org.sda.mediaporter.api.TheMovieDb;
-import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
@@ -19,6 +18,8 @@ import org.sda.mediaporter.repositories.MovieRepository;
 import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
 import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -67,18 +68,18 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public List<Movie> getMovies() {
-        return movieRepository.findAll();
+    public Page<Movie> getMovies(Pageable pageable) {
+        Page<Movie> movies =  movieRepository.findAll(pageable);
+        for (Movie movie : movies) {
+            if(!Files.exists(Path.of(movie.getPath()))){
+                movieRepository.delete(movie);
+            }
+        }return movies;
     }
 
     @Override
     public Movie getMovieFromApiByTitle(Movie movie, String title, Integer year) {
-        try{
-            return omdbApiToEntity(movie, title, year);
-        }catch (JSONException e){
-            System.out.println("JSONException: "+e.getMessage());
-            return theMovieDbToEntity(movie, title, year);
-        }
+        return omdbApiToEntity(movie, title, year);
     }
 
     @Override
@@ -99,7 +100,8 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public void deleteMovieById(Long id) {
         Movie movie = getMovieById(id);
-        deleteFile(movie.getPath());
+        String movieTitleWithYear = getGeneratedMovieSubFolder(movie.getTitle(), movie.getYear());
+        fileService.deleteFile(Path.of(movie.getPath()), movieTitleWithYear);
         movieRepository.delete(movie);
     }
 
@@ -108,7 +110,7 @@ public class MovieServiceImpl implements MovieService {
         Movie movie = getMovieById(movieId);
         Path moviePath = Path.of(movie.getPath());
         Path destinationFullPath = toPathWithoutFileName.resolve(moviePath.getFileName());
-        fileService.moveFile(moviePath, destinationFullPath);
+        fileService.moveFile(moviePath, getGeneratedMovieSubFolder(movie.getTitle(), movie.getYear()),destinationFullPath);
         movie.setPath(destinationFullPath.toString());
         movieRepository.save(movie);
         return movie;
@@ -117,15 +119,20 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Movie updateMovie(Long movieId, String title, Integer year) {
         Movie movie = getMovieById(movieId);
+        String oldMovieSubDirectoryName = getGeneratedMovieSubFolder(movie.getTitle(), movie.getYear());
         Path moviePath = Path.of(movie.getPath());
-        fileService.renameFile(Path.of(movie.getPath()), title, year);
-        Path renamedFullPath = fileService.renamedPath(moviePath, title, year);
-
-        Movie updatedMovie = getMovieFromApi(movie, title(renamedFullPath.getFileName().toString()));
+        Path newPath = moviePath;
+        Movie updatedMovie = getMovieFromApiByTitle(movie, title, year);
+        System.out.println(oldMovieSubDirectoryName);
+        while (newPath.toString().contains(oldMovieSubDirectoryName)){
+            newPath = newPath.getParent();
+        }
+        String newMovieSubDirectoryName = createGeneratedDirectories(newPath, movie);
+        Path renamedFullPath = fileService.renameFile(moviePath, oldMovieSubDirectoryName, newMovieSubDirectoryName+File.separator+getGeneratedMovieFileName(updatedMovie));
 
         updatedMovie.setPath(renamedFullPath.toString());
         movieRepository.save(updatedMovie);
-        return movie;
+        return updatedMovie;
     }
 
     @Override
@@ -156,20 +163,20 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private Movie omdbApiToEntity(Movie movie, String title, Integer year){
-        OmdbApi omdbApi = new OmdbApi(getTitle(title, year), year);
         TheMovieDb theMovieDb = new TheMovieDb(title, year);
+        OmdbApi omdbApi = new OmdbApi(theMovieDb.getImdbId());
         movie.setTitle(omdbApi.getTitle());
         movie.setOriginalTitle(theMovieDb.getOriginalTitle());
-        movie.setYear(omdbApi.getYear());
-        movie.setRating(omdbApi.getImdbRating());
+        movie.setYear(omdbApi.getYear() == null? year : omdbApi.getYear());
+        movie.setRating(omdbApi.getImdbRating() == null? theMovieDb.getRating() : omdbApi.getImdbRating());
         movie.setReleaseDate(omdbApi.getReleasedDate());
         movie.setGenres(getGenres(omdbApi.getGenre()));
         movie.setDirectors(getContributors(omdbApi.getDirector()));
         movie.setWriters(getContributors(omdbApi.getWriter()));
         movie.setActors(getContributors(omdbApi.getActors()));
-        movie.setPlot(omdbApi.getPlot());
+        movie.setPlot(omdbApi.getPlot() == null || omdbApi.getPlot().equals("N/A")? theMovieDb.getOverview() : omdbApi.getPlot());
         movie.setCountry(omdbApi.getCountry());
-        movie.setPoster(omdbApi.getPoster());
+        movie.setPoster(omdbApi.getPoster() == null || omdbApi.getPoster().equals("N/A") ? theMovieDb.getPoster() : omdbApi.getPoster());
         movie.setLanguages(getLanguagesByTitle(omdbApi.getLanguages()));
         return movie;
     }
@@ -198,52 +205,27 @@ public class MovieServiceImpl implements MovieService {
         return languages;
     }
 
-    private List<Language> getLanguagesByCode(List<String> apiLanguages) {
-        return apiLanguages.stream().map(languageService::autoCreateLanguageByCode).toList();
-    }
-
-    private Movie theMovieDbToEntity(Movie movie, String title, Integer year){
-        TheMovieDb theMovieDb = new TheMovieDb(title, year);
-        movie.setTitle(theMovieDb.getTitle());
-        movie.setOriginalTitle(theMovieDb.getOriginalTitle());
-        movie.setYear(theMovieDb.getYear());
-        movie.setRating(theMovieDb.getRating());
-        movie.setReleaseDate(theMovieDb.getReleaseDate());
-        movie.setGenres(getGenres(theMovieDb.getGenres()));
-        movie.setPlot(theMovieDb.getOverview());
-        movie.setCountry(null);
-        movie.setPoster(theMovieDb.getPoster());
-        movie.setLanguages(getLanguagesByCode(theMovieDb.getLanguages()));
-        return movie;
-    }
-
     @Override
-    public List<Movie> organizedDownloadMovieFiles(Path moviesDownloadPath, Path destinationPath){
-        List<Path> files = fileService.getVideoFiles(moviesDownloadPath);
-        List<Movie> organizedMovies = new ArrayList<>();
-        for (Path file : files){
-            Movie movie = getMovieFromApi(new Movie(), title(file.getFileName().toString()));
-            generateDownloadMovieFile(movie, destinationPath);
-            movieRepository.save(movie);
-            organizedMovies.add(movie);
+    public Page<Movie> organizedDownloadMovieFiles(Pageable page, Path moviesDownloadPath, Path destinationPath){
+        Page<Movie> pathMovies = movieRepository.getPathMovies(page, moviesDownloadPath);
+        for (Movie movie : pathMovies){
+            generateAndMoveMovieFile(movie, destinationPath);
         }
-        return organizedMovies;
+        return pathMovies;
     }
 
     @Override
-    public List<Movie> getMoviesFromPath(String path) {
+    public Page<Movie> getMoviesFromPath(Pageable page, String path) {
         Path movieFilePath = Path.of(path);
         List<Path> videoFiles = fileService.getVideoFiles(movieFilePath);
-        List<Movie> movies = new ArrayList<>();
         for (Path file : videoFiles) {
             Optional <Movie> movieFromDb = movieRepository.findByPath(file.toString());
-            if(movieFromDb.isEmpty()){
-                movies.add(createdMovie(file));
-            }else{
-                movies.add(movieFromDb.get());
+            if(movieFromDb.isEmpty()) {
+                createMovie(file);
             }
         }
-        deleteMovieFromDbWithoutFile(movies);
+        Page<Movie> movies = movieRepository.getPathMovies(page, movieFilePath);
+        deleteMovieFromDbWithoutFile(movies.stream().toList());
         return movies;
     }
 
@@ -257,7 +239,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     //create movie with metadata options and details from api
-    private Movie createdMovie(Path file){
+    private void createMovie(Path file){
         List<Audio> audios = audioService.createAudioListFromFile(file);
         List<Subtitle> subtitles = subtitleService.createSubtitleListFromFile(file);
         //get data for movie from Api
@@ -270,8 +252,11 @@ public class MovieServiceImpl implements MovieService {
         movie.setAudios(audios);
         movie.setSubtitles(subtitles);
         movieRepository.save(movie);
-        video.setMovie(movie);
-        videoService.updateMovieVideo(video.getId(), video, movie);
+        if(video != null){
+            video.setMovie(movie);
+            videoService.updateMovieVideo(video.getId(), video, movie);
+        }
+
         for (Subtitle subtitle : subtitles){
             subtitle.setMovie(movie);
             subtitleRepository.save(subtitle);
@@ -284,41 +269,92 @@ public class MovieServiceImpl implements MovieService {
             movie.setTitle(Path.of(movie.getPath()).getFileName().toString());
             movieRepository.save(movie);
         }
-        return movie;
     }
 
-    private void setMovieTitleIfIsEmpty(Movie movie, Path path){
-        if(movie.getTitle() == null || movie.getTitle().isEmpty()){
-            movie.setTitle(path.getFileName().toString());
-            movieRepository.save(movie);
-        }
-    }
-
-    private void generateDownloadMovieFile(Movie movie, Path destinationPath){
+    public Movie generateAndMoveMovieFile(Movie movie, Path destinationPath){
         Path moviePath = Path.of(movie.getPath());
         String moviePathExtension = fileService.getFileExtensionWithDot(moviePath);
-        Path destinationFullPath = destinationPath.resolve(getGeneratedMovieFileName(movie) + moviePathExtension);
-        fileService.moveFile(moviePath, destinationFullPath);
+        Path destinationFullPath = destinationPath.resolve( createGeneratedDirectories(destinationPath, movie) + File.separator + getGeneratedMovieFileName(movie) + moviePathExtension);
+        fileService.moveFile(moviePath, getGeneratedMovieSubFolder(movie.getTitle(), movie.getYear()),destinationFullPath);
         movie.setPath(destinationFullPath.toString());
-    }
-
-    private String getTitle(String title, Integer year){
-        TheMovieDb theMovieDb = new TheMovieDb(title, year);
-        return theMovieDb.getTitle();
+        return movieRepository.save(movie);
     }
 
     private String getGeneratedMovieFileName(Movie movie){
-        return String.format("%s (%s)", movie.getTitle(), movie.getYear());
+        String video = getVideoToString(movie);
+        String audio = getAudioToString(movie);
+        String country = getCountryToString(movie);
+        String genres = getGenresToString(movie);
+        String rating = getRatingToString(movie);
+        return String.format("%s (%s)%s%s%s%s%s", movie.getTitle().replaceAll("[\\\\/:*?\"<>|]", ""), movie.getYear(), video, audio, country, genres, rating);
     }
 
-    private String getGeneratedMovieSubFolder(Movie movie){
-        return String.format("%s (%s)", movie.getTitle(), movie.getYear());
+    private String getVideoToString(Movie movie){
+        return movie.getVideo() == null ? "" :
+                String.format(" (%s %s)",movie.getVideo().getResolution(), movie.getVideo().getCodec().getName());
     }
 
+    private String getAudioToString(Movie movie){
+        try {
+            return movie.getAudios() == null || movie.getAudios().isEmpty() ? "" :
+                    String.format(" (%s)", getLanguagesToString(movie.getAudios()));
+        }catch (Exception e){
+            return "";
+        }
+    }
+
+    private String getCountryToString(Movie movie){
+        return movie.getCountry() == null ? "" :
+                String.format(" (Country [%s])", movie.getCountry());
+    }
+
+    private String getGenresToString(Movie movie){
+        return movie.getGenres() == null || movie.getGenres().isEmpty() ? "" :
+                String.format(" (Genres %s)", getGenresToString(movie.getGenres()));
+    }
+
+    private String getRatingToString(Movie movie){
+        return movie.getRating() == null ? "" :
+                String.format(" (Rating %s)", movie.getRating());
+    }
+
+    private String getLanguagesToString(List<Audio> languages){
+        StringBuilder languagesString = new StringBuilder();
+            for (int i = 0; i < languages.size(); i++) {
+                languagesString.append(languages.get(i).getLanguage().getIso6392B());
+                if (i != languages.size() - 1) {
+                    languagesString.append(", ");
+                }
+            }
+            return String.format("[%s]", languagesString);
+    }
+
+    private String getGenresToString(List<Genre> genres){
+        StringBuilder genresString = new StringBuilder();
+        for(int i = 0; i < genres.size(); i++){
+            genresString.append(genres.get(i).getTitle());
+            if(i != genres.size() - 1){
+                genresString.append(", ");
+            }
+        }return String.format("[%s]",genresString);
+    }
+
+    private String getGeneratedMovieSubFolder(String title, Integer year){
+        return String.format("%s (%s)", title, year);
+    }
+
+    private String createGeneratedDirectories(Path destinationPath, Movie movie){
+        String title = movie.getTitle();
+        Integer year = movie.getYear();
+        String movieDirectory = getGeneratedMovieSubFolder(title, year);
+        String[] directories = {movieDirectory};
+        fileService.createdDirectories(destinationPath, directories);
+        return movieDirectory;
+    }
 
     //try to find movie in api
     private Movie getMovieFromApi(Movie movie, String[] titleElements) {
-        for (int i = titleElements.length-1; i > 0; i--) {
+        for (int i = titleElements.length; i > 0; i--) {
             String[] subArray = Arrays.copyOfRange(titleElements, 0, i);
             try{
                 String title = String.join(" ",subArray);

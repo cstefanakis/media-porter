@@ -6,10 +6,12 @@ import java.util.List;
 public interface FileService {
     List<Path> getVideoFiles(Path path);
     void copyFile(Path fromPath, Path toPath);
-    void deleteFile(Path path);
-    void moveFile(Path fromPath, Path pathWithoutFileName);
-    void renameFile(Path filePath, String newName, Integer year);
+    void deleteFile(Path path, String fileNameContain);
+    void moveFile(Path fromFullPath, String filenameTitleAndYear, Path toFullPath);
+    Path renameFile(Path filePath,String oldSubDirectoryName, String newName);
     String getFileExtensionWithDot(Path file);
-    Path renamedPath(Path filePath, String newName, Integer year);
     List<Path> getVideoFilesOfSource(Path path);
+    Path createdDirectories(Path sourcePath, String[] directories);
+    Path generatedDestinationPathFromFilePath(Path filePath, String fileNameContain, String nameWithExtension);
+    void deleteSubDirectories(Path filePath, String fileNameContain);
 }

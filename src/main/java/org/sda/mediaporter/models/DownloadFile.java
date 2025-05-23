@@ -22,4 +22,10 @@ public class DownloadFile {
     private String name;
     @Enumerated(EnumType.STRING)
     private LibraryItems libraryItems;
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    private enum Status {
+        IN_PROGRESS, DOWNLOADED, FAILED, UN_DOWNLOADED
+    }
 }

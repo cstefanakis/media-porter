@@ -1,4 +1,4 @@
-package org.sda.mediaporter.Servicies;
+package org.sda.mediaporter.Services;
 
 import java.nio.file.Path;
 import java.util.List;

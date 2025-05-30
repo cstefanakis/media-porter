@@ -1,9 +1,9 @@
-package org.sda.mediaporter.Servicies.Impl;
+package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.sda.mediaporter.Servicies.CodecService;
-import org.sda.mediaporter.Servicies.LanguageService;
-import org.sda.mediaporter.Servicies.SubtitleService;
+import org.sda.mediaporter.Services.CodecService;
+import org.sda.mediaporter.Services.LanguageService;
+import org.sda.mediaporter.Services.SubtitleService;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.repositories.metadata.SubtitleRepository;

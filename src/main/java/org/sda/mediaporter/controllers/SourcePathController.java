@@ -1,6 +1,6 @@
 package org.sda.mediaporter.controllers;
 
-import org.sda.mediaporter.Servicies.SourcePathService;
+import org.sda.mediaporter.Services.SourcePathService;
 import org.sda.mediaporter.models.SourcePath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

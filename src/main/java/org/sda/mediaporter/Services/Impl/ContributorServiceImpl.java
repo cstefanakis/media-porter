@@ -1,6 +1,6 @@
-package org.sda.mediaporter.Servicies.Impl;
+package org.sda.mediaporter.Services.Impl;
 
-import org.sda.mediaporter.Servicies.ContributorService;
+import org.sda.mediaporter.Services.ContributorService;
 import org.sda.mediaporter.api.TheMovieDb;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.repositories.ContributorRepository;

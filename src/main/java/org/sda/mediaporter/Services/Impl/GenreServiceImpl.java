@@ -1,6 +1,6 @@
-package org.sda.mediaporter.Servicies.Impl;
+package org.sda.mediaporter.Services.Impl;
 
-import org.sda.mediaporter.Servicies.GenreService;
+import org.sda.mediaporter.Services.GenreService;
 import org.sda.mediaporter.dtos.GenreResponseDto;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.repositories.GenreRepository;

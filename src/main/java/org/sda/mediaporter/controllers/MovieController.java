@@ -1,7 +1,8 @@
 package org.sda.mediaporter.controllers;
 
-import org.sda.mediaporter.Servicies.MovieService;
+import org.sda.mediaporter.Services.MovieService;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.repositories.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,10 +20,12 @@ import org.springframework.data.domain.Pageable;
 @CrossOrigin(origins = "http://localhost:5173")
 public class MovieController {
     private final MovieService movieService;
+    private final MovieRepository movieRepository;
 
     @Autowired
-    public MovieController(MovieService movieService) {
+    public MovieController(MovieService movieService, MovieRepository movieRepository) {
         this.movieService = movieService;
+        this.movieRepository = movieRepository;
     }
 
     @GetMapping()
@@ -94,6 +99,19 @@ public class MovieController {
     public ResponseEntity<Page<Movie>> getMoviesFromPath(Pageable page,
                                                          @RequestParam(name = "path") String path) {
         Page<Movie> movies = movieService.getMoviesFromPath(page, path);
+        return ResponseEntity.ok(movies);
+    }
+
+    @GetMapping("/get-last-five-added-movies")
+    public ResponseEntity<List<Movie>> getLastFiveMovies(Pageable pageable) {
+        List<Movie> movies = movieService.getFiveLastAddedMovies(pageable);
+        System.out.println("Movies size: "+movies.size());
+        return ResponseEntity.ok(movies);
+    }
+
+    @GetMapping("/get-top-five-movies")
+    public ResponseEntity<List<Movie>> getTopFiveMovies(Pageable pageable) {
+        List<Movie> movies = movieService.getTopFiveMovies(pageable);
         return ResponseEntity.ok(movies);
     }
 }

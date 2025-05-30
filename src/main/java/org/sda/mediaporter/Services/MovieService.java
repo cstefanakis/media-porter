@@ -1,6 +1,5 @@
-package org.sda.mediaporter.Servicies;
+package org.sda.mediaporter.Services;
 
-import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.Movie;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,4 +21,7 @@ public interface MovieService {
     Page<Movie> organizedDownloadMovieFiles(Pageable page, Path moviesDownloadPath, Path destinationPath);
     Page<Movie> getMoviesFromPath(Pageable page, String path);
     Movie generateAndMoveMovieFile(Movie movie, Path destinationPath);
+    List <Movie> getFiveLastAddedMovies(Pageable pageable);
+
+    List<Movie> getTopFiveMovies(Pageable pageable);
 }

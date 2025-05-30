@@ -1,6 +1,6 @@
 package org.sda.mediaporter.controllers;
 
-import org.sda.mediaporter.Servicies.FileService;
+import org.sda.mediaporter.Services.FileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

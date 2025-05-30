@@ -1,8 +1,8 @@
-package org.sda.mediaporter.Servicies.Impl;
+package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.json.JSONException;
-import org.sda.mediaporter.Servicies.*;
+import org.sda.mediaporter.Services.*;
 import org.sda.mediaporter.api.OmdbApi;
 import org.sda.mediaporter.api.TheMovieDb;
 import org.sda.mediaporter.models.Contributor;
@@ -28,6 +28,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -207,7 +210,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public Page<Movie> organizedDownloadMovieFiles(Pageable page, Path moviesDownloadPath, Path destinationPath){
-        Page<Movie> pathMovies = movieRepository.getPathMovies(page, moviesDownloadPath);
+        Page<Movie> pathMovies = movieRepository.findPathMovies(page, moviesDownloadPath);
         for (Movie movie : pathMovies){
             generateAndMoveMovieFile(movie, destinationPath);
         }
@@ -224,7 +227,7 @@ public class MovieServiceImpl implements MovieService {
                 createMovie(file);
             }
         }
-        Page<Movie> movies = movieRepository.getPathMovies(page, movieFilePath);
+        Page<Movie> movies = movieRepository.findPathMovies(page, movieFilePath);
         deleteMovieFromDbWithoutFile(movies.stream().toList());
         return movies;
     }
@@ -244,6 +247,14 @@ public class MovieServiceImpl implements MovieService {
         List<Subtitle> subtitles = subtitleService.createSubtitleListFromFile(file);
         //get data for movie from Api
         Movie movie = getMovieFromApi(new Movie(), title(file.getFileName().toString()));
+        try {
+            Instant instant = Files.getLastModifiedTime(file).toInstant();
+            LocalDateTime modificationTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+            movie.setModificationDate(modificationTime);
+        } catch (IOException e) {
+            movie.setModificationDate(LocalDateTime.now());
+        }
+
 
         //get data for movie from ffmpeg metadata
         movie.setPath(file.toString());
@@ -278,6 +289,26 @@ public class MovieServiceImpl implements MovieService {
         fileService.moveFile(moviePath, getGeneratedMovieSubFolder(movie.getTitle(), movie.getYear()),destinationFullPath);
         movie.setPath(destinationFullPath.toString());
         return movieRepository.save(movie);
+    }
+
+    @Override
+    public List<Movie> getFiveLastAddedMovies(Pageable pageable) {
+        List <Movie> lastFiveAddedMovies = movieRepository.findLastFiveAddedMovies(pageable);
+        if(lastFiveAddedMovies.isEmpty()){
+            return new ArrayList<>();
+        }else{
+            return lastFiveAddedMovies;
+        }
+    }
+
+    @Override
+    public List<Movie> getTopFiveMovies(Pageable pageable) {
+        List<Movie> topFiveMovies = movieRepository.findTopFiveMovies(pageable);
+        if(topFiveMovies.isEmpty()){
+            return new ArrayList<>();
+        }else {
+            return topFiveMovies;
+        }
     }
 
     private String getGeneratedMovieFileName(Movie movie){

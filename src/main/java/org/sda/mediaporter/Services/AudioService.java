@@ -1,4 +1,4 @@
-package org.sda.mediaporter.Servicies;
+package org.sda.mediaporter.Services;
 
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.metadata.Audio;

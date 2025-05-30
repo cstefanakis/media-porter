@@ -1,6 +1,6 @@
-package org.sda.mediaporter.Servicies.Impl;
+package org.sda.mediaporter.Services.Impl;
 
-import org.sda.mediaporter.Servicies.CodecService;
+import org.sda.mediaporter.Services.CodecService;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.enums.Codecs;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;

@@ -1,14 +1,13 @@
-package org.sda.mediaporter.Servicies.Impl;
+package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import org.sda.mediaporter.Servicies.SourcePathService;
+import org.sda.mediaporter.Services.SourcePathService;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.repositories.SourcePathRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 

@@ -1,9 +1,7 @@
-package org.sda.mediaporter.Servicies.Impl;
+package org.sda.mediaporter.Services.Impl;
 
-import org.sda.mediaporter.Servicies.*;
+import org.sda.mediaporter.Services.*;
 import org.sda.mediaporter.models.enums.*;
-import org.sda.mediaporter.repositories.metadata.VideoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;

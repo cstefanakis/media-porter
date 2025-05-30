@@ -1,7 +1,6 @@
-package org.sda.mediaporter.Servicies;
+package org.sda.mediaporter.Services;
 
 import org.sda.mediaporter.models.SourcePath;
-import org.sda.mediaporter.repositories.SourcePathRepository;
 
 import java.util.List;
 

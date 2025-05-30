@@ -18,8 +18,14 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     Optional<Movie> findByPath(@Param("path") String path);
 
     @Query("select m from Movie m where m.path like :path%")
-    Page<Movie> getPathMovies(Pageable page,
+    Page<Movie> findPathMovies(Pageable page,
                               @Param("path") Path path);
+
+    @Query("select m from Movie m  order by m.modificationDate DESC")
+    List<Movie> findLastFiveAddedMovies(Pageable pageable);
+
+    @Query("select m from Movie  m order by m.rating DESC")
+    List<Movie> findTopFiveMovies(Pageable pageable);
 
     Page <Movie> findAll(Pageable pageable);
 }

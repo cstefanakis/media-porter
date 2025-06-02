@@ -1,10 +1,7 @@
 package org.sda.mediaporter.repositories;
 
-import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
-import org.sda.mediaporter.models.metadata.Audio;
-import org.sda.mediaporter.models.metadata.Subtitle;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.sda.mediaporter.models.Movie;
@@ -14,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 

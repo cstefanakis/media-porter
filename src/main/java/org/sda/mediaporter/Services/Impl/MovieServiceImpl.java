@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.sda.mediaporter.Services.*;
 import org.sda.mediaporter.api.OmdbApi;
 import org.sda.mediaporter.api.TheMovieDb;
+import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
@@ -20,6 +21,7 @@ import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -309,6 +311,23 @@ public class MovieServiceImpl implements MovieService {
         }else {
             return topFiveMovies;
         }
+    }
+
+    @Override
+    public Page<Movie> filterMovies(Pageable page,
+                                    MovieFilterDto movieFilterDto) {
+        return movieRepository.filterMovies(
+                page,
+                movieFilterDto.getTitle(),
+                movieFilterDto.getYear(),
+                movieFilterDto.getRating(),
+                movieFilterDto.getGenre(),
+                movieFilterDto.getCountry(),
+                movieFilterDto.getDirector(),
+                movieFilterDto.getActor(),
+                movieFilterDto.getAudio(),
+                movieFilterDto.getWriter(),
+                movieFilterDto.getSubtitle());
     }
 
     private String getGeneratedMovieFileName(Movie movie){

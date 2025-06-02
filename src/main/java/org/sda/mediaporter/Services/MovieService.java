@@ -1,10 +1,12 @@
 package org.sda.mediaporter.Services;
 
+import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.Movie;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -24,4 +26,6 @@ public interface MovieService {
     List <Movie> getFiveLastAddedMovies(Pageable pageable);
 
     List<Movie> getTopFiveMovies(Pageable pageable);
+
+    Page<Movie> filterMovies(Pageable page, MovieFilterDto movieFilterDto);
 }

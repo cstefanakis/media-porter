@@ -1,15 +1,19 @@
 package org.sda.mediaporter.controllers;
 
 import org.sda.mediaporter.Services.MovieService;
+import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.repositories.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -114,4 +118,11 @@ public class MovieController {
         List<Movie> movies = movieService.getTopFiveMovies(pageable);
         return ResponseEntity.ok(movies);
     }
+
+    @PostMapping("/filter-movies")
+    public ResponseEntity<Page<Movie>> getMovieByTitle(@PageableDefault Pageable page, @RequestBody MovieFilterDto movieFilterDto) {
+        Page<Movie> movies = movieService.filterMovies(page, movieFilterDto);
+        return ResponseEntity.ok(movies);
+    }
+
 }

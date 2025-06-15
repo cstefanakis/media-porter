@@ -45,6 +45,7 @@ public class SourcePathServiceImpl implements SourcePathService {
         updatedSourcePath.setTitle(sourcePath.getPath() == null ? updatedSourcePath.getTitle() : validatedTitle(sourcePath.getTitle()));
         updatedSourcePath.setPath(sourcePath.getPath() == null ? updatedSourcePath.getPath() : validatedPath(sourcePath.getPath()));
         updatedSourcePath.setType(sourcePath.getType() == null ? updatedSourcePath.getType() : sourcePath.getType());
+        updatedSourcePath.setPathType(sourcePath.getPathType() == null ? updatedSourcePath.getPathType() : sourcePath.getPathType());
         return updatedSourcePath;
     }
 

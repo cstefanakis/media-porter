@@ -2,6 +2,7 @@ package org.sda.mediaporter.Services;
 
 import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.SourcePath;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -28,4 +29,5 @@ public interface MovieService {
     List<Movie> getTopFiveMovies(Pageable pageable);
 
     Page<Movie> filterMovies(Pageable page, MovieFilterDto movieFilterDto);
+    void moveMoviesFromDownloadPathsToMoviesPath ();
 }

@@ -29,7 +29,7 @@ public class Movie {
     private Double rating;
     private LocalDate releaseDate;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name= "movie_genres",
             joinColumns = @JoinColumn(name = "movie_id"),

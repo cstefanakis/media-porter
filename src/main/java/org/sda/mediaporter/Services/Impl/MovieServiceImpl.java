@@ -6,14 +6,12 @@ import org.sda.mediaporter.Services.*;
 import org.sda.mediaporter.api.OmdbApi;
 import org.sda.mediaporter.api.TheMovieDb;
 import org.sda.mediaporter.dtos.MovieFilterDto;
-import org.sda.mediaporter.models.Contributor;
-import org.sda.mediaporter.models.Genre;
-import org.sda.mediaporter.models.Language;
-import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.*;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
+import org.sda.mediaporter.repositories.SourcePathRepository;
 import org.sda.mediaporter.repositories.metadata.AudioRepository;
 import org.sda.mediaporter.repositories.MovieRepository;
 import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
@@ -22,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -33,10 +33,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,11 +51,12 @@ public class MovieServiceImpl implements MovieService {
     private final AudioRepository audioRepository;
     private final VideoRepository videoRepository;
     private final SubtitleRepository subtitleRepository;
+    private final SourcePathRepository sourcePathRepository;
 
     private Integer year;
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, AudioRepository audioRepository, VideoRepository videoRepository, SubtitleRepository subtitleRepository) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, AudioRepository audioRepository, VideoRepository videoRepository, SubtitleRepository subtitleRepository, SourcePathRepository sourcePathRepository) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
@@ -70,6 +68,7 @@ public class MovieServiceImpl implements MovieService {
         this.audioRepository = audioRepository;
         this.videoRepository = videoRepository;
         this.subtitleRepository = subtitleRepository;
+        this.sourcePathRepository = sourcePathRepository;
     }
 
     @Override
@@ -261,23 +260,26 @@ public class MovieServiceImpl implements MovieService {
         //get data for movie from ffmpeg metadata
         movie.setPath(file.toString());
         Video video = videoService.createVideoFromPath(file);
-        movie.setVideo(video);
-        movie.setAudios(audios);
-        movie.setSubtitles(subtitles);
+
+
+
         movieRepository.save(movie);
         if(video != null){
             video.setMovie(movie);
             videoService.updateMovieVideo(video.getId(), video, movie);
         }
+        movie.setVideo(video);
 
         for (Subtitle subtitle : subtitles){
             subtitle.setMovie(movie);
             subtitleRepository.save(subtitle);
         }
+        movie.setSubtitles(subtitles);
         for (Audio audio : audios){
             audio.setMovie(movie);
             audioRepository.save(audio);
         }
+        movie.setAudios(audios);
         if(movie.getTitle() == null){
             movie.setTitle(Path.of(movie.getPath()).getFileName().toString());
             movieRepository.save(movie);
@@ -330,6 +332,31 @@ public class MovieServiceImpl implements MovieService {
                 movieFilterDto.getSubtitle());
     }
 
+    @Override
+    @Async
+    @Scheduled(fixedDelay = 5 * 60 * 1000)
+    public void moveMoviesFromDownloadPathsToMoviesPath() {
+        System.out.println("async");
+            try {
+                System.out.println("async try");
+                List<SourcePath> movieDownloadPaths = sourcePathRepository.sourcePathsByPathType(SourcePath.Type.DOWNLOAD);
+                SourcePath moviesPath = sourcePathRepository.sourcePathsByPathType(SourcePath.Type.SOURCE).getFirst();
+                for (SourcePath path : movieDownloadPaths) {
+                    List<Path> videoFiles = fileService.getVideoFiles(Path.of(path.getPath()));
+                    for (Path file : videoFiles) {
+                        Optional<Movie> movieFromDb = movieRepository.findByPath(file.toString());
+                        if (movieFromDb.isEmpty()) {
+                            createMovie(file);
+                        }
+                        Movie movie = movieRepository.findByPath(file.toString()).orElseThrow(() -> new RuntimeException("Movie not found for path: " + file));
+                        generateAndMoveMovieFile(movie, Path.of(moviesPath.getPath()));
+                    }
+                }
+            }catch (NoSuchElementException e){
+                throw new RuntimeException("no sources sets");
+            }
+    }
+
     private String getGeneratedMovieFileName(Movie movie){
         String video = getVideoToString(movie);
         String audio = getAudioToString(movie);
@@ -340,8 +367,10 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private String getVideoToString(Movie movie){
-        return movie.getVideo() == null ? "" :
-                String.format(" (%s %s)",movie.getVideo().getResolution(), movie.getVideo().getCodec().getName());
+        String videoResolution = movie.getVideo().getResolution() == null ? "" : movie.getVideo().getResolution();
+        String videoCodec = movie.getVideo().getCodec() == null ? "" : movie.getVideo().getCodec().getName();
+        return videoResolution.isEmpty() && videoCodec.isEmpty() ? "" :
+                String.format(" (%s %s)",videoResolution, videoCodec);
     }
 
     private String getAudioToString(Movie movie){

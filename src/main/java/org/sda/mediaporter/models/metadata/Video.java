@@ -19,7 +19,7 @@ public class Video {
     private Long id;
     private String resolution;
     private Integer bitrate;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Codec codec;
 
     @OneToOne

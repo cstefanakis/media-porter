@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -15,4 +16,7 @@ public interface SourcePathRepository extends JpaRepository<SourcePath, Long>  {
 
     @Query ("select sp from SourcePath sp where lower(trim(sp.title)) = lower(trim(:title))")
     Optional <SourcePath> findByTitle(@Param("title") String title);
+
+    @Query ("select sp from SourcePath sp where sp.pathType = :pathType")
+    List<SourcePath> sourcePathsByPathType(@Param("pathType") SourcePath.Type pathType);
 }

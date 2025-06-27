@@ -11,6 +11,6 @@ import java.util.Optional;
 @Repository
 public interface GenreRepository extends JpaRepository<Genre, Long> {
 
-    @Query("select g from Genre g where g.title = :title")
+    @Query("select g from Genre g where lower(trim(g.title)) = lower(trim(:title))")
     Optional<Genre> findGenreByTitle(@Param("title") String title);
 }

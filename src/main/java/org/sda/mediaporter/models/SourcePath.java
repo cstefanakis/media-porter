@@ -24,6 +24,6 @@ public class SourcePath {
     private LibraryItems type;
 
     public enum Type{
-        DOWNLOAD, SOURCE
+        DOWNLOAD, SOURCE, EXTERNAL
     }
 }

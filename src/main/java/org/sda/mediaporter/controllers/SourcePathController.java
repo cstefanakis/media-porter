@@ -11,7 +11,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/sources")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "http://192.168.0.10:5173",
+        "http://192.168.192.131:5173"
+})
+
 public class SourcePathController {
 
     private final SourcePathService sourcePathService;

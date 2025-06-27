@@ -11,6 +11,7 @@ import org.sda.mediaporter.models.enums.*;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
+import org.sda.mediaporter.repositories.ConfigurationRepository;
 import org.sda.mediaporter.repositories.SourcePathRepository;
 import org.sda.mediaporter.repositories.metadata.AudioRepository;
 import org.sda.mediaporter.repositories.MovieRepository;
@@ -18,6 +19,7 @@ import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
 import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.scheduling.annotation.Async;
@@ -49,14 +51,14 @@ public class MovieServiceImpl implements MovieService {
     private final VideoService videoService;
     private final SubtitleService subtitleService;
     private final AudioRepository audioRepository;
-    private final VideoRepository videoRepository;
     private final SubtitleRepository subtitleRepository;
     private final SourcePathRepository sourcePathRepository;
+    private final ConfigurationRepository configurationRepository;
 
     private Integer year;
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, AudioRepository audioRepository, VideoRepository videoRepository, SubtitleRepository subtitleRepository, SourcePathRepository sourcePathRepository) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, AudioRepository audioRepository, SubtitleRepository subtitleRepository, SourcePathRepository sourcePathRepository, ConfigurationRepository configurationRepository) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
@@ -66,9 +68,9 @@ public class MovieServiceImpl implements MovieService {
         this.videoService = videoService;
         this.subtitleService = subtitleService;
         this.audioRepository = audioRepository;
-        this.videoRepository = videoRepository;
         this.subtitleRepository = subtitleRepository;
         this.sourcePathRepository = sourcePathRepository;
+        this.configurationRepository = configurationRepository;
     }
 
     @Override
@@ -357,6 +359,32 @@ public class MovieServiceImpl implements MovieService {
             }
     }
 
+//    @Override
+//    @Async
+//    @Scheduled(fixedDelay = 12 * 60 * 60 * 1000)
+//    public void autoDeleteMoviesByProperties() {
+//        List<SourcePath> localMovieSources = sourcePathRepository.sourcePathsByPathType(SourcePath.Type.SOURCE);
+//        for(SourcePath sourcePath : localMovieSources) {
+//            List<Movie> allMovies = movieRepository.findByPathMovies(Path.of(sourcePath.getPath()));
+//            Configuration configuration = configurationRepository.findAll().getFirst();
+//            for (Movie movie : allMovies) {
+//                if (movie.getModificationDate().isBefore(LocalDateTime.now().minusDays(configuration.getMaxDatesSaveFile()))) {
+//                    deleteMovieById(movie.getId());
+//                }
+//            }
+//        }
+//    }
+
+    @Async
+    @Scheduled(fixedDelay = 14 * 60 * 60 * 1000)
+    public void autoLoadMoviesFromLocalSources(){
+        Pageable pageable = PageRequest.of(0, 10);
+        List<SourcePath> localMovieSources = sourcePathRepository.sourcePathsByPathType(SourcePath.Type.SOURCE);
+        for(SourcePath sourcePath : localMovieSources) {
+            getMoviesFromPath(pageable, sourcePath.getPath());
+        }
+    }
+
     private String getGeneratedMovieFileName(Movie movie){
         String video = getVideoToString(movie);
         String audio = getAudioToString(movie);
@@ -419,7 +447,8 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private String getGeneratedMovieSubFolder(String title, Integer year){
-        return String.format("%s (%s)", title, year);
+        String titleWithoutIllegalChar = title.replaceAll("[\\\\/:*?\"<>|]", "");
+        return String.format("%s (%s)", titleWithoutIllegalChar, year);
     }
 
     private String createGeneratedDirectories(Path destinationPath, Movie movie){

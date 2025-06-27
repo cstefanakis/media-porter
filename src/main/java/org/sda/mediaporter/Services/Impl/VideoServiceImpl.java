@@ -25,11 +25,6 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public Video createVideo(Video video) {
-        return videoRepository.save(video);
-    }
-
-    @Override
     public Video createVideoFromPath(Path file) {
         if(!videoInfo(file).isEmpty()) {
             String[] properties = videoInfo(file).split(",");

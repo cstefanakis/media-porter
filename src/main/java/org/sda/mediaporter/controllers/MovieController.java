@@ -19,7 +19,12 @@ import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/movies")
-@CrossOrigin(origins = "http://localhost:5173")
+//@CrossOrigin(origins = {
+//        "http://localhost:5173",
+//        "http://192.168.0.10:5173",
+//        "http://192.168.192.131:5173"
+//})
+@CrossOrigin("http://localhost:5173")
 public class MovieController {
     private final MovieService movieService;
     private final MovieRepository movieRepository;

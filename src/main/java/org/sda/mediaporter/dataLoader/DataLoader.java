@@ -1,18 +1,18 @@
 package org.sda.mediaporter.dataLoader;
 
-import org.sda.mediaporter.Services.ConfigurationService;
-import org.sda.mediaporter.Services.Impl.ConfigurationServiceImpl;
-import org.sda.mediaporter.dtos.ConfigurationDto;
 import org.sda.mediaporter.models.Configuration;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.SourcePath;
+import org.sda.mediaporter.models.enums.LibraryItems;
 import org.sda.mediaporter.models.enums.MediaTypes;
+import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.models.metadata.Codec;
-import org.sda.mediaporter.repositories.ConfigurationRepository;
-import org.sda.mediaporter.repositories.ContributorRepository;
-import org.sda.mediaporter.repositories.GenreRepository;
-import org.sda.mediaporter.repositories.LanguageRepository;
+import org.sda.mediaporter.models.metadata.Resolution;
+import org.sda.mediaporter.repositories.*;
+import org.sda.mediaporter.repositories.metadata.AudioChannelRepository;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
+import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -22,17 +22,21 @@ public class DataLoader implements CommandLineRunner {
 
     private final LanguageRepository languageRepository;
     private final GenreRepository genreRepository;
-    private final ContributorRepository contributorRepository;
     private final ConfigurationRepository configurationRepository;
     private final CodecRepository codecRepository;
+    private final ResolutionRepository resolutionRepository;
+    private final SourcePathRepository sourcePathRepository;
+    private final AudioChannelRepository audioChannelsRepository;
 
     @Autowired
-    public DataLoader(LanguageRepository languageRepository, GenreRepository genreRepository, ContributorRepository contributorRepository, ConfigurationRepository configurationRepository, CodecRepository codecRepository) {
+    public DataLoader(LanguageRepository languageRepository, GenreRepository genreRepository, ConfigurationRepository configurationRepository, CodecRepository codecRepository, ResolutionRepository resolutionRepository, SourcePathRepository sourcePathRepository, AudioChannelRepository audioChannelsRepository) {
         this.languageRepository = languageRepository;
         this.genreRepository = genreRepository;
-        this.contributorRepository = contributorRepository;
         this.configurationRepository = configurationRepository;
         this.codecRepository = codecRepository;
+        this.resolutionRepository = resolutionRepository;
+        this.sourcePathRepository = sourcePathRepository;
+        this.audioChannelsRepository = audioChannelsRepository;
     }
 
     @Override
@@ -41,12 +45,12 @@ public class DataLoader implements CommandLineRunner {
         if(codecRepository.count() == 0){
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.VIDEO)
-                    .name("H.264")
+                    .name("H264")
                     .build());
 
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.VIDEO)
-                    .name("x264")
+                    .name("X264")
                     .build());
 
             codecRepository.save(Codec.builder()
@@ -56,7 +60,7 @@ public class DataLoader implements CommandLineRunner {
 
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.VIDEO)
-                    .name("H.265")
+                    .name("H265")
                     .build());
 
             codecRepository.save(Codec.builder()
@@ -76,22 +80,27 @@ public class DataLoader implements CommandLineRunner {
 
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.VIDEO)
-                    .name("MPEG-2")
+                    .name("MPEG2")
                     .build());
 
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.VIDEO)
-                    .name("MPEG-4")
+                    .name("MPEG4")
                     .build());
 
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.VIDEO)
-                    .name("Xvid")
+                    .name("XVID")
                     .build());
 
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.VIDEO)
                     .name("DivX")
+                    .build());
+
+            codecRepository.save(Codec.builder()
+                    .mediaType(MediaTypes.VIDEO)
+                    .name("HEVC")
                     .build());
 
             codecRepository.save(Codec.builder()
@@ -121,12 +130,12 @@ public class DataLoader implements CommandLineRunner {
 
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.AUDIO)
-                    .name("Opus")
+                    .name("OPUS")
                     .build());
 
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.AUDIO)
-                    .name("Vorbis")
+                    .name("VORBIS")
                     .build());
 
             codecRepository.save(Codec.builder()
@@ -137,11 +146,6 @@ public class DataLoader implements CommandLineRunner {
             codecRepository.save(Codec.builder()
                     .mediaType(MediaTypes.AUDIO)
                     .name("WMA")
-                    .build());
-
-            codecRepository.save(Codec.builder()
-                    .mediaType(MediaTypes.AUDIO)
-                    .name("AC-3")
                     .build());
 
             codecRepository.save(Codec.builder()
@@ -160,38 +164,105 @@ public class DataLoader implements CommandLineRunner {
                     .build());
 
             codecRepository.save(Codec.builder()
-                    .mediaType(MediaTypes.AUDIO)
+                    .mediaType(MediaTypes.SUBTITLE)
                     .name("ass")
                     .build());
 
             codecRepository.save(Codec.builder()
-                    .mediaType(MediaTypes.AUDIO)
+                    .mediaType(MediaTypes.SUBTITLE)
                     .name("ssa")
                     .build());
 
             codecRepository.save(Codec.builder()
-                    .mediaType(MediaTypes.AUDIO)
-                    .name("mov_text")
+                    .mediaType(MediaTypes.SUBTITLE)
+                    .name("movtext")
                     .build());
 
             codecRepository.save(Codec.builder()
-                    .mediaType(MediaTypes.AUDIO)
+                    .mediaType(MediaTypes.SUBTITLE)
                     .name("webvtt")
                     .build());
 
             codecRepository.save(Codec.builder()
-                    .mediaType(MediaTypes.AUDIO)
-                    .name("dvb_subtitle")
+                    .mediaType(MediaTypes.SUBTITLE)
+                    .name("dvbsubtitle")
                     .build());
 
             codecRepository.save(Codec.builder()
-                    .mediaType(MediaTypes.AUDIO)
-                    .name("hdmv_pgs_subtitle")
+                    .mediaType(MediaTypes.SUBTITLE)
+                    .name("hdmvpgssubtitle")
                     .build());
 
             codecRepository.save(Codec.builder()
-                    .mediaType(MediaTypes.AUDIO)
-                    .name("dvd_subtitle")
+                    .mediaType(MediaTypes.SUBTITLE)
+                    .name("dvdsubtitle")
+                    .build());
+
+        }
+
+        //Audio channels data loader
+        if(audioChannelsRepository.count() == 0){
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(1L)
+                    .title("1 Mono")
+                    .channels(1)
+                    .description("Single audio channel")
+                    .build());
+
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(2L)
+                    .title("2 Stereo")
+                    .channels(2)
+                    .description("Two-channel stereo sound")
+                    .build());
+
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(3L)
+                    .title("2.1 Stereo + Sub")
+                    .channels(3)
+                    .description("Stereo with subwoofer")
+                    .build());
+
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(4L)
+                    .title("4 Quadraphonic")
+                    .channels(4)
+                    .description("Four-channel surround")
+                    .build());
+
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(5L)
+                    .title("5.1 Surround")
+                    .channels(6)
+                    .description("Six-channel surround (5 speakers + 1 sub)")
+                    .build());
+
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(6L)
+                    .title("7.1 Full Surround")
+                    .channels(8)
+                    .description("Eight-channel surround")
+                    .build());
+
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(7L)
+                    .title("7.1.2 Atmos Light")
+                    .channels(10)
+                    .description("Atmos configuration with height channels")
+                    .build());
+
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(8L)
+                    .title("9.1.4 Atmos Advanced")
+                    .channels(14)
+                    .description("Advanced Atmos with additional speakers")
+                    .build());
+
+            audioChannelsRepository.save(AudioChannel.builder()
+                    .id(9L)
+                    .title("22.2 NHK Super Hi-Vision")
+                    .channels(24)
+                    .description("High-fidelity 22.2 surround format")
                     .build());
         }
 
@@ -309,6 +380,23 @@ public class DataLoader implements CommandLineRunner {
             languageRepository.save(Language.builder().iso6391("fa").iso6392B("per").iso6392T("fas").englishTitle("Persian").originalTitle("فارسی").build());
             languageRepository.save(Language.builder().iso6391("bn").iso6392B("ben").iso6392T("ben").englishTitle("Bengali").originalTitle("বাংলা").build());
             languageRepository.save(Language.builder().iso6391("sk").iso6392B("slo").iso6392T("slk").englishTitle("Slovak").originalTitle("Slovenčina").build());
+            languageRepository.save(Language.builder().iso6391("hr").iso6392B("hrv").iso6392T("hrv").englishTitle("Croatian").originalTitle("Hrvatski").build());
+            languageRepository.save(Language.builder().iso6391(null).iso6392B("fil").iso6392T("fil").englishTitle("Filipino").originalTitle("Filipino").build());
+            languageRepository.save(Language.builder().iso6391("nb").iso6392B("nob").iso6392T("nob").englishTitle("Norwegian Bokmål").originalTitle("Bokmål").build());
+
+        }
+
+        //Resolutions data loader
+        if(resolutionRepository.count() == 0){
+            resolutionRepository.save(Resolution.builder().name("144p").build());
+            resolutionRepository.save(Resolution.builder().name("240p").build());
+            resolutionRepository.save(Resolution.builder().name("360p").build());
+            resolutionRepository.save(Resolution.builder().name("480p").build());
+            resolutionRepository.save(Resolution.builder().name("720p").build());
+            resolutionRepository.save(Resolution.builder().name("1080p").build());
+            resolutionRepository.save(Resolution.builder().name("1440p").build());
+            resolutionRepository.save(Resolution.builder().name("4K").build());
+            resolutionRepository.save(Resolution.builder().name("8K").build());
         }
 
         //Configuration data loader
@@ -317,8 +405,7 @@ public class DataLoader implements CommandLineRunner {
                         .id(1L)
                         .maxDatesSaveFile(9000)
                         .maxDatesControlFilesFromExternalSource(0)
-                        .firstVideoResolutionValueRange(0)
-                        .secondVideoResolutionValueRange(15360)
+                        .videoResolutionsPrefer(resolutionRepository.findAll())
                         .firstVideoBitrateValueRange(0)
                         .secondVideoBitrateValueRange(200000000)
                         .firstAudioBitrateValueRange(0)
@@ -327,6 +414,25 @@ public class DataLoader implements CommandLineRunner {
                         .secondAudioChannelsValueRange(24)
                         .firstVideoSizeRangeRange(0.0)
                         .secondVideoSizeRangeRange(31457280.0)
+                            .audioCodecsPrefer(codecRepository.findByMediaType(MediaTypes.AUDIO))
+                            .videoCodecsPrefer(codecRepository.findByMediaType(MediaTypes.VIDEO))
+                    .build());
+        }
+
+        //Sources data loader
+        if(sourcePathRepository.count() == 0){
+            sourcePathRepository.save(SourcePath.builder()
+                            .type(LibraryItems.MOVIE)
+                            .path("Z:\\Downloads\\Movies")
+                            .title("Movies Download Path")
+                            .pathType(SourcePath.Type.DOWNLOAD)
+                    .build());
+
+            sourcePathRepository.save(SourcePath.builder()
+                    .type(LibraryItems.MOVIE)
+                    .path("Z:\\MultiMedia\\Movies")
+                    .title("Movies Main Path")
+                    .pathType(SourcePath.Type.SOURCE)
                     .build());
         }
     }

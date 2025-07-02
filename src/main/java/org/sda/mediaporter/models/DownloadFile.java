@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.sda.mediaporter.models.enums.LibraryItems;
 
 @Entity
+@Table(name ="download_files")
 @Getter
 @Setter
 @AllArgsConstructor

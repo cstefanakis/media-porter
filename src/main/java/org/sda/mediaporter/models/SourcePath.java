@@ -5,10 +5,12 @@ import lombok.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
 
 @Entity
+@Table(name = "source_paths")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class SourcePath {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

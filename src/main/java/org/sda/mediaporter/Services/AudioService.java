@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface AudioService {
     Audio createAudio(Audio audio);
-    List<Audio> createAudioListFromFile(Path file);
+    List<Audio> createAudioListFromFile(Path file, Movie movie);
     Audio updateMovieAudio(Long id, Audio audio, Movie movie);
 }

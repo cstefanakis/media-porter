@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface SubtitleService {
     Subtitle createSubtitle(Subtitle subtitle);
-    List<Subtitle> createSubtitleListFromFile(Path file);
+    List<Subtitle> createSubtitleListFromFile(Path file, Movie movie);
     Subtitle updateMovieSubtitle(Long id, Subtitle subtitle, Movie movie);
 }

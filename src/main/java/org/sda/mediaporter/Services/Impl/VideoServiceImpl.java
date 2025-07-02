@@ -1,55 +1,59 @@
 package org.sda.mediaporter.Services.Impl;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.CodecService;
+import org.sda.mediaporter.Services.ResolutionService;
 import org.sda.mediaporter.Services.VideoService;
 import org.sda.mediaporter.models.Movie;
-import org.sda.mediaporter.models.enums.Resolutions;
+import org.sda.mediaporter.models.enums.MediaTypes;
+import org.sda.mediaporter.models.metadata.Codec;
+import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.models.metadata.Video;
 import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.module.ResolutionException;
 import java.nio.file.Path;
-import java.util.Optional;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 public class VideoServiceImpl implements VideoService {
     private final VideoRepository videoRepository;
     private final CodecService codecService;
+    private final ResolutionService resolutionService;
 
     @Autowired
-    public VideoServiceImpl(VideoRepository videoRepository, CodecService codecService) {
+    public VideoServiceImpl(VideoRepository videoRepository, CodecService codecService, ResolutionService resolutionService) {
         this.videoRepository = videoRepository;
         this.codecService = codecService;
+        this.resolutionService = resolutionService;
     }
 
     @Override
-    public Video createVideoFromPath(Path file) {
+    public Video createVideoFromPath(Path file, Movie movie) {
         if(!videoInfo(file).isEmpty()) {
-            String[] properties = videoInfo(file).split(",");
-            Video video = new Video();
-            if (properties.length > 1) {
-                video.setCodec(codecService.autoCreateCodec(properties[1]));
-            }
-            if (properties.length > 3) {
-                video.setResolution(generatedResolution(properties[2], properties[3]));
-            }
-            if (properties.length > 4) {
-                video.setBitrate(FileServiceImpl.convertStringToInt(properties[4]));
-            }
-            return videoRepository.save(video);
-        }return null;
-    }
+            String[] properties = videoInfo(file).split(",", -1);
+            try {
+                String codecName = properties[0].isEmpty()  || properties[0].trim().equals("N/A")? null : properties[0].replaceAll("[^a-zA-Z0-9]", "");
+                Integer resolutionHeight = properties[1].isEmpty() || properties[1].trim().equals("N/A") ? null : Integer.parseInt(properties[1].replaceAll("[^a-zA-Z0-9]", ""));
+                Integer videoBitrate = properties[2].isEmpty() || properties[2].trim().equals("N/A") ? null : Integer.parseInt(properties[2].replaceAll("[^a-zA-Z0-9]", ""));
 
-    @Override
-    public Video updateMovieVideo(Long id, Video video, Movie movie) {
-        Optional<Video> videoOptional = videoRepository.findById(id);
-        if(videoOptional.isPresent()){
-            Video videoToUpdate = videoOptional.get();
-            videoToUpdate.setMovie(movie);
-            return videoRepository.save(toEntity(videoToUpdate, video));
-        }throw new EntityNotFoundException(String.format("Video with id %s not found", id));
+                Codec videoCodec = codecName == null? null : codecService.getCodecByNameAndMediaType(codecName, MediaTypes.VIDEO);
+                Resolution resolution = generatedResolution(resolutionHeight);
+                Integer videoBitrateKbps = videoBitrate == null? null: videoBitrate / 1000;
+
+                videoRepository.save(Video.builder()
+                                .codec(videoCodec)
+                                .resolution(resolution)
+                                .bitrate(videoBitrateKbps)
+                                .movie(movie)
+                        .build());
+            }catch (ResolutionException e){
+                return null;
+            }
+
+        }return null;
     }
 
     private Video toEntity(Video updatedVideo, Video video) {
@@ -59,28 +63,39 @@ public class VideoServiceImpl implements VideoService {
         return updatedVideo;
     }
 
-    private String generatedResolution(String widthStr, String heightStr){
-        Integer width = FileServiceImpl.convertStringToInt(widthStr);
-        Integer height = FileServiceImpl.convertStringToInt(heightStr);
-        for(Resolutions resolution : Resolutions.values()){
-            if(width !=null &&
-                    resolution.getWidth() == width && height != null &&
-                    resolution.getHeight() == height ){
-                return resolution.getLabel();
-            }
+    private Resolution generatedResolution(Integer height){
+        if(height == null){
+            return null;
+        }
+        LinkedHashMap<Integer, String> resolutions = new LinkedHashMap<>();
+        resolutions.put(8000, "16K");
+        resolutions.put(4000, "8K");
+        resolutions.put(2000, "4K");
+        resolutions.put(1000, "1080P");
+        resolutions.put(700, "720P");
+        resolutions.put(400, "480P");
+        resolutions.put(300, "360P");
+        resolutions.put(200, "240P");
+        resolutions.put(100, "144P");
 
-            if(width != null && resolution.getWidth() == width){
-                return resolution.getLabel();
+        String resolutionName = null;
+
+        for(Map.Entry<Integer, String> entity: resolutions.entrySet()){
+            if(height > entity.getKey()){
+                resolutionName = entity.getValue();
             }
-        }return null;
+        }
+
+        return resolutionService.getResolutionByName(resolutionName);
     }
 
+    //Print String h264,1080,4567890
     private String videoInfo(Path filePath){
         return  FileServiceImpl.runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "v:0",
-                "-show_entries", "stream=index,codec_name,width,height,bit_rate",
+                "-show_entries", "stream=codec_name,height,bit_rate",
                 "-of", "csv=p=0",
                 filePath.toString()
         });

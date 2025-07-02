@@ -12,11 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/api/configuration")
-@CrossOrigin(origins = {
-        "http://localhost:5173",
-        "http://192.168.0.10:5173",
-        "http://192.168.192.131:5173"
-})
 public class ConfigurationController {
 
     private final ConfigurationService configurationService;
@@ -34,9 +29,6 @@ public class ConfigurationController {
 
     @PutMapping()
     public ResponseEntity<Void> updateConfiguration(@RequestBody ConfigurationDto configurationDto){
-        System.out.println("String genres: " + configurationDto.getGenresPrefer());
-        System.out.println("String video codecs: " + configurationDto.getVideoCodecsPrefer());
-        System.out.println("String audio codecs: " + configurationDto.getAudioCodecsPrefer());
         configurationService.updateConfiguration(configurationDto);
         return ResponseEntity.ok().build();
     }

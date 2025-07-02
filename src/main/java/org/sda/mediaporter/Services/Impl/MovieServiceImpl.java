@@ -50,15 +50,12 @@ public class MovieServiceImpl implements MovieService {
     private final AudioService audioService;
     private final VideoService videoService;
     private final SubtitleService subtitleService;
-    private final AudioRepository audioRepository;
-    private final SubtitleRepository subtitleRepository;
     private final SourcePathRepository sourcePathRepository;
-    private final ConfigurationRepository configurationRepository;
 
     private Integer year;
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, AudioRepository audioRepository, SubtitleRepository subtitleRepository, SourcePathRepository sourcePathRepository, ConfigurationRepository configurationRepository) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, SourcePathRepository sourcePathRepository) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
@@ -67,10 +64,8 @@ public class MovieServiceImpl implements MovieService {
         this.audioService = audioService;
         this.videoService = videoService;
         this.subtitleService = subtitleService;
-        this.audioRepository = audioRepository;
-        this.subtitleRepository = subtitleRepository;
         this.sourcePathRepository = sourcePathRepository;
-        this.configurationRepository = configurationRepository;
+
     }
 
     @Override
@@ -246,55 +241,36 @@ public class MovieServiceImpl implements MovieService {
 
     //create movie with metadata options and details from api
     private void createMovie(Path file){
-        List<Audio> audios = audioService.createAudioListFromFile(file);
-        List<Subtitle> subtitles = subtitleService.createSubtitleListFromFile(file);
         //get data for movie from Api
         Movie movie = getMovieFromApi(new Movie(), title(file.getFileName().toString()));
+        movie.setModificationDate(getModificationTimeFromFile(file));
+        movie.setPath(file.toString());
+        movie = movieRepository.save(movie);
+        //get data for movie from ffmpeg metadata
+        videoService.createVideoFromPath(file, movie);
+        audioService.createAudioListFromFile(file, movie);
+        subtitleService.createSubtitleListFromFile(file, movie);
+    }
+
+    private LocalDateTime getModificationTimeFromFile(Path file){
         try {
             Instant instant = Files.getLastModifiedTime(file).toInstant();
-            LocalDateTime modificationTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-            movie.setModificationDate(modificationTime);
+            return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
         } catch (IOException e) {
-            movie.setModificationDate(LocalDateTime.now());
-        }
-
-
-        //get data for movie from ffmpeg metadata
-        movie.setPath(file.toString());
-        Video video = videoService.createVideoFromPath(file);
-
-
-
-        movieRepository.save(movie);
-        if(video != null){
-            video.setMovie(movie);
-            videoService.updateMovieVideo(video.getId(), video, movie);
-        }
-        movie.setVideo(video);
-
-        for (Subtitle subtitle : subtitles){
-            subtitle.setMovie(movie);
-            subtitleRepository.save(subtitle);
-        }
-        movie.setSubtitles(subtitles);
-        for (Audio audio : audios){
-            audio.setMovie(movie);
-            audioRepository.save(audio);
-        }
-        movie.setAudios(audios);
-        if(movie.getTitle() == null){
-            movie.setTitle(Path.of(movie.getPath()).getFileName().toString());
-            movieRepository.save(movie);
+            return LocalDateTime.now();
         }
     }
 
     public Movie generateAndMoveMovieFile(Movie movie, Path destinationPath){
         Path moviePath = Path.of(movie.getPath());
+        String movieTitle = movie.getTitle() == null? "Untitled_Movies" : movie.getTitle();
         String moviePathExtension = fileService.getFileExtensionWithDot(moviePath);
-        Path destinationFullPath = destinationPath.resolve( createGeneratedDirectories(destinationPath, movie) + File.separator + getGeneratedMovieFileName(movie) + moviePathExtension);
-        fileService.moveFile(moviePath, getGeneratedMovieSubFolder(movie.getTitle(), movie.getYear()),destinationFullPath);
+        Path untitledDestinationPath = moviePath.resolve(movieTitle + File.separator + moviePath.getFileName());
+        Path destinationFullPath = movie.getTitle() == null? untitledDestinationPath : destinationPath.resolve(createGeneratedDirectories(destinationPath, movie) + File.separator + getGeneratedMovieFileName(movie) + moviePathExtension);
+        fileService.moveFile(moviePath, getGeneratedMovieSubFolder(movieTitle, movie.getYear()), destinationFullPath);
         movie.setPath(destinationFullPath.toString());
         return movieRepository.save(movie);
+
     }
 
     @Override
@@ -395,7 +371,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private String getVideoToString(Movie movie){
-        String videoResolution = movie.getVideo().getResolution() == null ? "" : movie.getVideo().getResolution();
+        String videoResolution = movie.getVideo().getResolution() == null ? "" : movie.getVideo().getResolution().getName();
         String videoCodec = movie.getVideo().getCodec() == null ? "" : movie.getVideo().getCodec().getName();
         return videoResolution.isEmpty() && videoCodec.isEmpty() ? "" :
                 String.format(" (%s %s)",videoResolution, videoCodec);

@@ -8,10 +8,12 @@ import org.sda.mediaporter.models.Configuration;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
+import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.repositories.ConfigurationRepository;
 import org.sda.mediaporter.repositories.GenreRepository;
 import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
+import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,21 +27,22 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final GenreRepository genreRepository;
     private final CodecRepository codecRepository;
     private final LanguageRepository languageRepository;
+    private final ResolutionRepository resolutionRepository;
 
 
     private double maxFileSize = 31457280;
     private int maxVideoBitrate = 200000000;
     private int maxAudioBitrate = 2048000;
     private int maxAudioChannels = 24;
-    private int maxVideoResolution = 15360;
     private int maxDaysToPast = 9000;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GenreRepository genreRepository, CodecRepository codecRepository, LanguageRepository languageRepository) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GenreRepository genreRepository, CodecRepository codecRepository, LanguageRepository languageRepository, ResolutionRepository resolutionRepository) {
         this.configurationRepository = configurationRepository;
         this.genreRepository = genreRepository;
         this.codecRepository = codecRepository;
         this.languageRepository = languageRepository;
+        this.resolutionRepository = resolutionRepository;
     }
 
     @Override
@@ -61,13 +64,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         config.setMaxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null? this.maxDaysToPast: configurationDto.getMaxDatesSaveFile());
         config.setMaxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null? 0: configurationDto.getMaxDatesControlFilesFromExternalSource());
 
-        config.setFirstVideoResolutionValueRange(validatedFirstVideoResolutionValueRange(configurationDto, config));
-        config.setSecondVideoResolutionValueRange(validatedSecondVideoResolutionValueRange(configurationDto, config));
+        config.setVideoResolutionsPrefer(validatedResolutions(configurationDto, config));
 
         config.setFirstVideoBitrateValueRange(validatedFirstVideoBitrateValueRange(configurationDto, config));
         config.setSecondVideoBitrateValueRange(validatedSecondVideoBitrateValueRange(configurationDto, config));
 
-        config.setVideoCodecsPrefer(validatedCodecs(configurationDto.getVideoCodecsPrefer(), MediaTypes.VIDEO));
+        config.setVideoCodecsPrefer(validatedCodecs(configurationDto.getVideoCodecsPrefer(), MediaTypes.VIDEO, config.getVideoCodecsPrefer()));
 
         config.setFirstAudioBitrateValueRange(validatedFirstAudioBitrateValueRange(configurationDto, config));
         config.setSecondAudioBitrateValueRange(validatedSecondAudioBitrateValueRange(configurationDto, config));
@@ -75,7 +77,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         config.setFirstAudioChannelsValueRange(validatedFirstAudioChannelsValueRange(configurationDto, config));
         config.setSecondAudioChannelsValueRange(validatedSecondAudioChannelsValueRange(configurationDto, config));
 
-        config.setAudioCodecsPrefer(validatedCodecs(configurationDto.getAudioCodecsPrefer(), MediaTypes.AUDIO));
+        config.setAudioCodecsPrefer(validatedCodecs(configurationDto.getAudioCodecsPrefer(), MediaTypes.AUDIO, config.getAudioCodecsPrefer()));
 
         config.setGenresPrefer(validatedGenres(configurationDto, config));
 
@@ -85,30 +87,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return config;
     }
 
-    private Integer validatedFirstVideoResolutionValueRange(ConfigurationDto configurationDto, Configuration config){
-        int value = 0;
-        if(configurationDto.getFirstVideoResolutionValueRange() != null){
-            value = configurationDto.getFirstVideoResolutionValueRange();
-        }
-        if(config.getFirstVideoResolutionValueRange() != null && configurationDto.getFirstVideoResolutionValueRange() == null){
-            value = config.getFirstVideoResolutionValueRange();
+    private List<Resolution> validatedResolutions(ConfigurationDto configurationDto, Configuration config){
+        if(configurationDto.getVideoResolutionsPrefer().isEmpty() && config.getVideoResolutionsPrefer().isEmpty()){
+            return resolutionRepository.findAll();
         }
 
-        return value;
-    }
+        if(configurationDto.getVideoResolutionsPrefer().isEmpty() && !config.getVideoResolutionsPrefer().isEmpty()){
+             return config.getVideoResolutionsPrefer();
+        }
 
-    private Integer validatedSecondVideoResolutionValueRange(ConfigurationDto configurationDto, Configuration config){
-
-        if(configurationDto.getSecondVideoResolutionValueRange() != null){
-            this.maxVideoResolution = configurationDto.getSecondVideoResolutionValueRange();
-        }
-        if(config.getSecondVideoResolutionValueRange() != null && configurationDto.getSecondVideoResolutionValueRange() == null) {
-            this.maxVideoResolution = config.getSecondVideoResolutionValueRange();
-        }
-        if(this.maxVideoResolution < config.getFirstVideoResolutionValueRange()){
-            throw new RuntimeException("Second resolution value can't be smaller than first resolution value");
-        }
-        return this.maxVideoResolution;
+        return configurationDto.getVideoResolutionsPrefer();
     }
 
     private Integer validatedFirstVideoBitrateValueRange(ConfigurationDto configurationDto, Configuration config){
@@ -214,27 +202,22 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private List<Genre> validatedGenres(ConfigurationDto configurationDto, Configuration configuration){
-        List<Genre> genres = new ArrayList<>();
-        List<String> codecsFromDto = configurationDto.getGenresPrefer();
-        if(!codecsFromDto.isEmpty()){
-            for(String genre : codecsFromDto){
-                Genre genreFromDb = genreRepository.findGenreByTitle(genre).orElseThrow(
-                        ()-> new EntityNotFoundException(String.format("Genre with name: %s not found", genre)));
-                genres.add(genreFromDb);
-            }
+        if(configurationDto.getGenresPrefer().isEmpty() && configuration.getGenresPrefer().isEmpty()){
+            return genreRepository.findAll();
         }
-        return genres;
+        if(configurationDto.getGenresPrefer().isEmpty()){
+            return configuration.getGenresPrefer();
+        }
+        return configurationDto.getGenresPrefer();
     }
 
-    private List<Codec> validatedCodecs(List<String> videoCodecsFromDto, MediaTypes mediaType){
-        List<Codec> codecs = new ArrayList<>();
-        if(!videoCodecsFromDto.isEmpty()) {
-            for (String codec : videoCodecsFromDto) {
-                Codec codecFromDb = codecRepository.findByNameAndMediaType(codec, mediaType).orElseThrow(
-                        () -> new EntityNotFoundException(String.format("Codec with name: %s not found", codec)));
-                codecs.add(codecFromDb);
-            }
-        }return codecs;
+    private List<Codec> validatedCodecs(List<Codec> codecsFromDto, MediaTypes mediaType, List<Codec> codecs){
+        if(codecsFromDto.isEmpty() && codecs.isEmpty()){
+            return codecRepository.findByMediaType(mediaType);
+        }
+        if(codecsFromDto.isEmpty()){
+            return codecs;
+        }
+        return codecsFromDto;
     }
-
 }

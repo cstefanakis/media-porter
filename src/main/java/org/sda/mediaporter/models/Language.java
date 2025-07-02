@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "languages")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,8 +25,4 @@ public class Language {
     private String iso6391;
     private String iso6392B;
     private String iso6392T;
-
-    @ManyToMany(mappedBy = "languages", fetch = FetchType.LAZY)
-    @JsonBackReference
-    private List<Movie> movies = new ArrayList<>();
 }

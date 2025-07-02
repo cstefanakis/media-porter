@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.sda.mediaporter.models.metadata.Codec;
+import org.sda.mediaporter.models.metadata.Resolution;
 
 import java.util.List;
 
@@ -20,8 +21,13 @@ public class Configuration {
     private Integer maxDatesSaveFile;
     private Integer maxDatesControlFilesFromExternalSource;
 
-    private Integer firstVideoResolutionValueRange;
-    private Integer secondVideoResolutionValueRange;
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "configuration_resolution",
+            joinColumns = @JoinColumn(name = "configuration_id"),
+            inverseJoinColumns = @JoinColumn(name = "resolution_id")
+    )
+    private List<Resolution> videoResolutionsPrefer;
 
     private Integer firstVideoBitrateValueRange;
     private Integer secondVideoBitrateValueRange;

@@ -4,6 +4,9 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.sda.mediaporter.models.Genre;
+import org.sda.mediaporter.models.metadata.Codec;
+import org.sda.mediaporter.models.metadata.Resolution;
 
 import java.util.List;
 
@@ -16,17 +19,13 @@ public class ConfigurationDto {
     private Integer maxDatesSaveFile;
     @Max(9000)
     private Integer maxDatesControlFilesFromExternalSource;
-    @PositiveOrZero
-    @Max(15360)
-    private Integer firstVideoResolutionValueRange;
-    @Max(15360)
-    private Integer secondVideoResolutionValueRange;
+    private List<Resolution> videoResolutionsPrefer;
     @PositiveOrZero
     @Max(200000000)
     private Integer firstVideoBitrateValueRange;
     @Max(200000000)
     private Integer secondVideoBitrateValueRange;
-    private List<String> videoCodecsPrefer;
+    private List<Codec> videoCodecsPrefer;
     @PositiveOrZero
     @Max(2048000)
     private Integer firstAudioBitrateValueRange;
@@ -37,8 +36,8 @@ public class ConfigurationDto {
     private Integer firstAudioChannelsValueRange;
     @Max(24)
     private Integer secondAudioChannelsValueRange;
-    private List<String> audioCodecsPrefer;
-    private List<String> genresPrefer;
+    private List<Codec> audioCodecsPrefer;
+    private List<Genre> genresPrefer;
 
     @PositiveOrZero
     @Max(31464320)

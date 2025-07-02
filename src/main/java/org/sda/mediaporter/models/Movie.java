@@ -17,6 +17,7 @@ import org.sda.mediaporter.models.metadata.Video;
 
 @Data
 @Entity
+@Table(name = "movies")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Movie {

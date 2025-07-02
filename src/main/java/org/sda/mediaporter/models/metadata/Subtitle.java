@@ -8,6 +8,7 @@ import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
 
 @Entity
+@Table(name = "subtitles")
 @Getter
 @Setter
 @Builder

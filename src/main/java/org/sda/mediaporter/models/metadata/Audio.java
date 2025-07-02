@@ -8,6 +8,7 @@ import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
 
 @Entity
+@Table(name = "audios")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,7 +20,8 @@ public class Audio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Integer bitrate;
-    private Integer channels;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private AudioChannel audioChannel;
     @ManyToOne(fetch = FetchType.LAZY)
     private Codec codec;
     @ManyToOne(fetch = FetchType.LAZY)

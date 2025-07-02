@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "genres")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,8 +21,4 @@ public class Genre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
-
-    @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)
-    @JsonBackReference
-    private List<Movie> movies = new ArrayList<>();
 }

@@ -1,5 +1,6 @@
 package org.sda.mediaporter.Services.Impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.LanguageService;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.enums.LanguageCodes;
@@ -48,19 +49,15 @@ public class LanguageServiceImpl implements LanguageService {
 
     @Override
     public Language getLanguageByCode(String code) {
-        for(LanguageCodes languageCode : LanguageCodes.values()) {
-            if(code.trim().equalsIgnoreCase(languageCode.getIso6391()) ||
-                    code.trim().equalsIgnoreCase(languageCode.getIso6392B()) ||
-                    code.trim().equalsIgnoreCase(languageCode.getIso6392T())) {
-                return Language.builder()
-                        .englishTitle(languageCode.getEnglishTitle())
-                        .originalTitle(languageCode.getOriginalTitle())
-                        .iso6391(languageCode.getIso6391())
-                        .iso6392B(languageCode.getIso6392B())
-                        .iso6392T(languageCode.getIso6392T())
-                        .build();
-            }
-        }return null;
+        return languageRepository.findByCode(code).orElseThrow(
+                ()-> new EntityNotFoundException(String.format("Language with code %s not found", code))
+        );
+    }
+
+    @Override
+    public Language getLanguageByEnglishTitle(String englishTitle) {
+        return languageRepository.findByTitle(englishTitle).orElseThrow(
+                ()-> new EntityNotFoundException(String.format("Language with english title %s not found",englishTitle)));
     }
 
     @Override

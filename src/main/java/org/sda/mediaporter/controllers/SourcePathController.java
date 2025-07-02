@@ -1,6 +1,7 @@
 package org.sda.mediaporter.controllers;
 
 import org.sda.mediaporter.Services.SourcePathService;
+import org.sda.mediaporter.dtos.SourcePathDto;
 import org.sda.mediaporter.models.SourcePath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/sources")
-@CrossOrigin(origins = "http://localhost:5173")
+
 public class SourcePathController {
 
     private final SourcePathService sourcePathService;
@@ -21,7 +22,7 @@ public class SourcePathController {
         this.sourcePathService = sourcePathService;
     }
 
-    @GetMapping("")
+    @GetMapping()
     public ResponseEntity<List<SourcePath>> getSourcePaths() {
         List<SourcePath> sourcePaths = sourcePathService.getSourcePaths();
         return new ResponseEntity<>(sourcePaths, HttpStatus.OK);
@@ -33,15 +34,15 @@ public class SourcePathController {
         return new ResponseEntity<>(sourcePath, HttpStatus.OK);
     }
 
-    @PostMapping("")
-    public ResponseEntity<SourcePath> createSourcePath(@RequestBody SourcePath sourcePath) {
-        SourcePath createdSourcePath = sourcePathService.createSourcePath(sourcePath);
+    @PostMapping()
+    public ResponseEntity<SourcePath> createSourcePath(@RequestBody SourcePathDto sourcePathDto) {
+        SourcePath createdSourcePath = sourcePathService.createSourcePath(sourcePathDto);
         return new ResponseEntity<>(createdSourcePath, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SourcePath> updateSourcePath(@PathVariable Long id, @RequestBody SourcePath sourcePath) {
-        SourcePath updatedSourcePath = sourcePathService.updateSourcePath(id, sourcePath);
+    public ResponseEntity<SourcePath> updateSourcePath(@PathVariable Long id, @RequestBody SourcePathDto sourcePathDto) {
+        SourcePath updatedSourcePath = sourcePathService.updateSourcePath(id, sourcePathDto);
         return new ResponseEntity<>(updatedSourcePath, HttpStatus.OK);
     }
 

@@ -30,4 +30,6 @@ public interface MovieService {
 
     Page<Movie> filterMovies(Pageable page, MovieFilterDto movieFilterDto);
     void moveMoviesFromDownloadPathsToMoviesPath ();
+    void autoLoadMoviesFromLocalSources();
+//    void autoDeleteMoviesByProperties();
 }

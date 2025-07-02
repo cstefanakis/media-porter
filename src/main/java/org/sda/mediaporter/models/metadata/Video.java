@@ -7,6 +7,7 @@ import lombok.*;
 import org.sda.mediaporter.models.Movie;
 
 @Entity
+@Table(name = "videos")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,7 +18,8 @@ public class Video {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String resolution;
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Resolution resolution;
     private Integer bitrate;
     @ManyToOne(fetch = FetchType.EAGER)
     private Codec codec;

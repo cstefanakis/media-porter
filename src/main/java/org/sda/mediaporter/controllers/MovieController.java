@@ -3,7 +3,6 @@ package org.sda.mediaporter.controllers;
 import org.sda.mediaporter.Services.MovieService;
 import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.Movie;
-import org.sda.mediaporter.repositories.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -19,15 +18,13 @@ import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/movies")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin("http://localhost:5173")
 public class MovieController {
     private final MovieService movieService;
-    private final MovieRepository movieRepository;
 
     @Autowired
-    public MovieController(MovieService movieService, MovieRepository movieRepository) {
+    public MovieController(MovieService movieService) {
         this.movieService = movieService;
-        this.movieRepository = movieRepository;
     }
 
     @GetMapping()

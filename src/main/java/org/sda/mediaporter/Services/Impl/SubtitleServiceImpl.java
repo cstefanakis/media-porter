@@ -4,8 +4,12 @@ import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.CodecService;
 import org.sda.mediaporter.Services.LanguageService;
 import org.sda.mediaporter.Services.SubtitleService;
+import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.enums.MediaTypes;
+import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Subtitle;
+import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,23 +39,29 @@ public class SubtitleServiceImpl implements SubtitleService {
     }
 
     @Override
-    public List<Subtitle> createSubtitleListFromFile(Path file) {
+    public List<Subtitle> createSubtitleListFromFile(Path file, Movie movie) {
         List<Subtitle> subtitlesList = new ArrayList<>();
         if(!subtitleInfo(file).isEmpty()) {
             String[] subtitles = subtitleInfo(file).split("\n");
-            if(subtitles.length >= 1) {
-                for (String subtitle : subtitles) {
-                    String[] properties = subtitle.split(",");
-                    Subtitle subtitleEntity = new Subtitle();
-                    if (properties.length > 1) {
-                        subtitleEntity.setFormat(codecService.autoCreateCodec(properties[1]));
-                    }
-                    if (properties.length > 2) {
-                        subtitleEntity.setLanguage(languageService.autoCreateLanguageByCode(properties[2]));
-                    }
-                    subtitlesList.add(subtitleRepository.save(subtitleEntity));
+
+            for (String subtitle : subtitles) {
+                //Output String subrip,eng
+                String[] properties = subtitle.split(",",-1);
+                String subtitleCodecName = properties[0].isEmpty() || properties[0].equals("N/A")? null : properties[0].replaceAll("[^a-zA-Z0-9]", "");
+                String languageCodec = null;
+                try {
+                    languageCodec = properties[1].isEmpty() || properties[1].equals("N/A") || properties[1].trim().equals("und")? null : properties[1].replaceAll("[^a-zA-Z0-9]", "");
+                } catch (Exception ignored) {
                 }
+                Codec subtitleCodec = subtitleCodecName == null? null : codecService.getCodecByNameAndMediaType(subtitleCodecName, MediaTypes.SUBTITLE);
+                Language language = languageCodec == null? null : languageService.getLanguageByCode(languageCodec);
+                subtitlesList.add(subtitleRepository.save(Subtitle.builder()
+                                .language(language)
+                                .format(subtitleCodec)
+                                .movie(movie)
+                        .build()));
             }
+
         }return subtitlesList;
     }
 
@@ -71,12 +81,13 @@ public class SubtitleServiceImpl implements SubtitleService {
         return toUpdateSubtitle;
     }
 
+    //Output String subrip,eng
     private String subtitleInfo(Path filePath){
         String subtitlesOptions =  FileServiceImpl.runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "s",
-                "-show_entries", "stream=index,codec_name:stream_tags=language",
+                "-show_entries", "stream=codec_name:stream_tags=language",
                 "-of", "csv=p=0",
                 filePath.toString()
         });

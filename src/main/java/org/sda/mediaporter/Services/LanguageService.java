@@ -6,4 +6,5 @@ public interface LanguageService {
     Language autoCreateLanguageByTitle(String title);
     Language autoCreateLanguageByCode(String code);
     Language getLanguageByCode(String code);
+    Language getLanguageByEnglishTitle(String englishTitle);
 }

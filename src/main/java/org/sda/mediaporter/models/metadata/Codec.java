@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "codecs")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Codec {
     @Id

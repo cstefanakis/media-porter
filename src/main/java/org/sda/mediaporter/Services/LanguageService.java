@@ -1,10 +1,17 @@
 package org.sda.mediaporter.Services;
 
+import org.sda.mediaporter.dtos.LanguageDto;
 import org.sda.mediaporter.models.Language;
+
+import java.util.List;
 
 public interface LanguageService {
     Language autoCreateLanguageByTitle(String title);
-    Language autoCreateLanguageByCode(String code);
+    List<Language> getAllLanguages();
     Language getLanguageByCode(String code);
-    Language getLanguageByEnglishTitle(String englishTitle);
+    Language getLanguageByTitle(String title);
+    Language getLanguageById(Long id);
+    Language createLanguage(LanguageDto languageDto);
+    void updateLanguageById(Long id, LanguageDto languageDto);
+    void deleteLanguageById(Long id);
 }

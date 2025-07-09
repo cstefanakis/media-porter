@@ -5,6 +5,8 @@ import org.sda.mediaporter.api.TheMovieDb;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.repositories.ContributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -29,6 +31,11 @@ public class ContributorServiceImpl implements ContributorService {
     public Contributor getContributorByFullName(String fullName) {
         return contributorRepository.findByFullName(fullName)
                 .orElseThrow(() -> new RuntimeException("Contributor not found"));
+    }
+
+    @Override
+    public Page<Contributor> getAllContributors(Pageable pageable) {
+        return contributorRepository.findAll(pageable);
     }
 
     @Override

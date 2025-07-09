@@ -23,17 +23,23 @@ public class CodecController {
         this.codecService = codecService;
     }
 
-    @GetMapping("/name-type")
+    @GetMapping("/by-name-and-media-type")
     public ResponseEntity<Codec> getCodecByNameAndMediaType(@RequestParam("name") String name,
                                                             @RequestParam("mediaType")MediaTypes mediaType){
         Codec codec = codecService.getCodecByNameAndMediaType(name, mediaType);
         return ResponseEntity.ok(codec);
     }
 
-    @GetMapping("/media-type")
+    @GetMapping("/by-media-type")
     public ResponseEntity<List<Codec>> getCodecsByMediaType(@RequestParam("mediaType") MediaTypes mediaType){
         List<Codec> codecs = codecService.getByMediaType(mediaType);
         return ResponseEntity.ok(codecs);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Codec> getCodecById(@PathVariable("id") Long id){
+        Codec codec = codecService.getCodecById(id);
+        return ResponseEntity.ok(codec);
     }
 
     @GetMapping()

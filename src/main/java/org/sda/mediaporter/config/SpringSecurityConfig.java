@@ -54,6 +54,9 @@ public class SpringSecurityConfig {
                     authorize.requestMatchers("/api/resolutions/**").permitAll();
                     authorize.requestMatchers("/api/codecs/**").permitAll();
                     authorize.requestMatchers("/api/audio-channels/**").permitAll();
+                    authorize.requestMatchers("/api/languages/**").permitAll();
+                    authorize.requestMatchers("/api/genres/**").permitAll();
+                    authorize.requestMatchers("/api/contributors/**").permitAll();
                     authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     authorize.anyRequest().authenticated();
                 }).httpBasic(Customizer.withDefaults());

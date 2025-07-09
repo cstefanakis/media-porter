@@ -1,14 +1,9 @@
 package org.sda.mediaporter.models.metadata;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "audio_channels")
@@ -16,8 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 public class AudioChannel {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     @NotEmpty
     String title;

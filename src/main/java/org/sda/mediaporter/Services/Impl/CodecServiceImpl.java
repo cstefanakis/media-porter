@@ -70,14 +70,38 @@ public class CodecServiceImpl implements CodecService {
 
     @Override
     public void deleteCodec(Long codecId) {
-        Optional<Codec> codecFromDb = codecRepository.findById(codecId);
-        codecFromDb.ifPresent(codecRepository::delete);
-        throw new EntityNotFoundException(String.format("Codec with id %s not found",  codecId));
+        Codec codec = getCodecById(codecId);
+        codecRepository.delete(codec);
     }
 
     private Codec toEntity(Codec codec, CodecDto codecDto){
-        codec.setName(codecDto.getName() == null? codec.getName() : codecDto.getName());
-        codec.setMediaType(codecDto.getMediaType() == null? codec.getMediaType() : codecDto.getMediaType());
+        codec.setName(validatedCodecName(codec, codecDto));
+        codec.setMediaType(validatedMediaType(codec, codecDto));
         return codec;
+    }
+
+    private String validatedCodecName(Codec codec, CodecDto codecDto){
+        String nameDto = codecDto.getName();
+        String name = codec.getName();
+        if(nameDto == null && name != null){
+            return name;
+        }
+        if(nameDto != null && nameDto.equals(name)){
+            return nameDto;
+        }
+        Optional<Codec> codecOptional = codecRepository.findByName(nameDto);
+        if(codecOptional.isEmpty()){
+            return nameDto;
+        }
+        throw new EntityExistsException(String.format("Codec with name %s already exist", nameDto));
+    }
+
+    private MediaTypes validatedMediaType(Codec codec, CodecDto codecDto){
+        MediaTypes mediaTypeDto = codecDto.getMediaType();
+        MediaTypes mediaType = codec.getMediaType();
+        if(mediaTypeDto == null && mediaType != null){
+            return mediaType;
+        }
+        return mediaTypeDto;
     }
 }

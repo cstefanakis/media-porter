@@ -203,63 +203,54 @@ public class DataLoader implements CommandLineRunner {
         //Audio channels data loader
         if(audioChannelsRepository.count() == 0){
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(1L)
                     .title("1 Mono")
                     .channels(1)
                     .description("Single audio channel")
                     .build());
 
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(2L)
                     .title("2 Stereo")
                     .channels(2)
                     .description("Two-channel stereo sound")
                     .build());
 
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(3L)
                     .title("2.1 Stereo + Sub")
                     .channels(3)
                     .description("Stereo with subwoofer")
                     .build());
 
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(4L)
                     .title("4 Quadraphonic")
                     .channels(4)
                     .description("Four-channel surround")
                     .build());
 
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(5L)
                     .title("5.1 Surround")
                     .channels(6)
                     .description("Six-channel surround (5 speakers + 1 sub)")
                     .build());
 
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(6L)
                     .title("7.1 Full Surround")
                     .channels(8)
                     .description("Eight-channel surround")
                     .build());
 
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(7L)
                     .title("7.1.2 Atmos Light")
                     .channels(10)
                     .description("Atmos configuration with height channels")
                     .build());
 
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(8L)
                     .title("9.1.4 Atmos Advanced")
                     .channels(14)
                     .description("Advanced Atmos with additional speakers")
                     .build());
 
             audioChannelsRepository.save(AudioChannel.builder()
-                    .id(9L)
                     .title("22.2 NHK Super Hi-Vision")
                     .channels(24)
                     .description("High-fidelity 22.2 surround format")

@@ -61,23 +61,35 @@ public class GenreServiceImpl implements GenreService {
 
     @Override
     public Genre createGenre(String title) {
-        if(genreRepository.findGenreByTitle(title).isEmpty()) {
-            return genreRepository.save(Genre.builder()
-                    .title(title)
-                    .build());
-        }throw new EntityExistsException("Genre with title %s already exist");
+        return genreRepository.save(Genre.builder()
+                .title(validatedTitle(new Genre(), title))
+                .build());
     }
 
     @Override
     public void updateGenreById(Long id, String title) {
-        if(genreRepository.findGenreByTitle(title).isEmpty()) {
-            getGenreById(id).setTitle(title);
-        }throw new EntityExistsException(String.format("Genre with title %s already exist"));
+        Genre genre = getGenreById(id);
+        genre.setTitle(validatedTitle(genre, title));
+        genreRepository.save(genre);
     }
 
     @Override
     public void deleteGenreById(Long id) {
         Genre genre = getGenreById(id);
         genreRepository.delete(genre);
+    }
+
+    private String validatedTitle(Genre genre, String title){
+        Optional<Genre> genreOptional = genreRepository.findGenreByTitle(title);
+        String returnedTitle = title.substring(0,1).toUpperCase() + title.substring(1).toLowerCase();
+        String genreTitle = genre.getTitle() == null? null : genre.getTitle().toLowerCase().trim();
+        title = title.toLowerCase().trim();
+        if(genreTitle != null && genreTitle.equals(title)) {
+                return returnedTitle;
+            }
+        if (genreOptional.isEmpty()){
+            return returnedTitle;
+        }
+        throw new EntityExistsException(String.format("Genre with title %s already exist", returnedTitle));
     }
 }

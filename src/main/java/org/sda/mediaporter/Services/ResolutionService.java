@@ -9,6 +9,6 @@ public interface ResolutionService {
     List<Resolution> getAllResolutions();
     Resolution createResolution(String resolutionName);
     void updateResolution(Long ResolutionId, String resolutionName);
-
+    Resolution getResolutionById(Long id);
     void deleteResolution(Long id);
 }

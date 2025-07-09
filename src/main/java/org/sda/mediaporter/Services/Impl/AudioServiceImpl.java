@@ -79,7 +79,7 @@ public class AudioServiceImpl implements AudioService {
             return null;
         }
         if(language.length() > 3){
-            return languageService.getLanguageByEnglishTitle(language);
+            return languageService.getLanguageByTitle(language);
         }
         return languageService.getLanguageByCode(language);
     }

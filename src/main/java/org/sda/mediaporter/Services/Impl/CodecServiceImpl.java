@@ -2,12 +2,10 @@ package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import org.apache.tomcat.util.http.parser.MediaType;
 import org.sda.mediaporter.Services.CodecService;
 import org.sda.mediaporter.dtos.CodecDto;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
-import org.sda.mediaporter.models.enums.Codecs;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +34,11 @@ public class CodecServiceImpl implements CodecService {
     public Codec getCodecById(Long id) {
         return codecRepository.findById(id).orElseThrow(
                 ()-> new EntityNotFoundException(String.format("Codec with id %s not found", id)));
+    }
+
+    @Override
+    public Codec getCodecByName(String codecName) {
+        return codecRepository.findByName(codecName).orElseThrow(()-> new EntityNotFoundException(String.format("Codec with name: %s not exist", codecName)));
     }
 
     @Override

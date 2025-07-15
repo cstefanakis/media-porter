@@ -9,6 +9,7 @@ import java.util.List;
 public interface CodecService {
     Codec getCodecByNameAndMediaType(String codecName, MediaTypes mediaType);
     Codec getCodecById(Long id);
+    Codec getCodecByName(String name);
     List<Codec> getAllCodecs();
     List<Codec> getByMediaType(MediaTypes mediaType);
     Codec createCodec(CodecDto codecDto);

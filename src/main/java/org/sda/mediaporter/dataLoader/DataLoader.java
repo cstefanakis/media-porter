@@ -335,6 +335,21 @@ public class DataLoader implements CommandLineRunner {
                     .title("Western")
                     .build());
 
+            genreRepository.save(Genre.builder()
+                    .title("Sport")
+                    .build());
+
+            genreRepository.save(Genre.builder()
+                    .title("Biography")
+                    .build());
+
+            genreRepository.save(Genre.builder()
+                    .title("Short")
+                    .build());
+
+            genreRepository.save(Genre.builder()
+                    .title("N/A")
+                    .build());
         }
 
         //Languages data loader
@@ -372,9 +387,28 @@ public class DataLoader implements CommandLineRunner {
             languageRepository.save(Language.builder().iso6391("bn").iso6392B("ben").iso6392T("ben").englishTitle("Bengali").originalTitle("বাংলা").build());
             languageRepository.save(Language.builder().iso6391("sk").iso6392B("slo").iso6392T("slk").englishTitle("Slovak").originalTitle("Slovenčina").build());
             languageRepository.save(Language.builder().iso6391("hr").iso6392B("hrv").iso6392T("hrv").englishTitle("Croatian").originalTitle("Hrvatski").build());
-            languageRepository.save(Language.builder().iso6391(null).iso6392B("fil").iso6392T("fil").englishTitle("Filipino").originalTitle("Filipino").build());
+            languageRepository.save(Language.builder().iso6391("fil").iso6392B("fil").iso6392T("fil").englishTitle("Filipino").originalTitle("Filipino").build());
             languageRepository.save(Language.builder().iso6391("nb").iso6392B("nob").iso6392T("nob").englishTitle("Norwegian Bokmål").originalTitle("Bokmål").build());
-
+            languageRepository.save(Language.builder().iso6391("bfi").iso6392B("bfi").iso6392T("bfi").englishTitle("BritishSign").originalTitle("BritishSign").build());
+            languageRepository.save(Language.builder().iso6391("yue").iso6392B("yue").iso6392T("yue").englishTitle("Cantonese").originalTitle("粵語").build());
+            languageRepository.save(Language.builder().iso6391("la").iso6392B("lat").iso6392T("lat").englishTitle("Latin").originalTitle("Lingua Latina").build());
+            languageRepository.save(Language.builder().iso6391("ca").iso6392B("cat").iso6392T("cat").englishTitle("Catalan").originalTitle("Català").build());
+            languageRepository.save(Language.builder().iso6391("ase").iso6392B("ase").iso6392T("ase").englishTitle("AmericanSign").originalTitle("AmericanSign").build());
+            languageRepository.save(Language.builder().iso6391("mr").iso6392B("mar").iso6392T("mar").englishTitle("Marathi").originalTitle("मराठी").build());
+            languageRepository.save(Language.builder().iso6391("aii").iso6392B("aii").iso6392T("aii").englishTitle("AssyrianNeo-Aramaic").originalTitle("ܕܸܠܵܢܵܝܵܐ ܐܵܬܘܿܪܵܝܵܐ").build());
+            languageRepository.save(Language.builder().iso6391("sux").iso6392B("sux").iso6392T("sux").englishTitle("Sumerian").originalTitle("𒅴𒂠").build());
+            languageRepository.save(Language.builder().iso6391("sa").iso6392B("san").iso6392T("san").englishTitle("Sanskrit").originalTitle("संस्कृतम्").build());
+            languageRepository.save(Language.builder().iso6391("grc").iso6392B("grc").iso6392T("grc").englishTitle("Ancient(to1453)").originalTitle("Ἑλληνικὴ ἀρχαία").build());
+            languageRepository.save(Language.builder().iso6391("Mandarin").iso6392B("Mandarin").iso6392T("Mandarin").englishTitle("Mandarin").originalTitle("普通话").build());
+            languageRepository.save(Language.builder().iso6391("ga").iso6392B("gle").iso6392T("gle").englishTitle("IrishGaelic").originalTitle("Gaeilge").build());
+            languageRepository.save(Language.builder().iso6391("osa").iso6392B("osa").iso6392T("osa").englishTitle("Osage").originalTitle("𐓣𐓘𐓻𐓘𐓮𐓟").build());
+            languageRepository.save(Language.builder().iso6391("ins").iso6392B("ins").iso6392T("ins").englishTitle("Sign").originalTitle("International Sign").build());
+            languageRepository.save(Language.builder().iso6391("vla").iso6392B("vla").iso6392T("vla").englishTitle("Flemish").originalTitle("Vlaams").build());
+            languageRepository.save(Language.builder().iso6391("bg").iso6392B("bul").iso6392T("bul").englishTitle("Bulgarian").originalTitle("Български").build());
+            languageRepository.save(Language.builder().iso6391("lt").iso6392B("lit").iso6392T("lit").englishTitle("Lithuanian").originalTitle("Lietuvių").build());
+            languageRepository.save(Language.builder().iso6391("sw").iso6392B("swa").iso6392T("swa").englishTitle("Swahili").originalTitle("Kiswahili").build());
+            languageRepository.save(Language.builder().iso6391("rom").iso6392B("rom").iso6392T("rom").englishTitle("Romany").originalTitle("Romani").build());
+            languageRepository.save(Language.builder().iso6391("kn").iso6392B("kan").iso6392T("kan").englishTitle("Kannada").originalTitle("ಕನ್ನಡ").build());
         }
 
         //Resolutions data loader
@@ -393,37 +427,38 @@ public class DataLoader implements CommandLineRunner {
         //Configuration data loader
         if(configurationRepository.count() == 0){
             configurationRepository.save(Configuration.builder()
-                        .id(1L)
-                        .maxDatesSaveFile(9000)
-                        .maxDatesControlFilesFromExternalSource(0)
-                        .videoResolutionsPrefer(resolutionRepository.findAll())
-                        .firstVideoBitrateValueRange(0)
-                        .secondVideoBitrateValueRange(200000000)
-                        .firstAudioBitrateValueRange(0)
-                        .secondAudioBitrateValueRange(2048000)
-                        .firstAudioChannelsValueRange(0)
-                        .secondAudioChannelsValueRange(24)
-                        .firstVideoSizeRangeRange(0.0)
-                        .secondVideoSizeRangeRange(31457280.0)
-                            .audioCodecsPrefer(codecRepository.findByMediaType(MediaTypes.AUDIO))
-                            .videoCodecsPrefer(codecRepository.findByMediaType(MediaTypes.VIDEO))
+                            .id(1L)
+                            .maxDatesSaveFile(9000)
+                            .maxDatesControlFilesFromExternalSource(0)
+                            .videoResolutions(resolutionRepository.findAll())
+                            .firstVideoBitrateValueRange(0)
+                            .secondVideoBitrateValueRange(200000000)
+                            .firstAudioBitrateValueRange(0)
+                            .secondAudioBitrateValueRange(2048000)
+                            .audioChannels(audioChannelsRepository.findAll())
+                            .firstVideoSizeRange(0.0)
+                            .secondVideoSizeRange(31457280.0)
+                            .audioCodecs(codecRepository.findByMediaType(MediaTypes.AUDIO))
+                            .videoCodecs(codecRepository.findByMediaType(MediaTypes.VIDEO))
+                            .genres(genreRepository.findAll())
+                            .languages(languageRepository.findAll())
                     .build());
         }
 
         //Sources data loader
         if(sourcePathRepository.count() == 0){
             sourcePathRepository.save(SourcePath.builder()
-                            .type(LibraryItems.MOVIE)
+                            .libraryItem(LibraryItems.MOVIE)
                             .path("Z:\\Downloads\\Movies")
                             .title("Movies Download Path")
-                            .pathType(SourcePath.Type.DOWNLOAD)
+                            .pathType(SourcePath.PathType.DOWNLOAD)
                     .build());
 
             sourcePathRepository.save(SourcePath.builder()
-                    .type(LibraryItems.MOVIE)
+                    .libraryItem(LibraryItems.MOVIE)
                     .path("Z:\\MultiMedia\\Movies")
                     .title("Movies Main Path")
-                    .pathType(SourcePath.Type.SOURCE)
+                    .pathType(SourcePath.PathType.SOURCE)
                     .build());
         }
     }

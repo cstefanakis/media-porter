@@ -8,6 +8,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import java.io.BufferedReader;
@@ -29,21 +35,18 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void copyFile(Path fromFullPath, Path toFullPath) {
-
-            if(Files.exists(toFullPath) && isSameSizeBetweenTowFiles(fromFullPath,toFullPath)){
-                try {
-                    Files.copy(fromFullPath, toFullPath);
-                } catch (IOException e) {
-                    throw new RuntimeException(String.format("Failed to copy file %s to %s", fromFullPath, toFullPath));
-                }
+        Path prepareFullPath = toFullPath.resolveSibling(toFullPath.getFileName() + ".copy");
+        if((Files.exists(toFullPath) && !isSameSizeBetweenTowFiles(fromFullPath,toFullPath)) ||
+                !Files.exists(toFullPath)){
+            try {
+                Files.copy(fromFullPath, prepareFullPath);
+                FileTime now = localDateTimeToFileTime(LocalDateTime.now());
+                Files.setLastModifiedTime(prepareFullPath, now);
+                Files.move(prepareFullPath, toFullPath);
+            } catch (IOException e) {
+                throw new RuntimeException(String.format("Failed to copy file %s to %s", fromFullPath, toFullPath));
             }
-            if(!Files.exists(toFullPath)){
-                try {
-                    Files.copy(fromFullPath, toFullPath);
-                } catch (IOException e) {
-                    throw new RuntimeException(String.format("Failed to copy file %s to %s", fromFullPath, toFullPath));
-                }
-            }
+        }
     }
 
     private boolean isSameSizeBetweenTowFiles(Path file1, Path file2)  {
@@ -115,6 +118,22 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    @Override
+    public LocalDateTime getModificationLocalDateTimeOfPath(Path path) {
+        try {
+            FileTime fileTime = Files.getLastModifiedTime(path);
+            Instant instant = fileTime.toInstant();
+            return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public FileTime localDateTimeToFileTime(LocalDateTime localDateTime) {
+        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
+        return FileTime.from(zonedDateTime.toInstant());
+    }
 
 
     @Override

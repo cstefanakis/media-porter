@@ -7,4 +7,5 @@ import java.nio.file.Path;
 
 public interface VideoService {
     Video createVideoFromPath(Path file, Movie movie);
+    Video getVideoFromPath(Path file);
 }

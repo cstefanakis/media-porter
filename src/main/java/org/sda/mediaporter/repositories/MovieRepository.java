@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,16 +24,18 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     Page<Movie> findPathMovies(Pageable page,
                               @Param("path") Path path);
 
-    @Query("select m from Movie m where m.path like :path%")
-    List<Movie> findByPathMovies(@Param("path") Path path);
+    @Query("select m from Movie m where m.modificationDate < :localDateTime")
+    List<Movie> findMoviesOlderThan(@Param("localDateTime") LocalDateTime localDateTime);
 
     @Query("select m from Movie m  order by m.modificationDate DESC")
-    List<Movie> findLastFiveAddedMovies(Pageable pageable);
+    Page<Movie> findLastFiveAddedMovies(Pageable pageable);
 
     @Query("select m from Movie  m order by m.rating DESC")
-    List<Movie> findTopFiveMovies(Pageable pageable);
+    Page<Movie> findTopFiveMovies(Pageable pageable);
 
-    Page <Movie> findAll(Pageable pageable);
+    @Query("select m from Movie m where m.title = :title and m.year = :year")
+    List<Movie> findMovieByTitleAndYear(@Param("title") String title,
+                                            @Param("year") Integer year);
 
     @Query("""
     select m from Movie m

@@ -3,21 +3,25 @@ package org.sda.mediaporter.Services.Impl;
 import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.ConfigurationService;
 import org.sda.mediaporter.dtos.ConfigurationDto;
-import org.sda.mediaporter.dtos.GenreResponseDto;
 import org.sda.mediaporter.models.Configuration;
 import org.sda.mediaporter.models.Genre;
+import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.enums.MediaTypes;
+import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.repositories.ConfigurationRepository;
 import org.sda.mediaporter.repositories.GenreRepository;
 import org.sda.mediaporter.repositories.LanguageRepository;
+import org.sda.mediaporter.repositories.metadata.AudioChannelRepository;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.channels.Channel;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -28,26 +32,57 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final CodecRepository codecRepository;
     private final LanguageRepository languageRepository;
     private final ResolutionRepository resolutionRepository;
+    private final AudioChannelRepository audioChannelRepository;
 
 
     private double maxFileSize = 31457280;
     private int maxVideoBitrate = 200000000;
     private int maxAudioBitrate = 2048000;
-    private int maxAudioChannels = 24;
     private int maxDaysToPast = 9000;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GenreRepository genreRepository, CodecRepository codecRepository, LanguageRepository languageRepository, ResolutionRepository resolutionRepository) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GenreRepository genreRepository, CodecRepository codecRepository, LanguageRepository languageRepository, ResolutionRepository resolutionRepository, AudioChannelRepository audioChannelRepository) {
         this.configurationRepository = configurationRepository;
         this.genreRepository = genreRepository;
         this.codecRepository = codecRepository;
         this.languageRepository = languageRepository;
         this.resolutionRepository = resolutionRepository;
+        this.audioChannelRepository = audioChannelRepository;
     }
 
     @Override
     public Configuration getConfiguration() {
         return  configurationRepository.findById(1L).orElseThrow(() -> new EntityNotFoundException("Configuration with id: 1 not exist"));
+    }
+
+    @Override
+    public List<Genre> getGenresFromConfiguration(Configuration configuration) {
+        return configurationRepository.findGenresFromConfiguration(configuration);
+    }
+
+    @Override
+    public List<Resolution> getVideoResolutionFromConfiguration(Configuration configuration) {
+        return configurationRepository.findVideoResolutionsFromConfiguration(configuration);
+    }
+
+    @Override
+    public List<Codec> getVideoCodecsFromConfiguration(Configuration configuration) {
+        return configurationRepository.findVideoCodecsFromConfiguration(configuration);
+    }
+
+    @Override
+    public List<Codec> getAudioCodecsFromConfiguration(Configuration configuration) {
+        return configurationRepository.findAudioCodecsFromConfiguration(configuration);
+    }
+
+    @Override
+    public List<AudioChannel> getAudioChannelsFromConfiguration(Configuration configuration) {
+        return configurationRepository.findAudioChannelsFromConfiguration(configuration);
+    }
+
+    @Override
+    public List<Language> getLanguagesFromConfiguration(Configuration configuration) {
+        return configurationRepository.findLanguagesFromConfiguration(configuration);
     }
 
     @Override
@@ -64,160 +99,180 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         config.setMaxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null? this.maxDaysToPast: configurationDto.getMaxDatesSaveFile());
         config.setMaxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null? 0: configurationDto.getMaxDatesControlFilesFromExternalSource());
 
-        config.setVideoResolutionsPrefer(validatedResolutions(configurationDto, config));
+        config.setVideoResolutions(validatedResolutions(configurationDto, config));
 
         config.setFirstVideoBitrateValueRange(validatedFirstVideoBitrateValueRange(configurationDto, config));
         config.setSecondVideoBitrateValueRange(validatedSecondVideoBitrateValueRange(configurationDto, config));
 
-        config.setVideoCodecsPrefer(validatedCodecs(configurationDto.getVideoCodecsPrefer(), MediaTypes.VIDEO, config.getVideoCodecsPrefer()));
+        config.setVideoCodecs(validatedCodecs(configurationDto.getVideoCodecs(), MediaTypes.VIDEO, config.getVideoCodecs()));
 
         config.setFirstAudioBitrateValueRange(validatedFirstAudioBitrateValueRange(configurationDto, config));
         config.setSecondAudioBitrateValueRange(validatedSecondAudioBitrateValueRange(configurationDto, config));
 
-        config.setFirstAudioChannelsValueRange(validatedFirstAudioChannelsValueRange(configurationDto, config));
-        config.setSecondAudioChannelsValueRange(validatedSecondAudioChannelsValueRange(configurationDto, config));
+        config.setAudioChannels(validatedAudioChannels(configurationDto, config));
 
-        config.setAudioCodecsPrefer(validatedCodecs(configurationDto.getAudioCodecsPrefer(), MediaTypes.AUDIO, config.getAudioCodecsPrefer()));
+        config.setAudioCodecs(validatedCodecs(configurationDto.getAudioCodecs(), MediaTypes.AUDIO, config.getAudioCodecs()));
 
-        config.setGenresPrefer(validatedGenres(configurationDto, config));
+        config.setGenres(validatedGenres(configurationDto, config));
 
-        config.setFirstVideoSizeRangeRange(validatedFirstVideoSizeRangeRange(configurationDto, config));
-        config.setSecondVideoSizeRangeRange(validatedSecondVideoSizeRangeRange(configurationDto, config));
+        config.setLanguages(configurationDto.getLanguages());
+
+        config.setFirstVideoSizeRange(validatedFirstVideoSizeRangeRange(configurationDto, config));
+        config.setSecondVideoSizeRange(validatedSecondVideoSizeRangeRange(configurationDto, config));
 
         return config;
     }
 
-    private List<Resolution> validatedResolutions(ConfigurationDto configurationDto, Configuration config){
-        if(configurationDto.getVideoResolutionsPrefer().isEmpty() && config.getVideoResolutionsPrefer().isEmpty()){
-            return resolutionRepository.findAll();
-        }
+    private Integer validatedFirstVideoBitrateValueRange(ConfigurationDto configurationDto, Configuration configuration){
+        Integer videoBitrateDto = configurationDto.getFirstVideoBitrateValueRange();
+        Integer videoBitrate = configuration.getFirstVideoBitrateValueRange();
 
-        if(configurationDto.getVideoResolutionsPrefer().isEmpty() && !config.getVideoResolutionsPrefer().isEmpty()){
-             return config.getVideoResolutionsPrefer();
+        if(videoBitrateDto == null && videoBitrate == null){
+            return 0;
         }
-
-        return configurationDto.getVideoResolutionsPrefer();
+        if(videoBitrateDto == null){
+            return videoBitrate;
+        }
+        return videoBitrateDto;
     }
 
-    private Integer validatedFirstVideoBitrateValueRange(ConfigurationDto configurationDto, Configuration config){
-        int value = 0;
-        if(configurationDto.getFirstVideoBitrateValueRange() != null){
-            value = configurationDto.getFirstVideoBitrateValueRange();
+    private Integer validatedSecondVideoBitrateValueRange(ConfigurationDto configurationDto, Configuration configuration){
+        Integer secondVideoBitrateDto = configurationDto.getSecondVideoBitrateValueRange();
+        Integer secondVideoBitrate = configuration.getSecondVideoBitrateValueRange();
+        if(secondVideoBitrateDto == null && secondVideoBitrate == null){
+            return 0;
         }
-        if(config.getFirstVideoBitrateValueRange() != null && configurationDto.getFirstVideoBitrateValueRange() == null){
-            value = config.getFirstVideoBitrateValueRange();
+        if(secondVideoBitrateDto == null){
+            return secondVideoBitrate;
         }
-
-        return value;
-    }
-
-    private Integer validatedSecondVideoBitrateValueRange(ConfigurationDto configurationDto, Configuration config){
-        if(configurationDto.getSecondVideoBitrateValueRange() != null){
-            this.maxVideoBitrate = configurationDto.getSecondVideoBitrateValueRange();
+        if(secondVideoBitrate > maxVideoBitrate){
+            return maxVideoBitrate;
         }
-        if(config.getSecondVideoBitrateValueRange() != null && configurationDto.getSecondVideoBitrateValueRange() == null) {
-            this.maxVideoBitrate = config.getSecondVideoBitrateValueRange();
-        }
-        if(this.maxVideoBitrate < config.getFirstVideoBitrateValueRange()){
+        Integer firstVideoBitrate = configuration.getFirstVideoBitrateValueRange();
+        if(secondVideoBitrateDto < firstVideoBitrate){
             throw new RuntimeException("Second bitrate value can't be smaller than first bitrate value");
         }
-        return this.maxVideoBitrate;
+        return secondVideoBitrateDto;
     }
 
-    private Integer validatedFirstAudioBitrateValueRange(ConfigurationDto configurationDto, Configuration config){
-        int value = 0;
-        if(configurationDto.getFirstAudioBitrateValueRange() != null){
-            value = configurationDto.getFirstAudioBitrateValueRange();
-        }
-        if(config.getFirstAudioBitrateValueRange() != null && configurationDto.getFirstAudioBitrateValueRange() == null){
-            value = config.getFirstAudioBitrateValueRange();
-        }
+    private Integer validatedFirstAudioBitrateValueRange(ConfigurationDto configurationDto, Configuration configuration){
+        Integer firstAudioBitrateDto = configurationDto.getFirstAudioBitrateValueRange();
+        Integer firstAudioBitrate = configuration.getFirstAudioBitrateValueRange();
 
-        return value;
+        if(firstAudioBitrateDto == null && firstAudioBitrate == null){
+            return 0;
+        }
+        if(firstAudioBitrateDto == null){
+            return firstAudioBitrate;
+        }
+        return firstAudioBitrateDto;
     }
 
-    private Integer validatedSecondAudioBitrateValueRange(ConfigurationDto configurationDto, Configuration config){
-
-        if(configurationDto.getSecondAudioBitrateValueRange() != null){
-            this.maxAudioBitrate = configurationDto.getSecondAudioBitrateValueRange();
+    private Integer validatedSecondAudioBitrateValueRange(ConfigurationDto configurationDto, Configuration configuration){
+        Integer secondAudioBitrateDto = configurationDto.getSecondAudioBitrateValueRange();
+        Integer secondAudioBitrate = configuration.getSecondAudioBitrateValueRange();
+        if(secondAudioBitrateDto == null && secondAudioBitrate == null) {
+            return maxAudioBitrate;
         }
-        if(config.getSecondAudioBitrateValueRange() != null && configurationDto.getSecondAudioBitrateValueRange() == null) {
-            this.maxAudioBitrate = config.getSecondAudioBitrateValueRange();
+        if(secondAudioBitrateDto == null) {
+            return secondAudioBitrate;
         }
-        if(this.maxAudioBitrate < config.getFirstAudioBitrateValueRange()){
+        if(secondAudioBitrateDto > maxAudioBitrate){
+            return maxAudioBitrate;
+        }
+        Integer firstAudioBitrate = configuration.getFirstAudioBitrateValueRange();
+        if(secondAudioBitrateDto < firstAudioBitrate){
             throw new RuntimeException("Second bitrate value can't be smaller than first bitrate value");
         }
-        return this.maxAudioBitrate;
+        return secondAudioBitrateDto;
     }
 
-    private Integer validatedFirstAudioChannelsValueRange(ConfigurationDto configurationDto, Configuration config){
-        int value = 0;
-        if(configurationDto.getFirstAudioChannelsValueRange() != null){
-            value = configurationDto.getFirstAudioChannelsValueRange();
+    private Double validatedFirstVideoSizeRangeRange(ConfigurationDto configurationDto, Configuration configuration){
+        Double firstVideoSizeDto = configurationDto.getFirstVideoSizeRange();
+        Double firstVideoSize = configuration.getFirstVideoSizeRange();
+        if(firstVideoSizeDto == null && firstVideoSize == null){
+            return 0.0;
         }
-        if(config.getFirstAudioChannelsValueRange() != null && configurationDto.getFirstAudioChannelsValueRange() == null){
-            value = config.getFirstAudioChannelsValueRange();
+        if(firstVideoSizeDto == null){
+            return firstVideoSize;
         }
-
-        return value;
+        return firstVideoSizeDto;
     }
 
-    private Integer validatedSecondAudioChannelsValueRange(ConfigurationDto configurationDto, Configuration config){
-        if(configurationDto.getSecondAudioChannelsValueRange() != null){
-            this.maxAudioChannels = configurationDto.getSecondAudioChannelsValueRange();
+    private Double validatedSecondVideoSizeRangeRange(ConfigurationDto configurationDto, Configuration configuration){
+        Double secondVideoSizeDto = configurationDto.getSecondVideoSizeRange();
+        Double secondVideoSize = configuration.getSecondVideoSizeRange();
+        if(secondVideoSizeDto == null && secondVideoSize == null){
+            return maxFileSize;
         }
-        if(config.getSecondAudioChannelsValueRange() != null && configurationDto.getSecondAudioChannelsValueRange() == null) {
-            this.maxAudioChannels = config.getSecondAudioChannelsValueRange();
+        if(secondVideoSizeDto == null){
+            return secondVideoSize;
         }
-        if(this.maxAudioChannels < config.getFirstAudioChannelsValueRange()){
+        Double firstVideoSize = configuration.getFirstVideoSizeRange();
+        if(secondVideoSizeDto < firstVideoSize){
             throw new RuntimeException("Second chanel value can't be smaller than first chanel value");
         }
-        return this.maxAudioChannels;
-    }
-
-    private Double validatedFirstVideoSizeRangeRange(ConfigurationDto configurationDto, Configuration config){
-        double value = 0;
-        if(configurationDto.getFirstVideoSizeRangeRange() != null){
-            value = configurationDto.getFirstVideoSizeRangeRange();
-        }
-        if(config.getFirstVideoSizeRangeRange() != null && configurationDto.getFirstVideoSizeRangeRange() == null){
-            value = config.getFirstVideoSizeRangeRange();
-        }
-
-        return value;
-    }
-
-    private Double validatedSecondVideoSizeRangeRange(ConfigurationDto configurationDto, Configuration config){
-
-        if(configurationDto.getSecondVideoSizeRangeRange() != null){
-            this.maxFileSize = configurationDto.getSecondVideoSizeRangeRange();
-        }
-        if(config.getSecondVideoSizeRangeRange() != null && configurationDto.getSecondVideoSizeRangeRange() == null) {
-            this.maxFileSize = config.getSecondVideoSizeRangeRange();
-        }
-        if(this.maxFileSize < config.getFirstVideoSizeRangeRange()){
-            throw new RuntimeException("Second chanel value can't be smaller than first chanel value");
-        }
-        return this.maxFileSize;
+        return secondVideoSizeDto;
     }
 
     private List<Genre> validatedGenres(ConfigurationDto configurationDto, Configuration configuration){
-        if(configurationDto.getGenresPrefer().isEmpty() && configuration.getGenresPrefer().isEmpty()){
+        List<Genre> genresDto = configurationDto.getGenres();
+        List<Genre> genres = configuration.getGenres();
+
+        if(genresDto == null && genres == null){
             return genreRepository.findAll();
         }
-        if(configurationDto.getGenresPrefer().isEmpty()){
-            return configuration.getGenresPrefer();
+        if(genresDto == null){
+            return genres;
         }
-        return configurationDto.getGenresPrefer();
+        return new ArrayList<>(new HashSet<>(genresDto));
     }
 
     private List<Codec> validatedCodecs(List<Codec> codecsFromDto, MediaTypes mediaType, List<Codec> codecs){
-        if(codecsFromDto.isEmpty() && codecs.isEmpty()){
+
+        if(codecsFromDto == null && codecs == null){
             return codecRepository.findByMediaType(mediaType);
         }
-        if(codecsFromDto.isEmpty()){
+
+        if(codecsFromDto == null){
             return codecs;
         }
-        return codecsFromDto;
+        return new ArrayList<>(new HashSet<>(codecsFromDto));
+    }
+
+    private List<Language> validatedLanguages(ConfigurationDto configurationDto, Configuration configuration){
+        List<Language> languagesDto = configurationDto.getLanguages();
+        List<Language> languages = configuration.getLanguages();
+        if(languagesDto == null && languages == null){
+            return languageRepository.findAll();
+        }
+        if(languagesDto == null){
+            return languages;
+        }
+        return new ArrayList<>(new HashSet<>(languagesDto));
+    }
+
+    private List<Resolution> validatedResolutions(ConfigurationDto configurationDto, Configuration configuration){
+        List<Resolution> resolutionsDto = configurationDto.getVideoResolutions();
+        List<Resolution> resolutions = configuration.getVideoResolutions();
+        if(resolutionsDto == null && resolutions == null){
+            return resolutionRepository.findAll();
+        }
+        if(resolutionsDto == null){
+            return resolutions;
+        }
+        return new ArrayList<>(new HashSet<>(resolutionsDto));
+    }
+
+    private List<AudioChannel> validatedAudioChannels(ConfigurationDto configurationDto, Configuration configuration){
+        List<AudioChannel> audioChannelsDto = configurationDto.getAudioChannels();
+        List<AudioChannel> audioChannels = configuration.getAudioChannels();
+        if(audioChannelsDto == null && audioChannels == null){
+            return audioChannelRepository.findAll();
+        }
+        if(audioChannelsDto == null){
+            return audioChannels;
+        }
+        return new ArrayList<>(new HashSet<>(audioChannelsDto));
     }
 }

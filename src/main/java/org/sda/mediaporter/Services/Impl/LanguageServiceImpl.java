@@ -5,7 +5,6 @@ import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.LanguageService;
 import org.sda.mediaporter.dtos.LanguageDto;
 import org.sda.mediaporter.models.Language;
-import org.sda.mediaporter.models.enums.LanguageCodes;
 import org.sda.mediaporter.repositories.LanguageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,18 +40,8 @@ public class LanguageServiceImpl implements LanguageService {
         return languageRepository.findAll();
     }
 
-    private Language findLanguageByTitle(String englishTitle) {
-        for(LanguageCodes languageCode : LanguageCodes.values()) {
-            if(englishTitle.trim().equalsIgnoreCase(languageCode.getEnglishTitle())){
-                return Language.builder()
-                        .englishTitle(languageCode.getEnglishTitle())
-                        .originalTitle(languageCode.getOriginalTitle())
-                        .iso6391(languageCode.getIso6391())
-                        .iso6392B(languageCode.getIso6392B())
-                        .iso6392T(languageCode.getIso6392T())
-                        .build();
-            }
-        }return null;
+    private Language findLanguageByTitle(String languageTitle) {
+        return languageRepository.findByTitle(languageTitle).orElseThrow(()-> new EntityNotFoundException(String.format("Language with title %s not found", languageTitle)));
     }
 
     @Override

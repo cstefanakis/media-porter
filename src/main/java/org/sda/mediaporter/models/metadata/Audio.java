@@ -20,7 +20,7 @@ public class Audio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Integer bitrate;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private AudioChannel audioChannel;
     @ManyToOne(fetch = FetchType.LAZY)
     private Codec codec;

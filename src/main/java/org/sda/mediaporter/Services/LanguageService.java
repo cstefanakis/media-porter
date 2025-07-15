@@ -9,7 +9,7 @@ public interface LanguageService {
     Language autoCreateLanguageByTitle(String title);
     List<Language> getAllLanguages();
     Language getLanguageByCode(String code);
-    Language getLanguageByTitle(String title);
+    Language getLanguageByTitle(String languageTitle);
     Language getLanguageById(Long id);
     Language createLanguage(LanguageDto languageDto);
     void updateLanguageById(Long id, LanguageDto languageDto);

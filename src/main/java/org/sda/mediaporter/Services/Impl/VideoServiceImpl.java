@@ -32,6 +32,16 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public Video createVideoFromPath(Path file, Movie movie) {
+        Video video = getVideoFromPath(file);
+        if(video !=null){
+            video.setMovie(movie);
+            return videoRepository.save(video);
+        }
+        return null;
+    }
+
+    @Override
+    public Video getVideoFromPath(Path file) {
         if(!videoInfo(file).isEmpty()) {
             String[] properties = videoInfo(file).split(",", -1);
             try {
@@ -43,24 +53,16 @@ public class VideoServiceImpl implements VideoService {
                 Resolution resolution = generatedResolution(resolutionHeight);
                 Integer videoBitrateKbps = videoBitrate == null? null: videoBitrate / 1000;
 
-                videoRepository.save(Video.builder()
-                                .codec(videoCodec)
-                                .resolution(resolution)
-                                .bitrate(videoBitrateKbps)
-                                .movie(movie)
-                        .build());
+                return Video.builder()
+                        .codec(videoCodec)
+                        .resolution(resolution)
+                        .bitrate(videoBitrateKbps)
+                        .build();
             }catch (ResolutionException e){
                 return null;
             }
 
         }return null;
-    }
-
-    private Video toEntity(Video updatedVideo, Video video) {
-        updatedVideo.setResolution(video.getResolution() == null? updatedVideo.getResolution() : video.getResolution());
-        updatedVideo.setCodec(video.getCodec() == null? updatedVideo.getCodec() : video.getCodec());
-        updatedVideo.setBitrate(video.getBitrate() == null? updatedVideo.getBitrate() : video.getBitrate());
-        return updatedVideo;
     }
 
     private Resolution generatedResolution(Integer height){
@@ -78,15 +80,14 @@ public class VideoServiceImpl implements VideoService {
         resolutions.put(200, "240P");
         resolutions.put(100, "144P");
 
-        String resolutionName = null;
-
         for(Map.Entry<Integer, String> entity: resolutions.entrySet()){
+            System.out.println("resolution height: " + height);
             if(height > entity.getKey()){
-                resolutionName = entity.getValue();
+                System.out.println(entity.getKey());
+                return resolutionService.getResolutionByName(entity.getValue());
             }
         }
-
-        return resolutionService.getResolutionByName(resolutionName);
+        return null;
     }
 
     //Print String h264,1080,4567890

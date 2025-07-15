@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface CodecRepository extends JpaRepository<Codec, Long> {
-    @Query("select c from Codec c where c.name = :name")
+    @Query("select c from Codec c where lower(trim(c.name)) = lower(trim(:name))")
     Optional <Codec> findByName(@Param("name") String name);
 
     @Query("select c from Codec c where lower(trim(c.name)) = lower(trim(:name)) and c.mediaType = :mediaType")

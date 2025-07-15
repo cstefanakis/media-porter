@@ -33,13 +33,21 @@ public class MovieController {
         return ResponseEntity.ok(movies);
     }
 
-    @GetMapping("/get-movies-by-title-and-year")
-    public ResponseEntity <Movie> getMovieByTitle(
+    @GetMapping("/get-movies-from-api-by-title-and-year")
+    public ResponseEntity <Movie> getMovieFromApiByTitle(
             @RequestParam(name = "title") String title,
             @RequestParam(name = "year", required = false) Integer year) {
         Movie movie = movieService.getMovieFromApiByTitle(new Movie(), title, year);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
+
+    @GetMapping("/get-by-title-and-year")
+    public ResponseEntity<List<Movie>> getMoviesByTitleAndYear(@RequestParam("title") String title,
+                                                               @RequestParam("year") Integer year){
+        List<Movie> movies = movieService.getMovieByTitleAndYear(title, year);
+        return ResponseEntity.ok(movies);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Movie> getMovieById(@PathVariable("id") Long id) {
@@ -102,15 +110,14 @@ public class MovieController {
     }
 
     @GetMapping("/get-last-five-added-movies")
-    public ResponseEntity<List<Movie>> getLastFiveMovies(Pageable pageable) {
-        List<Movie> movies = movieService.getFiveLastAddedMovies(pageable);
-        System.out.println("Movies size: "+movies.size());
+    public ResponseEntity<Page<Movie>> getLastFiveMovies(Pageable pageable) {
+        Page<Movie> movies = movieService.getFiveLastAddedMovies(pageable);
         return ResponseEntity.ok(movies);
     }
 
     @GetMapping("/get-top-five-movies")
-    public ResponseEntity<List<Movie>> getTopFiveMovies(Pageable pageable) {
-        List<Movie> movies = movieService.getTopFiveMovies(pageable);
+    public ResponseEntity<Page<Movie>> getTopFiveMovies(Pageable pageable) {
+        Page<Movie> movies = movieService.getTopFiveMovies(pageable);
         return ResponseEntity.ok(movies);
     }
 

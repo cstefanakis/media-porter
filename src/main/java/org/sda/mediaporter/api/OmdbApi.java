@@ -61,7 +61,7 @@ public class OmdbApi {
                     .replace(" ", "")
                     .split(",");
             Collections.addAll(genres, apiGenres);
-            return genres;
+            return genres.stream().filter(g-> !g.equalsIgnoreCase("N/A")).toList();
 
     }
 
@@ -69,7 +69,7 @@ public class OmdbApi {
         if(rootObject().has("Director")) {
             String[] directors = rootObject().getString("Director")
                     .split(",");
-            return Arrays.stream(directors).toList();
+            return Arrays.stream(directors).filter(d-> !d.equalsIgnoreCase("N/A")).toList();
         }
         return Collections.emptyList();
     }
@@ -78,7 +78,7 @@ public class OmdbApi {
             String[] writers = rootObject().getString("Writer")
                     .replace(", ", ",")
                     .split(",");
-            return Arrays.stream(writers).toList();
+            return Arrays.stream(writers).filter(w-> !w.equalsIgnoreCase("N/A")).toList();
         }
         return Collections.emptyList();
     }
@@ -88,14 +88,17 @@ public class OmdbApi {
             String[] actors =  rootObject().getString("Actors")
                     .replace(", ", ",")
                     .split(",");
-            return Arrays.stream(actors).toList();
+            return Arrays.stream(actors).filter(a-> !a.equalsIgnoreCase("N/A")).toList();
         }
         return Collections.emptyList();
     }
 
     public String getPlot(){
         if(rootObject().has("Plot")){
-            return rootObject().getString("Plot");
+            String plot = rootObject().getString("Plot");
+            if(!plot.equalsIgnoreCase("N/A")){
+                return plot;
+            }
         }
         return null;
     }
@@ -104,19 +107,26 @@ public class OmdbApi {
             String[] languages = rootObject().getString("Language")
                     .replace(" ", "")
                     .split(",");
-            return Arrays.asList(languages);
+
+            return Arrays.stream(languages).filter(l-> !l.equals("N/A")).toList();
     }
 
     public String getCountry(){
         if(rootObject().has("Country")) {
-            return rootObject().getString("Country");
+            String country = rootObject().getString("Country");
+            if(!country.equalsIgnoreCase("N/A")){
+                return country;
+            }
         }
         return null;
     }
 
     public String getPoster(){
         if(rootObject().has("Poster")) {
-            return rootObject().getString("Poster");
+            String poster =  rootObject().getString("Poster");
+            if(!poster.equalsIgnoreCase("N/A")){
+                return poster;
+            }
         }
         return null;
     }
@@ -133,14 +143,20 @@ public class OmdbApi {
 
     public String getType(){
         if(rootObject().has("Type")){
-            return  rootObject().getString("Type");
+            String type = rootObject().getString("Type");
+            if(!type.equalsIgnoreCase("N/A")){
+                return type;
+            }
         }
         return null;
     }
 
     public String getBoxOffice(){
         if(rootObject().has("BoxOffice")){
-            return  rootObject().getString("BoxOffice");
+            String boxOffice = rootObject().getString("BoxOffice");
+            if(!boxOffice.equalsIgnoreCase("N/A")){
+                return boxOffice;
+            }
         }
         return null;
     }

@@ -8,6 +8,6 @@ import org.sda.mediaporter.models.enums.LibraryItems;
 public class SourcePathDto {
     private String path;
     private String title;
-    private SourcePath.Type pathType;
-    private LibraryItems type;
+    private SourcePath.PathType pathType;
+    private LibraryItems libraryItem;
 }

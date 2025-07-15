@@ -1,6 +1,8 @@
 package org.sda.mediaporter.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
 
@@ -15,17 +17,17 @@ public class SourcePath {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NonNull
+    @NotEmpty
     private String path;
     private String title;
-    @NonNull
+    @NotNull
     @Enumerated(EnumType.STRING)
-    private Type pathType;
-    @NonNull
+    private PathType pathType;
+    @NotNull
     @Enumerated(EnumType.STRING)
-    private LibraryItems type;
+    private LibraryItems libraryItem;
 
-    public enum Type{
+    public enum PathType{
         DOWNLOAD, SOURCE, EXTERNAL
     }
 }

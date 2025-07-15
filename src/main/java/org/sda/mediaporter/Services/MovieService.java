@@ -15,6 +15,7 @@ public interface MovieService {
 
     Page<Movie> getMovies(Pageable pageable);
     Movie getMovieFromApiByTitle(Movie movie, String movieTitle, Integer movieYear);
+    List<Movie> getMovieByTitleAndYear(String title, Integer year);
     Movie getMovieById(Long movieId);
     Movie getMovieByPath(String moviePath);
     void deleteMovieById(Long id);
@@ -24,12 +25,14 @@ public interface MovieService {
     Page<Movie> organizedDownloadMovieFiles(Pageable page, Path moviesDownloadPath, Path destinationPath);
     Page<Movie> getMoviesFromPath(Pageable page, String path);
     Movie generateAndMoveMovieFile(Movie movie, Path destinationPath);
-    List <Movie> getFiveLastAddedMovies(Pageable pageable);
+    Page <Movie> getFiveLastAddedMovies(Pageable pageable);
 
-    List<Movie> getTopFiveMovies(Pageable pageable);
+    Page<Movie> getTopFiveMovies(Pageable pageable);
 
     Page<Movie> filterMovies(Pageable page, MovieFilterDto movieFilterDto);
+
     void moveMoviesFromDownloadPathsToMoviesPath ();
     void autoLoadMoviesFromLocalSources();
-//    void autoDeleteMoviesByProperties();
+    void autoDeleteMoviesByProperties();
+    void autoCopyMoviesFromExternalSource();
 }

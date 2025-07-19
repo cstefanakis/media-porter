@@ -2,12 +2,10 @@ package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import org.apache.tomcat.util.http.parser.MediaType;
 import org.sda.mediaporter.Services.CodecService;
 import org.sda.mediaporter.dtos.CodecDto;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
-import org.sda.mediaporter.models.enums.Codecs;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +34,11 @@ public class CodecServiceImpl implements CodecService {
     public Codec getCodecById(Long id) {
         return codecRepository.findById(id).orElseThrow(
                 ()-> new EntityNotFoundException(String.format("Codec with id %s not found", id)));
+    }
+
+    @Override
+    public Codec getCodecByName(String codecName) {
+        return codecRepository.findByName(codecName).orElseThrow(()-> new EntityNotFoundException(String.format("Codec with name: %s not exist", codecName)));
     }
 
     @Override
@@ -70,14 +73,38 @@ public class CodecServiceImpl implements CodecService {
 
     @Override
     public void deleteCodec(Long codecId) {
-        Optional<Codec> codecFromDb = codecRepository.findById(codecId);
-        codecFromDb.ifPresent(codecRepository::delete);
-        throw new EntityNotFoundException(String.format("Codec with id %s not found",  codecId));
+        Codec codec = getCodecById(codecId);
+        codecRepository.delete(codec);
     }
 
     private Codec toEntity(Codec codec, CodecDto codecDto){
-        codec.setName(codecDto.getName() == null? codec.getName() : codecDto.getName());
-        codec.setMediaType(codecDto.getMediaType() == null? codec.getMediaType() : codecDto.getMediaType());
+        codec.setName(validatedCodecName(codec, codecDto));
+        codec.setMediaType(validatedMediaType(codec, codecDto));
         return codec;
+    }
+
+    private String validatedCodecName(Codec codec, CodecDto codecDto){
+        String nameDto = codecDto.getName();
+        String name = codec.getName();
+        if(nameDto == null && name != null){
+            return name;
+        }
+        if(nameDto != null && nameDto.equals(name)){
+            return nameDto;
+        }
+        Optional<Codec> codecOptional = codecRepository.findByName(nameDto);
+        if(codecOptional.isEmpty()){
+            return nameDto;
+        }
+        throw new EntityExistsException(String.format("Codec with name %s already exist", nameDto));
+    }
+
+    private MediaTypes validatedMediaType(Codec codec, CodecDto codecDto){
+        MediaTypes mediaTypeDto = codecDto.getMediaType();
+        MediaTypes mediaType = codec.getMediaType();
+        if(mediaTypeDto == null && mediaType != null){
+            return mediaType;
+        }
+        return mediaTypeDto;
     }
 }

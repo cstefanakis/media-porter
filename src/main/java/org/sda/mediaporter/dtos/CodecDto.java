@@ -8,8 +8,6 @@ import org.sda.mediaporter.models.enums.MediaTypes;
 
 @Getter
 public class CodecDto {
-    @NotEmpty
     private String name;
-    @NotNull
     private MediaTypes mediaType;
 }

@@ -8,20 +8,15 @@ import org.sda.mediaporter.api.TheMovieDb;
 import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.*;
-import org.sda.mediaporter.models.metadata.Audio;
-import org.sda.mediaporter.models.metadata.Subtitle;
-import org.sda.mediaporter.models.metadata.Video;
-import org.sda.mediaporter.repositories.ConfigurationRepository;
+import org.sda.mediaporter.models.metadata.*;
+import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.SourcePathRepository;
-import org.sda.mediaporter.repositories.metadata.AudioRepository;
 import org.sda.mediaporter.repositories.MovieRepository;
-import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
-import org.sda.mediaporter.repositories.metadata.VideoRepository;
+import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.Param;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -32,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -45,27 +39,34 @@ public class MovieServiceImpl implements MovieService {
     private final GenreService genreService;
     private final ContributorService contributorService;
     private final LanguageService languageService;
+    private final LanguageRepository languageRepository;
     private final MovieRepository movieRepository;
     private final FileService fileService;
     private final AudioService audioService;
     private final VideoService videoService;
     private final SubtitleService subtitleService;
     private final SourcePathRepository sourcePathRepository;
+    private final ConfigurationService configurationService;
+    private final CodecRepository codecRepository;
+    private final CountryService countryService;
 
     private Integer year;
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, SourcePathRepository sourcePathRepository) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, LanguageRepository languageRepository, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, SourcePathRepository sourcePathRepository, ConfigurationService configurationService, CodecRepository codecRepository, CountryService countryService) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
+        this.languageRepository = languageRepository;
         this.movieRepository = movieRepository;
         this.fileService = fileService;
         this.audioService = audioService;
         this.videoService = videoService;
         this.subtitleService = subtitleService;
         this.sourcePathRepository = sourcePathRepository;
-
+        this.configurationService = configurationService;
+        this.codecRepository = codecRepository;
+        this.countryService = countryService;
     }
 
     @Override
@@ -81,6 +82,11 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Movie getMovieFromApiByTitle(Movie movie, String title, Integer year) {
         return omdbApiToEntity(movie, title, year);
+    }
+
+    @Override
+    public List<Movie> getMovieByTitleAndYear(String title, Integer year) {
+        return movieRepository.findMovieByTitleAndYear(title, year);
     }
 
     @Override
@@ -176,10 +182,24 @@ public class MovieServiceImpl implements MovieService {
         movie.setWriters(getContributors(omdbApi.getWriter()));
         movie.setActors(getContributors(omdbApi.getActors()));
         movie.setPlot(omdbApi.getPlot() == null || omdbApi.getPlot().equals("N/A")? theMovieDb.getOverview() : omdbApi.getPlot());
-        movie.setCountry(omdbApi.getCountry());
+        movie.setCountries(getCountries(omdbApi));
         movie.setPoster(omdbApi.getPoster() == null || omdbApi.getPoster().equals("N/A") ? theMovieDb.getPoster() : omdbApi.getPoster());
         movie.setLanguages(getLanguagesByTitle(omdbApi.getLanguages()));
         return movie;
+    }
+
+    private List<Country> getCountries(OmdbApi omdbApi){
+        String countriesFromMovie = omdbApi.getCountry();
+        if(countriesFromMovie == null){
+            return null;
+        }
+        System.out.println(countriesFromMovie);
+        String[] countries = countriesFromMovie.split(",");
+        try{
+            return Arrays.stream(countries).map(countryTitle -> countryService.getCountryByName(countryTitle)).toList();
+        }catch (EntityNotFoundException e) {
+            return Arrays.stream(countries).map(countryCode -> countryService.getCountryByCode(countryCode)).toList();
+        }
     }
 
     private List<Genre> getGenres(List<String> apiGenres) {
@@ -193,7 +213,9 @@ public class MovieServiceImpl implements MovieService {
     private List<Contributor> getContributors(List<String> apiContributors) {
         List<Contributor> contributors = new ArrayList<>();
         for (String contributor : apiContributors){
-            contributors.add(contributorService.autoCreateContributor(contributor));
+            if(contributor != null){
+                contributors.add(contributorService.autoCreateContributor(contributor));
+            }
         }
         return contributors;
     }
@@ -245,6 +267,9 @@ public class MovieServiceImpl implements MovieService {
         Movie movie = getMovieFromApi(new Movie(), title(file.getFileName().toString()));
         movie.setModificationDate(getModificationTimeFromFile(file));
         movie.setPath(file.toString());
+        if(movie.getTitle() == null){
+            movie.setTitle(file.getFileName().toString());
+        }
         movie = movieRepository.save(movie);
         //get data for movie from ffmpeg metadata
         videoService.createVideoFromPath(file, movie);
@@ -274,60 +299,60 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public List<Movie> getFiveLastAddedMovies(Pageable pageable) {
-        List <Movie> lastFiveAddedMovies = movieRepository.findLastFiveAddedMovies(pageable);
-        if(lastFiveAddedMovies.isEmpty()){
-            return new ArrayList<>();
-        }else{
-            return lastFiveAddedMovies;
-        }
+    public Page<Movie> getFiveLastAddedMovies(Pageable pageable) {
+        return movieRepository.findLastFiveAddedMovies(pageable);
     }
 
     @Override
-    public List<Movie> getTopFiveMovies(Pageable pageable) {
-        List<Movie> topFiveMovies = movieRepository.findTopFiveMovies(pageable);
-        if(topFiveMovies.isEmpty()){
-            return new ArrayList<>();
-        }else {
-            return topFiveMovies;
-        }
+    public Page<Movie> getTopFiveMovies(Pageable pageable) {
+        return movieRepository.findTopFiveMovies(pageable);
     }
 
     @Override
     public Page<Movie> filterMovies(Pageable page,
                                     MovieFilterDto movieFilterDto) {
+        List<Long> genres = movieFilterDto.getGenreIds();
+        if(genres == null){
+            genres = genreService.getAllGenres().stream().map(g-> g.getId()).toList();
+        }
+
+        List<Long> countries = movieFilterDto.getCountryIds();
+        if(countries == null){
+            countries = countryService.getAllCountries().stream().map(c-> c.getId()).toList();
+        }
+
+        List<Long> audioLanguages = movieFilterDto.getALanguageIds();
+//        if(audioLanguages == null){
+//            audioLanguages = languageService.getAllLanguages().stream().map(a -> a.getId()).toList();
+//        }
         return movieRepository.filterMovies(
                 page,
                 movieFilterDto.getTitle(),
                 movieFilterDto.getYear(),
                 movieFilterDto.getRating(),
-                movieFilterDto.getGenre(),
-                movieFilterDto.getCountry(),
-                movieFilterDto.getDirector(),
-                movieFilterDto.getActor(),
-                movieFilterDto.getAudio(),
-                movieFilterDto.getWriter(),
-                movieFilterDto.getSubtitle());
+                genres,
+                countries,
+                audioLanguages
+                );
     }
+
+    @Override
+    public Page<Movie> filterByAudioLanguage(Pageable page, List<Long> aLanguageIds) {
+        return movieRepository.filterByAudioLanguage(page, aLanguageIds);
+    }
+
 
     @Override
     @Async
     @Scheduled(fixedDelay = 5 * 60 * 1000)
     public void moveMoviesFromDownloadPathsToMoviesPath() {
-        System.out.println("async");
             try {
-                System.out.println("async try");
-                List<SourcePath> movieDownloadPaths = sourcePathRepository.sourcePathsByPathType(SourcePath.Type.DOWNLOAD);
-                SourcePath moviesPath = sourcePathRepository.sourcePathsByPathType(SourcePath.Type.SOURCE).getFirst();
+                List<SourcePath> movieDownloadPaths = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.DOWNLOAD);
+                SourcePath moviesPath = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.SOURCE).getFirst();
                 for (SourcePath path : movieDownloadPaths) {
                     List<Path> videoFiles = fileService.getVideoFiles(Path.of(path.getPath()));
                     for (Path file : videoFiles) {
-                        Optional<Movie> movieFromDb = movieRepository.findByPath(file.toString());
-                        if (movieFromDb.isEmpty()) {
-                            createMovie(file);
-                        }
-                        Movie movie = movieRepository.findByPath(file.toString()).orElseThrow(() -> new RuntimeException("Movie not found for path: " + file));
-                        generateAndMoveMovieFile(movie, Path.of(moviesPath.getPath()));
+                        createGenerateAndMoveFile(file, moviesPath);
                     }
                 }
             }catch (NoSuchElementException e){
@@ -335,31 +360,187 @@ public class MovieServiceImpl implements MovieService {
             }
     }
 
-//    @Override
-//    @Async
-//    @Scheduled(fixedDelay = 12 * 60 * 60 * 1000)
-//    public void autoDeleteMoviesByProperties() {
-//        List<SourcePath> localMovieSources = sourcePathRepository.sourcePathsByPathType(SourcePath.Type.SOURCE);
-//        for(SourcePath sourcePath : localMovieSources) {
-//            List<Movie> allMovies = movieRepository.findByPathMovies(Path.of(sourcePath.getPath()));
-//            Configuration configuration = configurationRepository.findAll().getFirst();
-//            for (Movie movie : allMovies) {
-//                if (movie.getModificationDate().isBefore(LocalDateTime.now().minusDays(configuration.getMaxDatesSaveFile()))) {
-//                    deleteMovieById(movie.getId());
-//                }
-//            }
-//        }
-//    }
+    private void createGenerateAndMoveFile(Path file, SourcePath moviesPath){
+        Optional<Movie> movieFromDb = movieRepository.findByPath(file.toString());
+        if (movieFromDb.isEmpty()) {
+            createMovie(file);
+        }
+        Movie movie = movieRepository.findByPath(file.toString()).orElseThrow(() -> new RuntimeException("Movie not found for path: " + file));
+        generateAndMoveMovieFile(movie, Path.of(moviesPath.getPath()));
+    }
 
+    @Override
+    @Async
+    @Scheduled(fixedDelay = 12 * 60 * 60 * 1000)
+    public void autoDeleteMoviesByProperties() {
+        int maxDaysToSave = configurationService.getConfiguration().getMaxDatesSaveFile();
+        List<Movie> movies = movieRepository.findMoviesOlderThan(LocalDateTime.now().minusDays(maxDaysToSave));
+        movies.forEach(m-> deleteMovieById(m.getId()));
+    }
+
+    @Override
+    @Async
+    @Scheduled(fixedDelay =  30 * 60 * 1000)
+    public void autoCopyMoviesFromExternalSource() {
+        Configuration configuration = configurationService.getConfiguration();
+        List<SourcePath> externalSourcePaths = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.EXTERNAL);
+        Path downloadPath = Path.of(sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.DOWNLOAD).getFirst().getPath());
+        SourcePath sourceMoviePath = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.SOURCE).getFirst();
+        int maxDatesControlFilesFromExternalSource = configuration.getMaxDatesControlFilesFromExternalSource();
+
+        for(SourcePath externalPath : externalSourcePaths) {
+
+            System.out.println(externalPath.getPath());
+
+            Path path = Path.of(externalPath.getPath());
+            List <Path> videoFiles = fileService.getVideoFiles(path);
+            System.out.println(videoFiles);
+            for(Path videoFile : videoFiles){
+
+                System.out.println(videoFile);
+
+                LocalDateTime pathLocalDateTime = fileService.getModificationLocalDateTimeOfPath(videoFile);
+                LocalDateTime videoRangeLocalDateTime = LocalDateTime.now().minusDays(maxDatesControlFilesFromExternalSource);
+
+                if(pathLocalDateTime.isAfter(videoRangeLocalDateTime)){
+
+                    System.out.println("Date ok");
+
+                    Movie movie = getMovieFromApi(new Movie(), title(videoFile.getFileName().toString()));
+                    List<Movie> movies = getMovieByTitleAndYear(movie.getTitle(), movie.getYear());
+
+                    if(movies.isEmpty()) {
+
+                        System.out.println("not exist");
+
+                        if (isIncludedGenres(configuration, movie)) {
+
+                            System.out.println("include genre");
+
+                            List<Audio> audios = audioService.getAudioListFromFile(videoFile);
+                            Video video = videoService.getVideoFromPath(videoFile);
+                            if (isIncludedAudios(configuration, audios) && isIncludedVideo(configuration, video)) {
+
+                                fileService.copyFile(videoFile, Path.of(downloadPath + File.separator + videoFile.getFileName()));
+                                createGenerateAndMoveFile(Path.of(downloadPath + File.separator + videoFile.getFileName()), sourceMoviePath);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isIncludedGenres(Configuration configuration, Movie movie){
+        List<Genre> movieGenres = movie.getGenres();
+        List<Genre> configurationGenres = configurationService.getGenresFromConfiguration(configuration);
+        return configurationGenres.retainAll(movieGenres);
+    }
+
+
+    private boolean isIncludedVideo(Configuration configuration, Video video){
+
+        //Codec check
+        Codec movieCodec = video.getCodec();
+        List<Codec> configurationVideoCodecs = configurationService.getVideoCodecsFromConfiguration(configuration);
+
+        for(Codec configVideoCodec : configurationVideoCodecs) {
+
+            System.out.println("check video codec");
+            //check if the configuration includes audio codecs from movie properties
+            if(movieCodec != null && configVideoCodec.getName().equals(movieCodec.getName())){
+
+                System.out.println("video codecs: " + configVideoCodec.getName() + " " + movieCodec.getName());
+
+                //Resolution check
+                Resolution movieResolution = video.getResolution();
+                List<Resolution> configurationResolutions = configurationService.getVideoResolutionFromConfiguration(configuration);
+                for(Resolution configResolution : configurationResolutions){
+
+                    System.out.println("check video resolution");
+
+                    //check if the configuration includes resolutions from movie properties
+                    if(movieResolution != null && configResolution.getName().equals(movieResolution.getName())){
+
+                        System.out.println("video resolutions: " + configResolution.getName() + " - " + movieResolution.getName());
+
+                        //Video bitrate check
+                        System.out.println("check video bitrate");
+                        Integer firstVideoBitrateRange = configuration.getFirstVideoBitrateValueRange();
+                        Integer secondVideoBitrateRange = configuration.getSecondVideoBitrateValueRange();
+                        Integer movieVideoBitrate = video.getBitrate();
+
+                        System.out.println(firstVideoBitrateRange + " (" + movieVideoBitrate + ") " + secondVideoBitrateRange);
+
+                        if(movieVideoBitrate == null || (movieVideoBitrate > firstVideoBitrateRange && movieVideoBitrate < secondVideoBitrateRange)){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isIncludedAudios(Configuration configuration, List<Audio> audios){
+
+        for(Audio movieAudio : audios){
+            //check audio codec
+            Codec movieAudioCodec = movieAudio.getCodec();
+            List<Codec> configAudioCodecs = configurationService.getAudioCodecsFromConfiguration(configuration);
+            System.out.println("include audio codec");
+
+            for(Codec configCode : configAudioCodecs){
+                if(movieAudioCodec != null && movieAudioCodec.getName().equals(configCode.getName())) {
+                    //check audio language
+                    List<Language> configAudioLanguages = configurationService.getLanguagesFromConfiguration(configuration);
+                    Language movieAudioLanguage = movieAudio.getLanguage();
+                    for (Language configLanguage : configAudioLanguages) {
+                        System.out.println("check language" + movieAudioLanguage.getEnglishTitle() + " - " + configLanguage.getEnglishTitle());
+
+                        //check if the language is in configuration and the movie
+                        if (movieAudioLanguage != null && movieAudioLanguage.getEnglishTitle().equals(configLanguage.getEnglishTitle())) {
+                            System.out.println("language title: " + movieAudioLanguage.getEnglishTitle() + " " + configLanguage.getEnglishTitle());
+                            //check audio channel
+                            List<AudioChannel> configAudioChannels = configurationService.getAudioChannelsFromConfiguration(configuration);
+                            AudioChannel movieAudioChannel = movieAudio.getAudioChannel();
+                            for (AudioChannel configChannel : configAudioChannels) {
+                                System.out.println("check channel:");
+                                //check if audio channels is in configuration and the movie
+                                if (movieAudioChannel != null && movieAudioChannel.getChannels().equals(configChannel.getChannels())) {
+                                    System.out.println("channels: " + movieAudioChannel.getChannels() + " - " + configChannel.getChannels());
+                                    //check audio bitrate
+                                    Integer firstAudioBitrate = configuration.getFirstAudioBitrateValueRange();
+                                    Integer secondAudioBitrate = configuration.getSecondAudioBitrateValueRange();
+                                    Integer movieAudioBitrate = movieAudio.getBitrate();
+                                    System.out.println("audio bitrate: " + firstAudioBitrate + " (" + movieAudioBitrate + ") " + secondAudioBitrate);
+                                    if(movieAudioBitrate == null || (movieAudioBitrate > firstAudioBitrate && movieAudioBitrate < secondAudioBitrate)){
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+
+    @Override
     @Async
     @Scheduled(fixedDelay = 14 * 60 * 60 * 1000)
     public void autoLoadMoviesFromLocalSources(){
         Pageable pageable = PageRequest.of(0, 10);
-        List<SourcePath> localMovieSources = sourcePathRepository.sourcePathsByPathType(SourcePath.Type.SOURCE);
+        List<SourcePath> localMovieSources = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.SOURCE);
         for(SourcePath sourcePath : localMovieSources) {
             getMoviesFromPath(pageable, sourcePath.getPath());
         }
     }
+
+
 
     private String getGeneratedMovieFileName(Movie movie){
         String video = getVideoToString(movie);
@@ -387,8 +568,12 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private String getCountryToString(Movie movie){
-        return movie.getCountry() == null ? "" :
-                String.format(" (Country [%s])", movie.getCountry());
+        List<Country> countries = movie.getCountries();
+        String text = countries.stream()
+                .map(Country::getEnglishName)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+        return String.format(" (Country [%s])", text);
     }
 
     private String getGenresToString(Movie movie){
@@ -471,22 +656,12 @@ public class MovieServiceImpl implements MovieService {
 
     //check if element is language code
     private boolean isLanguageCode(String element){
-        for(LanguageCodes languageCode : LanguageCodes.values()){
-            if(element.equalsIgnoreCase(languageCode.getIso6391())
-                    || element.equalsIgnoreCase(languageCode.getIso6392T()) ||
-            element.equalsIgnoreCase(languageCode.getIso6392B())){
-                return true;
-            }
-        }return false;
+        return languageRepository.findByCode(element).isPresent();
     }
 
     //check if element is codec
     private boolean isCodec(String element){
-        for(Codecs codec : Codecs.values()){
-            if(element.equalsIgnoreCase(codec.getCodecName())){
-                return true;
-            }
-        }return false;
+        return codecRepository.findByName(element).isPresent();
     }
 
     //check if element is extension

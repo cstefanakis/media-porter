@@ -26,7 +26,7 @@ public class GenreController {
         return ResponseEntity.ok(genres);
     }
 
-    @GetMapping("/id")
+    @GetMapping("/{id}")
     public ResponseEntity<Genre> getGenreById(@PathVariable ("id") Long id){
         Genre genre = genreService.getGenreById(id);
         return ResponseEntity.ok(genre);
@@ -44,14 +44,14 @@ public class GenreController {
         return ResponseEntity.ok(genre);
     }
 
-    @PutMapping("/id")
+    @PutMapping("/{id}")
     public ResponseEntity<Void> updateGenreById(@PathVariable ("id") Long id,
                                             @RequestParam ("title") String title){
         genreService.updateGenreById(id, title);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/id")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGenreById(@PathVariable ("id") Long id){
         genreService.deleteGenreById(id);
         return ResponseEntity.noContent().build();

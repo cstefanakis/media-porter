@@ -34,20 +34,23 @@ public class ResolutionServiceImpl implements ResolutionService {
 
     @Override
     public Resolution createResolution(String resolutionName) {
-        Optional<Resolution> resolutionOptional = resolutionRepository.findByName(resolutionName);
-        if(resolutionOptional.isEmpty()){
-            return resolutionRepository.save(Resolution.builder()
-                            .name(resolutionName)
-                    .build());
-        }
-        throw new EntityExistsException(String.format("Resolution with name %s already exist", resolutionName));
+        Resolution resolution = new Resolution();
+        resolution.setName(validatedResolution(new Resolution(), resolutionName));
+        return resolutionRepository.save(resolution);
     }
 
     @Override
     public void updateResolution(Long resolutionId, String resolutionName) {
-        Optional <Resolution> resolutionOptional = resolutionRepository.findById(resolutionId);
-        resolutionOptional.ifPresent(resolution -> resolution.setName(resolutionName));
-        throw new EntityExistsException(String.format("Resolution with id %s not exist", resolutionId));
+        Resolution resolution = getResolutionById(resolutionId);
+        resolution.setName(validatedResolution(resolution, resolutionName));
+        resolutionRepository.save(resolution);
+    }
+
+    @Override
+    public Resolution getResolutionById(Long id) {
+        return resolutionRepository.findById(id).orElseThrow(
+                ()-> new EntityNotFoundException(String.format("Resolution with id %s not exist", id))
+        );
     }
 
     @Override
@@ -56,5 +59,17 @@ public class ResolutionServiceImpl implements ResolutionService {
                 ()-> new EntityNotFoundException(String.format("Resolution with id %s not exist", id))
         );
         resolutionRepository.delete(resolution);
+    }
+
+    private String validatedResolution(Resolution resolution, String resolutionName){
+        String name = resolution.getName();
+        if(resolutionName == null && name != null){
+            return name;
+        }
+        Optional<Resolution> resolutionOptional = resolutionRepository.findByName(resolutionName);
+        if(resolutionOptional.isEmpty()){
+            return resolutionName;
+        }
+        throw new EntityExistsException(String.format("Resolution with name %s already exist", resolutionName));
     }
 }

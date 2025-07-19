@@ -11,5 +11,8 @@ import java.util.Optional;
 @Repository
 public interface AudioChannelRepository extends JpaRepository<AudioChannel, Long> {
     @Query("select ac from AudioChannel ac where ac.channels = :channels")
-    Optional<AudioChannel> findAudioChannelsByChannel(@Param("channels") Integer channels);
+    Optional<AudioChannel> findAudioChannelByChannel(@Param("channels") Integer channels);
+
+    @Query("select ac from AudioChannel ac where lower(trim(ac.title)) = lower(trim(:title))")
+    Optional<AudioChannel> findAudioChannelByTitle(@Param("title") String title);
 }

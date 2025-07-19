@@ -1,6 +1,8 @@
 package org.sda.mediaporter.Services;
 
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface FileService {
@@ -14,4 +16,6 @@ public interface FileService {
     Path createdDirectories(Path sourcePath, String[] directories);
     Path generatedDestinationPathFromFilePath(Path filePath, String fileNameContain, String nameWithExtension);
     void deleteSubDirectories(Path filePath, String fileNameContain);
+    LocalDateTime getModificationLocalDateTimeOfPath(Path path);
+    FileTime localDateTimeToFileTime(LocalDateTime localDateTime);
 }

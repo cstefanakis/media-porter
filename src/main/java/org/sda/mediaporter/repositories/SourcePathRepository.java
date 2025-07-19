@@ -1,6 +1,8 @@
 package org.sda.mediaporter.repositories;
 
 import org.sda.mediaporter.models.SourcePath;
+import org.sda.mediaporter.models.enums.LibraryItems;
+import org.sda.mediaporter.models.enums.MediaTypes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,5 +20,9 @@ public interface SourcePathRepository extends JpaRepository<SourcePath, Long>  {
     Optional <SourcePath> findByTitle(@Param("title") String title);
 
     @Query ("select sp from SourcePath sp where sp.pathType = :pathType")
-    List<SourcePath> sourcePathsByPathType(@Param("pathType") SourcePath.Type pathType);
+    List<SourcePath> findSourcePathsByPathType(@Param("pathType") SourcePath.PathType pathType);
+
+    @Query("select sp from SourcePath sp where sp.pathType = :pathType and sp.libraryItem = :libraryItem")
+    Optional<SourcePath> findSourcePathByPathTypeAndMediaType(@Param("pathType") SourcePath.PathType pathType,
+                                                              @Param("libraryItem") LibraryItems libraryItem);
 }

@@ -1,10 +1,9 @@
 package org.sda.mediaporter.repositories;
 
-import org.sda.mediaporter.models.Genre;
-import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.*;
+import org.sda.mediaporter.models.metadata.Subtitle;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.sda.mediaporter.models.Movie;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,33 +37,33 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
                                             @Param("year") Integer year);
 
     @Query("""
-    select m from Movie m
-    where (:title is null or lower(m.title) LIKE lower(concat('%', :title, '%') ))
-    and (:year is null or m.year = :year)
-    and (:rating is null or m.rating >= :rating)
-    and (:genre is null or :genre member of m.genres)
-    and (:country is null or m.country = :country)
-    and (:director is null or exists (
-        select d from m.directors d where lower(d.fullName) like lower(concat('%', :director, '%'))))
-    and (:actor is null or exists (
-        select a from m.actors a where lower(a.fullName) like lower(concat('%', :actor, '%'))))
-    and (:audio is null or exists
-        (select a from m.audios a where a.language = :audio))
-    and (:writer is null or exists (
-        select w from m.writers w where lower(w.fullName) like lower(concat('%', :writer, '%'))))
-    and (:subtitle is null or exists (
-        select sl from m.subtitles sl where sl.language = :subtitle))
-    order by m.modificationDate desc
+    SELECT DISTINCT m FROM Movie m
+    LEFT JOIN m.genres g
+    LEFT JOIN m.countries c
+    LEFT JOIN m.audios a
+    WHERE (:title IS NULL 
+        OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%'))
+        OR LOWER(m.originalTitle) LIKE LOWER(CONCAT('%', :title, '%')))
+      AND (:year IS NULL OR m.year >= :year)
+      AND (:rating IS NULL OR m.rating >= :rating)
+      AND (:genreIds IS NULL OR g.id IN :genreIds)
+      AND (:countryIds IS NULL OR c.id IN :countryIds)
+      AND (:aLanguageIds IS NULL OR a.language.id IN :aLanguageIds)
 """)
-    Page<Movie> filterMovies(Pageable page,
-                            @Param("title") String title,
-                            @Param("year") Integer year,
-                            @Param("rating") Double rating,
-                            @Param("genre") Genre genre,
-                            @Param("country") String country,
-                            @Param("director") String director,
-                            @Param("actor") String actor,
-                            @Param("audio") Language audio,
-                            @Param("writer") String writer,
-                            @Param("subtitle") Language subtitle);
+    Page<Movie> filterMovies(
+            Pageable page,
+            @Param("title") String title,
+            @Param("year") Integer year,
+            @Param("rating") Double rating,
+            @Param("genreIds") List<Long> genreIds,
+            @Param("countryIds") List<Long> countryIds,
+            @Param("aLanguageIds") List<Long> aLanguageIds
+    );
+
+    @Query("""
+    SELECT DISTINCT m FROM Movie m
+    JOIN m.audios a
+    WHERE a.language.id IN :aLanguageIds
+""")
+    Page<Movie> filterByAudioLanguage(Pageable page, @Param("aLanguageIds") List<Long> aLanguageIds);
 }

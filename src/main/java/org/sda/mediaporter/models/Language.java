@@ -23,9 +23,7 @@ public class Language {
     private Long id;
     @NotEmpty
     private String englishTitle;
-    @NotEmpty
     private String originalTitle;
-    @NotEmpty
     private String iso6391;
     private String iso6392B;
     private String iso6392T;

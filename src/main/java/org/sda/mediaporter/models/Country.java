@@ -8,16 +8,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "genres")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Genre{
-
+@Table(name = "countries")
+public class Country {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotEmpty
-    private String title;
+    @Column(name = "iso2")
+    private String iso2Code;
+    @NotEmpty
+    @Column(name = "iso3")
+    private String iso3Code;
+    @NotEmpty
+    private String englishName;
+    @NotEmpty
+    private String nativeName;
 }

@@ -47,7 +47,7 @@ public class Movie {
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "director_id")
     )
-    private List<Contributor> directors = new ArrayList<>();
+    private List<Contributor> directors;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -55,7 +55,7 @@ public class Movie {
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "writer_id")
     )
-    private List<Contributor> writers = new ArrayList<>();
+    private List<Contributor> writers;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -63,11 +63,18 @@ public class Movie {
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "actor_id")
     )
-    private List<Contributor> actors = new ArrayList<>();
+    private List<Contributor> actors;
 
     @Column(columnDefinition = "TEXT")
     private String plot;
-    private String country;
+
+    @ManyToMany
+    @JoinTable(
+            name = "movie_countries",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "Country_id")
+    )
+    private List<Country> countries;
     private String poster;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -82,7 +89,7 @@ public class Movie {
     private Video video;
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Audio> audios = new ArrayList<>();
+    private List<Audio> audios;
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Subtitle> subtitles = new ArrayList<>();

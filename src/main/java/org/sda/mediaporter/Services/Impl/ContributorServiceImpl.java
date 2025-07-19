@@ -47,7 +47,7 @@ public class ContributorServiceImpl implements ContributorService {
         if(contributor.isEmpty()){
             Contributor newContributor = generatedContributor(apiContributor);
             if(newContributor.getFullName() != null){
-                contributorRepository.save(newContributor);
+                return contributorRepository.save(newContributor);
             }
         }
         return null;

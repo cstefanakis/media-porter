@@ -57,6 +57,7 @@ public class SpringSecurityConfig {
                     authorize.requestMatchers("/api/languages/**").permitAll();
                     authorize.requestMatchers("/api/genres/**").permitAll();
                     authorize.requestMatchers("/api/contributors/**").permitAll();
+                    authorize.requestMatchers("/api/countries/**").permitAll();
                     authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     authorize.anyRequest().authenticated();
                 }).httpBasic(Customizer.withDefaults());

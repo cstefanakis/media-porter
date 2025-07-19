@@ -48,11 +48,12 @@ public class MovieServiceImpl implements MovieService {
     private final SourcePathRepository sourcePathRepository;
     private final ConfigurationService configurationService;
     private final CodecRepository codecRepository;
+    private final CountryService countryService;
 
     private Integer year;
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, LanguageRepository languageRepository, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, SourcePathRepository sourcePathRepository, ConfigurationService configurationService, CodecRepository codecRepository) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, LanguageRepository languageRepository, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, SourcePathRepository sourcePathRepository, ConfigurationService configurationService, CodecRepository codecRepository, CountryService countryService) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
@@ -65,6 +66,7 @@ public class MovieServiceImpl implements MovieService {
         this.sourcePathRepository = sourcePathRepository;
         this.configurationService = configurationService;
         this.codecRepository = codecRepository;
+        this.countryService = countryService;
     }
 
     @Override
@@ -180,10 +182,24 @@ public class MovieServiceImpl implements MovieService {
         movie.setWriters(getContributors(omdbApi.getWriter()));
         movie.setActors(getContributors(omdbApi.getActors()));
         movie.setPlot(omdbApi.getPlot() == null || omdbApi.getPlot().equals("N/A")? theMovieDb.getOverview() : omdbApi.getPlot());
-        movie.setCountry(omdbApi.getCountry());
+        movie.setCountries(getCountries(omdbApi));
         movie.setPoster(omdbApi.getPoster() == null || omdbApi.getPoster().equals("N/A") ? theMovieDb.getPoster() : omdbApi.getPoster());
         movie.setLanguages(getLanguagesByTitle(omdbApi.getLanguages()));
         return movie;
+    }
+
+    private List<Country> getCountries(OmdbApi omdbApi){
+        String countriesFromMovie = omdbApi.getCountry();
+        if(countriesFromMovie == null){
+            return null;
+        }
+        System.out.println(countriesFromMovie);
+        String[] countries = countriesFromMovie.split(",");
+        try{
+            return Arrays.stream(countries).map(countryTitle -> countryService.getCountryByName(countryTitle)).toList();
+        }catch (EntityNotFoundException e) {
+            return Arrays.stream(countries).map(countryCode -> countryService.getCountryByCode(countryCode)).toList();
+        }
     }
 
     private List<Genre> getGenres(List<String> apiGenres) {
@@ -295,19 +311,36 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Page<Movie> filterMovies(Pageable page,
                                     MovieFilterDto movieFilterDto) {
+        List<Long> genres = movieFilterDto.getGenreIds();
+        if(genres == null){
+            genres = genreService.getAllGenres().stream().map(g-> g.getId()).toList();
+        }
+
+        List<Long> countries = movieFilterDto.getCountryIds();
+        if(countries == null){
+            countries = countryService.getAllCountries().stream().map(c-> c.getId()).toList();
+        }
+
+        List<Long> audioLanguages = movieFilterDto.getALanguageIds();
+//        if(audioLanguages == null){
+//            audioLanguages = languageService.getAllLanguages().stream().map(a -> a.getId()).toList();
+//        }
         return movieRepository.filterMovies(
                 page,
                 movieFilterDto.getTitle(),
                 movieFilterDto.getYear(),
                 movieFilterDto.getRating(),
-                movieFilterDto.getGenre(),
-                movieFilterDto.getCountry(),
-                movieFilterDto.getDirector(),
-                movieFilterDto.getActor(),
-                movieFilterDto.getAudio(),
-                movieFilterDto.getWriter(),
-                movieFilterDto.getSubtitle());
+                genres,
+                countries,
+                audioLanguages
+                );
     }
+
+    @Override
+    public Page<Movie> filterByAudioLanguage(Pageable page, List<Long> aLanguageIds) {
+        return movieRepository.filterByAudioLanguage(page, aLanguageIds);
+    }
+
 
     @Override
     @Async
@@ -535,8 +568,12 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private String getCountryToString(Movie movie){
-        return movie.getCountry() == null ? "" :
-                String.format(" (Country [%s])", movie.getCountry());
+        List<Country> countries = movie.getCountries();
+        String text = countries.stream()
+                .map(Country::getEnglishName)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+        return String.format(" (Country [%s])", text);
     }
 
     private String getGenresToString(Movie movie){

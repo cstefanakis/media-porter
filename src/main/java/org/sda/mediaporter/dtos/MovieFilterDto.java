@@ -1,23 +1,22 @@
 package org.sda.mediaporter.dtos;
 
 import lombok.Getter;
+import org.sda.mediaporter.models.Contributor;
+import org.sda.mediaporter.models.Country;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.metadata.Subtitle;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 public class MovieFilterDto {
     private String title;
     private Integer year;
     private Double rating;
-    private Genre genre;
-    private String country;
-    private String director;
-    private String actor;
-    private Language audio;
-    private String writer;
-    private Language subtitle;
+    private List <Long> genreIds;
+    private List <Long> countryIds;
+    private List <Long> aLanguageIds;
 }

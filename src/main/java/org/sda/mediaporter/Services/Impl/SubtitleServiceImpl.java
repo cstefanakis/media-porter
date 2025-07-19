@@ -48,13 +48,13 @@ public class SubtitleServiceImpl implements SubtitleService {
                 //Output String subrip,eng
                 String[] properties = subtitle.split(",",-1);
                 String subtitleCodecName = properties[0].isEmpty() || properties[0].equals("N/A")? null : properties[0].replaceAll("[^a-zA-Z0-9]", "");
-                String languageCodec = null;
+                String languageCT = null;
                 try {
-                    languageCodec = properties[1].isEmpty() || properties[1].equals("N/A") || properties[1].trim().equals("und")? null : properties[1].replaceAll("[^a-zA-Z0-9]", "");
+                    languageCT = properties[1].isEmpty() || properties[1].equals("N/A") || properties[1].trim().equals("und")? null : properties[1].replaceAll("[^a-zA-Z0-9]", "");
                 } catch (Exception ignored) {
                 }
                 Codec subtitleCodec = subtitleCodecName == null? null : codecService.getCodecByNameAndMediaType(subtitleCodecName, MediaTypes.SUBTITLE);
-                Language language = languageCodec == null? null : languageService.getLanguageByCode(languageCodec);
+                Language language = getLanguage(languageCT);
                 subtitlesList.add(subtitleRepository.save(Subtitle.builder()
                                 .language(language)
                                 .format(subtitleCodec)
@@ -63,6 +63,21 @@ public class SubtitleServiceImpl implements SubtitleService {
             }
 
         }return subtitlesList;
+    }
+
+    private Language getLanguage(String language){
+        if(language == null){
+            return null;
+        }
+        try {
+            return languageService.getLanguageByCode(language);
+        } catch (EntityNotFoundException e1) {
+            try {
+                return languageService.getLanguageByTitle(language);
+            } catch (EntityNotFoundException e2) {
+                return null;
+            }
+        }
     }
 
     @Override

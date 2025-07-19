@@ -121,9 +121,15 @@ public class MovieController {
         return ResponseEntity.ok(movies);
     }
 
-    @PostMapping("/filter-movies")
+    @GetMapping("/filter-movies")
     public ResponseEntity<Page<Movie>> getMovieByTitle(@PageableDefault Pageable page, @RequestBody MovieFilterDto movieFilterDto) {
         Page<Movie> movies = movieService.filterMovies(page, movieFilterDto);
+        return ResponseEntity.ok(movies);
+    }
+
+    @GetMapping("/filter-movies-by-audio-languages")
+    public ResponseEntity<Page<Movie>> filterByAudioLanguage(@PageableDefault Pageable page, @RequestParam("languages") List<Long> languages) {
+        Page<Movie> movies = movieService.filterByAudioLanguage(page, languages);
         return ResponseEntity.ok(movies);
     }
 

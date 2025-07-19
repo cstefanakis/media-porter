@@ -30,6 +30,7 @@ public interface MovieService {
     Page<Movie> getTopFiveMovies(Pageable pageable);
 
     Page<Movie> filterMovies(Pageable page, MovieFilterDto movieFilterDto);
+    Page<Movie> filterByAudioLanguage(Pageable page, List<Long> aLanguageIds);
 
     void moveMoviesFromDownloadPathsToMoviesPath ();
     void autoLoadMoviesFromLocalSources();

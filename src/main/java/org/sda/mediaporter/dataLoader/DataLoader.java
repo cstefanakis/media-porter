@@ -397,7 +397,7 @@ public class DataLoader implements CommandLineRunner {
             countryRepository.save(Country.builder().iso2Code("HR").iso3Code("HRV").englishName("Croatia").nativeName("Croatia").build());
             countryRepository.save(Country.builder().iso2Code("CU").iso3Code("CUB").englishName("Cuba").nativeName("Cuba").build());
             countryRepository.save(Country.builder().iso2Code("CY").iso3Code("CYP").englishName("Cyprus").nativeName("Cyprus").build());
-            countryRepository.save(Country.builder().iso2Code("CZ").iso3Code("CZE").englishName("Czechia").nativeName("Czechia").build());
+            countryRepository.save(Country.builder().iso2Code("CZ").iso3Code("CZE").englishName("Czech Republic").nativeName("Czechia").build());
             countryRepository.save(Country.builder().iso2Code("CD").iso3Code("COD").englishName("Democratic Republic of the Congo").nativeName("Democratic Republic of the Congo").build());
             countryRepository.save(Country.builder().iso2Code("DK").iso3Code("DNK").englishName("Denmark").nativeName("Denmark").build());
             countryRepository.save(Country.builder().iso2Code("DJ").iso3Code("DJI").englishName("Djibouti").nativeName("Djibouti").build());
@@ -573,7 +573,7 @@ public class DataLoader implements CommandLineRunner {
             languageRepository.save(Language.builder().iso6391("no").iso6392B("nor").iso6392T("nor").englishTitle("Norwegian").originalTitle("Norsk").build());
             languageRepository.save(Language.builder().iso6391("da").iso6392B("dan").iso6392T("dan").englishTitle("Danish").originalTitle("Dansk").build());
             languageRepository.save(Language.builder().iso6391("el").iso6392B("gre").iso6392T("ell").englishTitle("Greek").originalTitle("Ελληνικά").build());
-            languageRepository.save(Language.builder().iso6391("cs").iso6392B("cze").iso6392T("ces").englishTitle("Czech Republic").originalTitle("Čeština").build());
+            languageRepository.save(Language.builder().iso6391("cs").iso6392B("cze").iso6392T("ces").englishTitle("Czech").originalTitle("Čeština").build());
             languageRepository.save(Language.builder().iso6391("ro").iso6392B("rum").iso6392T("ron").englishTitle("Romanian").originalTitle("Română").build());
             languageRepository.save(Language.builder().iso6391("hu").iso6392B("hun").iso6392T("hun").englishTitle("Hungarian").originalTitle("Magyar").build());
             languageRepository.save(Language.builder().iso6391("th").iso6392B("tha").iso6392T("tha").englishTitle("Thai").originalTitle("ไทย").build());

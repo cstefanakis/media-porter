@@ -17,14 +17,20 @@ public class Country {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotEmpty
-    @Column(name = "iso2")
+    @Column(name = "iso_2_codes")
     private String iso2Code;
+
     @NotEmpty
-    @Column(name = "iso3")
+    @Column(name = "iso_3_codes")
     private String iso3Code;
+
     @NotEmpty
+    @Column(name = "english_names")
     private String englishName;
+
     @NotEmpty
+    @Column(name = "native_names")
     private String nativeName;
 }

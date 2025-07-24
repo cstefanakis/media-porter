@@ -26,11 +26,6 @@ public class TheMovieDb {
         this.movie = new ApiConnect(String.format("https://api.themoviedb.org/3/movie/%s?api_key=%s", getMovieId(), apiKey));
     }
 
-    public TheMovieDb(String contributorName) {
-        String url = String.format("https://api.themoviedb.org/3/search/person?query=%s&api_key=%s", search(contributorName), apiKey);
-        theMovieDb = new ApiConnect(url);
-    }
-
     private String search(String search){
         this.search = search;
         return search.replace(" ", "+")
@@ -212,35 +207,6 @@ public class TheMovieDb {
                 Map.entry(10752, "War"),
                 Map.entry(37, "Western")  
         );
-    }
-
-    public String getContributorName(){
-        String key = "original_name";
-        try {
-            return jsonStringObjectResult(key);
-        }catch (JSONException e){
-            return null;
-        }
-    }
-
-    public String getContributorPoster(){
-        String key = "profile_path";
-        try {
-            String path = jsonStringObjectResult(key);
-            return "https://image.tmdb.org/t/p/w500" + path;
-        }catch (JSONException e) {
-            return null;
-        }
-    }
-
-    public String getContributorWebsite(){
-        String key = "id";
-        try {
-            int id = jsonIntegerObjectResult(key);
-            return "https://www.themoviedb.org/person/" + id;
-        }catch (JSONException e){
-            return null;
-        }
     }
 
     private Integer jsonIntegerObjectResult(String key){

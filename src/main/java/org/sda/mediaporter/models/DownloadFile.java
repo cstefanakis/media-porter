@@ -18,13 +18,20 @@ public class DownloadFile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotNull
-    @Column(length = 2048)
+    @Column(name = "urls", length = 2048)
     private String url;
+
+    @Column(name = "names")
     private String name;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "library_item")
     private LibraryItems libraryItems;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "statuses")
     private Status status;
 
     public enum Status {

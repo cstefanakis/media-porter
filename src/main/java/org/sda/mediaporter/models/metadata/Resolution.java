@@ -15,6 +15,8 @@ public class Resolution {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
     @NotEmpty
+    @Column(name = "names")
     private String name;
 }

@@ -19,18 +19,24 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "names")
     private String name;
-    @Column(nullable = false, unique = true)
+
+
+    @Column(name = "usernames", nullable = false, unique = true)
     private String username;
-    @Column(nullable = false, unique = true)
+
+    @Column(name = "emails", nullable = false, unique = true)
     private String email;
-    @Column(nullable = false)
+
+    @Column(name = "passwords", nullable = false)
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "users_roles",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
+            joinColumns = @JoinColumn(name = "user_ids", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_ids", referencedColumnName = "id")
     )
     private Set<Role> roles;
 }

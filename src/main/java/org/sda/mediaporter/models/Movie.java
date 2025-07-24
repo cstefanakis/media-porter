@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;

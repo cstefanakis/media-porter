@@ -98,7 +98,7 @@ public class Configuration {
             joinColumns = @JoinColumn(name = "configuration_id"),
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
-    private List<Language> languages;
+    private List<Language> audioLanguages;
 
     @PositiveOrZero
     @Max(31464320)

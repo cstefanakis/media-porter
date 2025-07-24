@@ -651,7 +651,7 @@ public class DataLoader implements CommandLineRunner {
                             .audioCodecs(codecRepository.findByMediaType(MediaTypes.AUDIO))
                             .videoCodecs(codecRepository.findByMediaType(MediaTypes.VIDEO))
                             .genres(genreRepository.findAll())
-                            .languages(languageRepository.findAll())
+                            .audioLanguages(languageRepository.findAll())
                     .build());
         }
 

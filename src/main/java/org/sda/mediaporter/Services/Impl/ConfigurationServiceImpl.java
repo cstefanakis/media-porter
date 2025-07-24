@@ -115,7 +115,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         config.setGenres(validatedGenres(configurationDto, config));
 
-        config.setLanguages(configurationDto.getLanguages());
+        config.setAudioLanguages(configurationDto.getLanguages());
 
         config.setFirstVideoSizeRange(validatedFirstVideoSizeRangeRange(configurationDto, config));
         config.setSecondVideoSizeRange(validatedSecondVideoSizeRangeRange(configurationDto, config));
@@ -242,7 +242,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private List<Language> validatedLanguages(ConfigurationDto configurationDto, Configuration configuration){
         List<Language> languagesDto = configurationDto.getLanguages();
-        List<Language> languages = configuration.getLanguages();
+        List<Language> languages = configuration.getAudioLanguages();
         if(languagesDto == null && languages == null){
             return languageRepository.findAll();
         }

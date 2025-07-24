@@ -27,7 +27,7 @@ public interface ConfigurationRepository extends JpaRepository<Configuration, Lo
     @Query("select c.audioChannels from Configuration c where c = :configuration")
     List<AudioChannel> findAudioChannelsFromConfiguration(@Param("configuration") Configuration configuration);
 
-    @Query("select c.languages from Configuration c where c = :configuration")
+    @Query("select c.audioLanguages from Configuration c where c = :configuration")
     List<Language> findLanguagesFromConfiguration(@Param("configuration") Configuration configuration);
 
     @Query("select c.videoResolutions from Configuration c where c = :configuration")

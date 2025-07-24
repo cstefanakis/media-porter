@@ -23,9 +23,13 @@ public class Codec {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotEmpty
+    @Column(name = "names")
     private String name;
+
     @Enumerated(EnumType.STRING)
     @NotNull
+    @Column(name = "media_types")
     private MediaTypes mediaType;
 }

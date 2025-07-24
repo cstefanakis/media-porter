@@ -26,11 +26,21 @@ public class Movie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotEmpty
+    @Column(name = "movie_titles")
     private String title;
+
+    @Column(name = "original_titles")
     private String originalTitle;
+
+    @Column(name = "years")
     private Integer year;
+
+    @Column(name = "ratings")
     private Double rating;
+
+    @Column(name = "release_dates")
     private LocalDate releaseDate;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -44,28 +54,28 @@ public class Movie {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_directors",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "director_id")
+            joinColumns = @JoinColumn(name = "movie_ids"),
+            inverseJoinColumns = @JoinColumn(name = "director_ids")
     )
     private List<Contributor> directors;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_writers",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "writer_id")
+            joinColumns = @JoinColumn(name = "movie_ids"),
+            inverseJoinColumns = @JoinColumn(name = "writer_ids")
     )
     private List<Contributor> writers;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_actors",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "actor_id")
+            joinColumns = @JoinColumn(name = "movie_ids"),
+            inverseJoinColumns = @JoinColumn(name = "actor_ids")
     )
     private List<Contributor> actors;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "plots", columnDefinition = "TEXT")
     private String plot;
 
     @ManyToMany
@@ -75,25 +85,33 @@ public class Movie {
             inverseJoinColumns = @JoinColumn(name = "Country_id")
     )
     private List<Country> countries;
+
+    @Column(name = "posters")
     private String poster;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_languages",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "language_id")
+            joinColumns = @JoinColumn(name = "movie_ids"),
+            inverseJoinColumns = @JoinColumn(name = "language_ids")
     )
-    private List<Language> languages = new ArrayList<>();
+    private List<Language> languages;
+
     @OneToOne(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Video video;
+
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Audio> audios;
+
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Subtitle> subtitles = new ArrayList<>();
-    private String path;
-    private LocalDateTime modificationDate;
 
+    @Column(name = "paths")
+    private String path;
+
+    @Column(name = "modification_dates")
+    private LocalDateTime modificationDate;
 }

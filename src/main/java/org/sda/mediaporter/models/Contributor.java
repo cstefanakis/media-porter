@@ -15,8 +15,14 @@ public class Contributor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotEmpty
+    @Column(name = "full_names")
     private String fullName;
+
+    @Column(name = "posters")
     private String poster;
+
+    @Column(name = "web_sites")
     private String website;
 }

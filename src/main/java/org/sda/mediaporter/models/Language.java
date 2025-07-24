@@ -2,9 +2,12 @@ package org.sda.mediaporter.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
+import org.sda.mediaporter.models.metadata.Audio;
+import org.sda.mediaporter.models.metadata.Subtitle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +25,7 @@ public class Language {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotEmpty
+    @Column(name = "englishTitle")
     private String englishTitle;
     private String originalTitle;
     private String iso6391;

@@ -390,11 +390,11 @@ public class MovieServiceImpl implements MovieService {
 
         for(SourcePath externalPath : externalSourcePaths) {
 
-            System.out.println(externalPath.getPath());
+            System.out.println("external path: " + externalPath.getPath());
 
             Path path = Path.of(externalPath.getPath());
             List <Path> videoFiles = fileService.getVideoFiles(path);
-            System.out.println(videoFiles);
+            videoFiles.forEach(System.out::println);
             for(Path videoFile : videoFiles){
 
                 System.out.println(videoFile);

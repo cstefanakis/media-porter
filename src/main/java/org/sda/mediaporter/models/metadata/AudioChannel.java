@@ -18,10 +18,16 @@ public class AudioChannel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+
     @NotEmpty
+    @Column(name = "titles")
     String title;
+
     @NotNull
+    @Column(name = "channels")
     Integer channels;
+
+    @Column(name = "descriptions")
     String description;
 
 }

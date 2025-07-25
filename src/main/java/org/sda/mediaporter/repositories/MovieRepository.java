@@ -44,12 +44,12 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     WHERE (:title IS NULL 
         OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%'))
         OR LOWER(m.originalTitle) LIKE LOWER(CONCAT('%', :title, '%')))
-      AND (:year IS NULL OR m.year >= :year)
-      AND (:rating IS NULL OR m.rating >= :rating)
-      AND (:genreIds IS NULL OR g.id IN :genreIds)
-      AND (:countryIds IS NULL OR c.id IN :countryIds)
-      AND (:aLanguageIds IS NULL OR a.language.id IN :aLanguageIds)
-""")
+        AND (:year IS NULL OR m.year >= :year)
+        AND (:rating IS NULL OR m.rating >= :rating)
+        AND (:genreIds IS NULL OR g.id IN :genreIds)
+        AND (:countryIds IS NULL OR c.id IN :countryIds)
+        AND (:aLanguageIds IS NULL OR a.language.id IN :aLanguageIds)
+    """)
     Page<Movie> filterMovies(
             Pageable page,
             @Param("title") String title,
@@ -63,7 +63,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("""
     SELECT DISTINCT m FROM Movie m
     JOIN m.audios a
-    WHERE a.language.id IN :aLanguageIds
-""")
+        WHERE a.language.id IN :aLanguageIds
+    """)
     Page<Movie> filterByAudioLanguage(Pageable page, @Param("aLanguageIds") List<Long> aLanguageIds);
 }

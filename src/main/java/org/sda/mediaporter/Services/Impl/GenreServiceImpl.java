@@ -22,24 +22,14 @@ public class GenreServiceImpl implements GenreService {
         this.genreRepository = genreRepository;
     }
 
-    private Genre toEntity(Genre genre, GenreResponseDto genreResponseDto) {
-        genre.setTitle(genreTitleValidated(genre, genreResponseDto.getTitle()));
-        return genre;
-    }
-
-    private String genreTitleValidated(Genre genre, String title) {
-        Optional<Genre> genreOptional = genreRepository.findGenreByTitle(title);
-        if (genreOptional.isPresent() && !genre.getTitle().equals(title)) {
-            throw new RuntimeException("Genre with title " + title + " already exists");
-        }
-        return title;
-    }
-
     public Genre autoCreateGenre(String title) {
         Optional <Genre> genreOptional = genreRepository.findGenreByTitle(title);
-        Genre genre = new Genre();
-        genre.setTitle(title);
-        return genreOptional.orElseGet(() -> genreRepository.save(genre));
+        if(genreOptional.isPresent()){
+            return genreOptional.get();
+        }
+        return genreRepository.save(Genre.builder()
+                .title(capitalizeFirstLetter(title))
+                .build());
     }
 
     @Override
@@ -81,15 +71,18 @@ public class GenreServiceImpl implements GenreService {
 
     private String validatedTitle(Genre genre, String title){
         Optional<Genre> genreOptional = genreRepository.findGenreByTitle(title);
-        String returnedTitle = title.substring(0,1).toUpperCase() + title.substring(1).toLowerCase();
-        String genreTitle = genre.getTitle() == null? null : genre.getTitle().toLowerCase().trim();
-        title = title.toLowerCase().trim();
-        if(genreTitle != null && genreTitle.equals(title)) {
-                return returnedTitle;
+        if(genre.getTitle() != null && genre.getTitle().equals(title)) {
+                return genre.getTitle();
             }
+        title = capitalizeFirstLetter(title);
         if (genreOptional.isEmpty()){
-            return returnedTitle;
+            return title;
         }
-        throw new EntityExistsException(String.format("Genre with title %s already exist", returnedTitle));
+        throw new EntityExistsException(String.format("Genre with title %s already exist", title));
+    }
+
+    public static String capitalizeFirstLetter(String title) {
+        String trimTitle = title.trim();
+        return trimTitle.substring(0, 1).toUpperCase() + trimTitle.substring(1).toLowerCase();
     }
 }

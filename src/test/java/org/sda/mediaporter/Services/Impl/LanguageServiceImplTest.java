@@ -277,9 +277,10 @@ class LanguageServiceImplTest {
 
         //Act
         languageService.updateLanguageById(englishLanguageId, languageDto);
+        Language updatedLanguage = languageService.getLanguageById(englishLanguageId);
 
         //Assert
-        assertEquals("English_update", languageService.getLanguageById(englishLanguageId).getEnglishTitle());
+        assertEquals("English_update", updatedLanguage.getEnglishTitle());
     }
 
     @Test
@@ -288,7 +289,8 @@ class LanguageServiceImplTest {
         Long id = englishLanguage.getId();
         //Act
         languageService.deleteLanguageById(id);
-        assertThrows(EntityNotFoundException.class, ()-> languageService.getLanguageById(id));
+        //Assert
+        assertTrue(languageRepository.findById(id).isEmpty());
     }
 
     @Test

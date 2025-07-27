@@ -353,6 +353,6 @@ class CountryServiceImplTest {
         countryService.deleteCountryById(greeceId);
 
         //Assert
-        assertThrows(EntityNotFoundException.class, ()-> countryService.getCountryById(greeceId));
+        assertTrue(countryRepository.findById(greeceId).isEmpty());
     }
 }

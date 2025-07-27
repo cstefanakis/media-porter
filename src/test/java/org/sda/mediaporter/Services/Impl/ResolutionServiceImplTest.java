@@ -147,9 +147,10 @@ class ResolutionServiceImplTest {
 
         //Act
         resolutionService.updateResolution(id, null);
+        Resolution updatedResolution = resolutionService.getResolutionById(id);
 
         //Assert
-        assertEquals("1080p", resolutionService.getResolutionById(id).getName());
+        assertEquals("1080p", updatedResolution.getName());
     }
 
     @Test
@@ -176,7 +177,7 @@ class ResolutionServiceImplTest {
     @Test
     void deleteResolution_successfully() {
         //Arrest
-        Long id = fullHd.getId();
+        Long id = hd.getId();
 
         //Act
         resolutionService.deleteResolution(id);

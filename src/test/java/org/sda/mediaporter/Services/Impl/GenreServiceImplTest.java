@@ -110,7 +110,7 @@ class GenreServiceImplTest {
     }
 
     @Test
-    void getGenreByTitle_NotExistTitle() {
+    void getGenreByTitle_notExistTitle() {
         //Arrest
         String title = "Anime";
 
@@ -119,7 +119,7 @@ class GenreServiceImplTest {
     }
 
     @Test
-    void createGenre() {
+    void createGenre_successfully() {
         //Arrest
         String title = "Adventure";
 
@@ -131,12 +131,21 @@ class GenreServiceImplTest {
     }
 
     @Test
-    void createGenre_ExistTitle() {
+    void createGenre_existTitle() {
         //Arrest
         String title = "Action";
 
         //Assert and Act
         assertThrows(EntityExistsException.class, () -> genreService.createGenre(title));
+    }
+
+    @Test
+    void createGenre_nullTitle() {
+        //Arrest
+        String title = null;
+
+        //Assert and Act
+        assertThrows(RuntimeException.class, () -> genreService.createGenre(title));
     }
 
     @Test
@@ -150,6 +159,20 @@ class GenreServiceImplTest {
     }
 
     @Test
+    void updateGenreById_withNullParameter() {
+        //Arrest
+        Long comedyId = comedy.getId();
+        String title = null;
+
+        //Act
+        genreService.updateGenreById(comedyId, title);
+        Genre updatedGenre = genreService.getGenreById(comedyId);
+
+        //Assert
+        assertEquals("comedy", updatedGenre.getTitle().toLowerCase());
+    }
+
+    @Test
     void deleteGenreById_successfully() {
         //Arrest
         Long comedyId = comedy.getId();
@@ -158,7 +181,7 @@ class GenreServiceImplTest {
         genreService.deleteGenreById(comedyId);
 
         //Assert
-        assertThrows(EntityNotFoundException.class, () -> genreService.getGenreById(comedyId));
+        assertTrue(genreRepository.findById(comedyId).isEmpty());
     }
 
     @Test

@@ -2,7 +2,6 @@ package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.ContributorService;
-import org.sda.mediaporter.api.TheMovieDb;
 import org.sda.mediaporter.api.TheMovieDbContributor;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.repositories.ContributorRepository;
@@ -26,13 +25,13 @@ public class ContributorServiceImpl implements ContributorService {
     @Override
     public Contributor getContributorById(Long id) {
         return contributorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Contributor not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Contributor not found"));
     }
 
     @Override
     public Contributor getContributorByFullName(String fullName) {
         return contributorRepository.findByFullName(fullName)
-                .orElseThrow(() -> new RuntimeException("Contributor not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Contributor not found"));
     }
 
     @Override

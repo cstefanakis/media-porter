@@ -42,8 +42,19 @@ public class ResolutionServiceImpl implements ResolutionService {
     @Override
     public void updateResolution(Long resolutionId, String resolutionName) {
         Resolution resolution = getResolutionById(resolutionId);
-        resolution.setName(validatedResolution(resolution, resolutionName));
+        resolution.setName(validatedResolutionName(resolution.getName(), resolutionName));
         resolutionRepository.save(resolution);
+    }
+
+    private String validatedResolutionName(String resolutionName, String newResolutionName){
+        if(resolutionName != null && newResolutionName == null){
+            return resolutionName;
+        }
+        Optional <Resolution> resolutionOptional = resolutionRepository.findByName(newResolutionName);
+        if(resolutionOptional.isEmpty()){
+            return newResolutionName.toLowerCase();
+        }
+        throw new EntityExistsException(String.format("Resolution name with name %s already exist", newResolutionName));
     }
 
     @Override

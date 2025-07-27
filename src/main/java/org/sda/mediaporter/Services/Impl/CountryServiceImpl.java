@@ -64,21 +64,14 @@ public class CountryServiceImpl implements CountryService {
     }
 
     private Country toEntity(Country country, CountryDto countryDto){
-        String countryIso2Code = country.getIso2Code();
-        String countryIso2CodeDto = countryDto.getIso2Code();
-        country.setIso2Code(validatedCode(countryIso2Code, countryIso2CodeDto));
+        country.setIso2Code(validatedCode(country.getIso2Code(), countryDto.getIso2Code()));
 
-        String countryIso3Code = country.getIso3Code();
-        String countryIso3CodeDto = countryDto.getIso3Code();
-        country.setIso3Code(validatedCode(countryIso3Code, countryIso3CodeDto));
+        country.setIso3Code(validatedCode(country.getIso3Code(), countryDto.getIso3Code()));
 
-        String countryEnglishName = country.getEnglishName();
-        String countryEnglishNameDto = countryDto.getEnglishName();
-        country.setEnglishName(validatedName(countryEnglishName, countryEnglishNameDto));
+        country.setEnglishName(validatedName(country.getEnglishName(), countryDto.getEnglishName()));
 
-        String countryNativeName = country.getNativeName();
-        String countryNativeNameDto = countryDto.getNativeName();
-        country.setNativeName(validatedName(countryNativeName, countryNativeNameDto));
+        country.setNativeName(validatedName(country.getNativeName(), countryDto.getNativeName()));
+
         return country;
     }
 
@@ -87,11 +80,11 @@ public class CountryServiceImpl implements CountryService {
         if(countryCodeDto == null){
             return countryCode;
         }
-        if(countryCode != null && countryCode.equals(countryCodeDto)){
-            return countryCodeDto;
+        if(countryCode != null && countryCode.equalsIgnoreCase(countryCodeDto)){
+            return countryCode;
         }
-        Optional<Country> countryByCode = countryRepository.findCountryByCode(countryCodeDto);
-        if(countryByCode.isEmpty()){
+        Optional<Country> countryByCodeOptional = countryRepository.findCountryByCode(countryCodeDto);
+        if(countryByCodeOptional.isEmpty()){
             return countryCodeDto;
         }
         throw new EntityExistsException(String.format("Country with code %s already exist", countryCodeDto));

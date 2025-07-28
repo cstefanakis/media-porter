@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("Test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CodecServiceImplTest {
 
     @Autowired

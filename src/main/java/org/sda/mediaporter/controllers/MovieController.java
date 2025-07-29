@@ -1,5 +1,6 @@
 package org.sda.mediaporter.controllers;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.MovieService;
 import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.Movie;
@@ -122,13 +123,15 @@ public class MovieController {
     }
 
     @GetMapping("/filter-movies")
-    public ResponseEntity<Page<Movie>> getMovieByTitle(@PageableDefault Pageable page, @RequestBody MovieFilterDto movieFilterDto) {
+    public ResponseEntity<Page<Movie>> getMovieByTitle(@PageableDefault Pageable page,
+                                                       @RequestBody @Valid MovieFilterDto movieFilterDto) {
         Page<Movie> movies = movieService.filterMovies(page, movieFilterDto);
         return ResponseEntity.ok(movies);
     }
 
     @GetMapping("/filter-movies-by-audio-languages")
-    public ResponseEntity<Page<Movie>> filterByAudioLanguage(@PageableDefault Pageable page, @RequestParam("languages") List<Long> languages) {
+    public ResponseEntity<Page<Movie>> filterByAudioLanguage(@PageableDefault Pageable page,
+                                                             @RequestParam("languages") List<Long> languages) {
         Page<Movie> movies = movieService.filterByAudioLanguage(page, languages);
         return ResponseEntity.ok(movies);
     }

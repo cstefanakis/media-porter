@@ -23,12 +23,9 @@ public class Configuration {
     @Id
     private Long id;
 
-    @PositiveOrZero
-    @Max(9000)
     @Column(name = "max_dates_save_files")
     private Integer maxDatesSaveFile;
 
-    @Max(9000)
     @Column(name ="max_dates_control_files_from_external_sources")
     private Integer maxDatesControlFilesFromExternalSource;
 
@@ -40,13 +37,9 @@ public class Configuration {
     )
     private List<Resolution> videoResolutions;
 
-    @PositiveOrZero
-    @Max(200000000)
     @Column(name = "first_video_bitrates_range")
     private Integer firstVideoBitrateValueRange;
 
-    @PositiveOrZero
-    @Max(200000000)
     @Column(name = "second_video_bitrates_range")
     private Integer secondVideoBitrateValueRange;
 
@@ -58,13 +51,9 @@ public class Configuration {
     )
     private List<Codec> videoCodecs;
 
-    @PositiveOrZero
-    @Max(2048000)
     @Column(name = "first_audio_bitrates_range")
     private Integer firstAudioBitrateValueRange;
 
-    @PositiveOrZero
-    @Max(2048000)
     @Column(name = "second_audio_bitrates_range")
     private Integer secondAudioBitrateValueRange;
 
@@ -100,13 +89,9 @@ public class Configuration {
     )
     private List<Language> audioLanguages;
 
-    @PositiveOrZero
-    @Max(31464320)
     @Column(name = "first_video_sizes_range")
     private Double firstVideoSizeRange;
 
-    @PositiveOrZero
-    @Max(31464320)
     @Column(name = "second_video_sizes_range")
     private Double secondVideoSizeRange;
 }

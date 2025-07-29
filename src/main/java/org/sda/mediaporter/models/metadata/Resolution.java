@@ -16,7 +16,6 @@ public class Resolution {
     @GeneratedValue(strategy = GenerationType.AUTO) // AUTO uses provider defaults (can be sequence or identity)
     private Long id;
 
-    @NotEmpty(message = "Name must not be empty")
     @Column(name = "names")
     private String name;
 }

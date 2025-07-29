@@ -19,7 +19,6 @@ public class DownloadFile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
     @Column(name = "urls", length = 2048)
     private String url;
 

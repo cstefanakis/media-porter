@@ -1,5 +1,6 @@
 package org.sda.mediaporter.controllers;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.AudioChannelService;
 import org.sda.mediaporter.dtos.AudioChannelDto;
 import org.sda.mediaporter.models.metadata.AudioChannel;
@@ -38,14 +39,14 @@ public class AudioChannelController {
     }
 
     @PostMapping()
-    public ResponseEntity<AudioChannel> createAudioChannel(@RequestBody AudioChannelDto audioChannelDto){
+    public ResponseEntity<AudioChannel> createAudioChannel(@RequestBody @Valid AudioChannelDto audioChannelDto){
         AudioChannel audioChannel = audioChannelService.createAudioChannel(audioChannelDto);
         return ResponseEntity.ok(audioChannel);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateAudioChannelById(@PathVariable("id") Long id,
-                                                       @RequestBody AudioChannelDto audioChannelDto){
+                                                       @RequestBody @Valid AudioChannelDto audioChannelDto){
         audioChannelService.updateAudioChannelById(id, audioChannelDto);
         return ResponseEntity.ok().build();
     }

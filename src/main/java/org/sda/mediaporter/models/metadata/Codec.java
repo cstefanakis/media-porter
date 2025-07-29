@@ -2,8 +2,6 @@ package org.sda.mediaporter.models.metadata;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.sda.mediaporter.models.enums.MediaTypes;
 
@@ -20,12 +18,10 @@ public class Codec {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "Name must not be empty")
     @Column(name = "names")
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "Media type must not be null")
     @Column(name = "media_types")
     private MediaTypes mediaType;
 }

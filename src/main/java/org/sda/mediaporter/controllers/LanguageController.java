@@ -1,5 +1,6 @@
 package org.sda.mediaporter.controllers;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.LanguageService;
 import org.sda.mediaporter.dtos.LanguageDto;
 import org.sda.mediaporter.models.Language;
@@ -45,14 +46,14 @@ public class LanguageController {
     }
 
     @PostMapping()
-    public ResponseEntity<Language> createLanguage(@RequestBody LanguageDto languageDto){
+    public ResponseEntity<Language> createLanguage(@RequestBody @Valid LanguageDto languageDto){
         Language language = languageService.createLanguage(languageDto);
         return ResponseEntity.ok(language);
     }
 
     @PutMapping("{id}")
     public ResponseEntity<Void> updateLanguageById(@PathVariable("id") Long id,
-                                                   @RequestBody LanguageDto languageDto){
+                                                   @RequestBody @Valid LanguageDto languageDto){
         languageService.updateLanguageById(id, languageDto);
         return ResponseEntity.ok().build();
     }

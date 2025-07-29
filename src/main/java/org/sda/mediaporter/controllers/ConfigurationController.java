@@ -1,11 +1,11 @@
 package org.sda.mediaporter.controllers;
 
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.ConfigurationService;
 import org.sda.mediaporter.dtos.ConfigurationDto;
 import org.sda.mediaporter.models.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +28,7 @@ public class ConfigurationController {
     }
 
     @PutMapping()
-    public ResponseEntity<Void> updateConfiguration(@RequestBody ConfigurationDto configurationDto){
+    public ResponseEntity<Void> updateConfiguration(@RequestBody @Valid ConfigurationDto configurationDto){
         configurationService.updateConfiguration(configurationDto);
         return ResponseEntity.ok().build();
     }

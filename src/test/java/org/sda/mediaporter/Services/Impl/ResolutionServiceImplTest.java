@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.sda.mediaporter.Services.ResolutionService;
+import org.sda.mediaporter.dtos.ResolutionDto;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.repositories.ConfigurationRepository;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
@@ -90,10 +91,12 @@ class ResolutionServiceImplTest {
     @Test
     void createResolution_successfully() {
         //Arrest
-        String resolutionName = "1440p";
+        ResolutionDto newResolutionDto = ResolutionDto.builder()
+                .name("1440p")
+                .build();
 
         //Act
-        Resolution newResolution = resolutionService.createResolution("resolutionName");
+        Resolution newResolution = resolutionService.createResolution(newResolutionDto);
 
         //Assert
         assertNotNull(newResolution.getId());
@@ -102,42 +105,50 @@ class ResolutionServiceImplTest {
     @Test
     void createResolution_existResolutionName() {
         //Arrest
-        String resolutionName = "1080p";
+        ResolutionDto newResolutionDto = ResolutionDto.builder()
+                .name("1080p")
+                .build();
 
         //Assert and Act
-        assertThrows(EntityExistsException.class, () -> resolutionService.createResolution(resolutionName));
+        assertThrows(EntityExistsException.class, () -> resolutionService.createResolution(newResolutionDto));
     }
 
     @Test
     void createResolution_createWithNullName() {
         //Arrest
-        String resolutionName = null;
+        ResolutionDto newResolutionDto = ResolutionDto.builder()
+                .build();
 
         //Assert and Act
-        assertThrows(RuntimeException.class, () -> resolutionService.createResolution(resolutionName));
+        assertThrows(RuntimeException.class, () -> resolutionService.createResolution(newResolutionDto));
     }
 
     @Test
     void updateResolution_successfully() {
         //Assert
         Long id = fullHd.getId();
-        String newName = "1080";
+        ResolutionDto updatedResolutionDto = ResolutionDto.builder()
+                .name("1080")
+                .build();
+
 
         //Act
-        resolutionService.updateResolution(id, newName);
+        resolutionService.updateResolution(id, updatedResolutionDto);
 
         //Assert
-        assertEquals(newName, resolutionService.getResolutionById(id).getName());
+        assertEquals("1080", resolutionService.getResolutionById(id).getName());
     }
 
     @Test
     void updateResolution_existName() {
         //Assert
         Long id = fullHd.getId();
-        String newName = "720p";
+        ResolutionDto updatedResolutionDto = ResolutionDto.builder()
+                .name("720p")
+                .build();
 
         //Assert and Act
-        assertThrows(EntityExistsException.class, () -> resolutionService.updateResolution(id, newName));
+        assertThrows(EntityExistsException.class, () -> resolutionService.updateResolution(id, updatedResolutionDto));
     }
 
     @Test

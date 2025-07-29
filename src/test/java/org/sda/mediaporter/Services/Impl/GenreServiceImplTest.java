@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.sda.mediaporter.Services.GenreService;
+import org.sda.mediaporter.dtos.GenreDto;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.repositories.ConfigurationRepository;
@@ -121,51 +122,60 @@ class GenreServiceImplTest {
     @Test
     void createGenre_successfully() {
         //Arrest
-        String title = "Adventure";
+        GenreDto genreDto = GenreDto.builder()
+                .title("Adventure")
+                .build();
 
         //Act
-        Genre savedGenre = genreService.createGenre(title);
+        Genre savedGenre = genreService.createGenre(genreDto);
 
         //Assert
-        assertEquals("Adventure", genreService.getGenreByTitle("Adventure").getTitle());
+        assertNotNull(savedGenre.getId());
+        assertEquals("Adventure", savedGenre.getTitle());
     }
 
     @Test
     void createGenre_existTitle() {
         //Arrest
-        String title = "Action";
+        GenreDto genreDto = GenreDto.builder()
+                .title("Action")
+                .build();
 
         //Assert and Act
-        assertThrows(EntityExistsException.class, () -> genreService.createGenre(title));
+        assertThrows(EntityExistsException.class, () -> genreService.createGenre(genreDto));
     }
 
     @Test
     void createGenre_nullTitle() {
         //Arrest
-        String title = null;
+        GenreDto genreDto = GenreDto.builder()
+                .build();
 
         //Assert and Act
-        assertThrows(RuntimeException.class, () -> genreService.createGenre(title));
+        assertThrows(RuntimeException.class, () -> genreService.createGenre(genreDto));
     }
 
     @Test
     void updateGenreById_exitGenreWithTitle() {
         //Arrest
         Long comedyId = comedy.getId();
-        String title = "acTion";
+        GenreDto genreDto = GenreDto.builder()
+                .title("acTion")
+                .build();
 
         //Assert and Act
-        assertThrows(EntityExistsException.class, () -> genreService.updateGenreById(comedyId, title));
+        assertThrows(EntityExistsException.class, () -> genreService.updateGenreById(comedyId, genreDto));
     }
 
     @Test
     void updateGenreById_withNullParameter() {
         //Arrest
         Long comedyId = comedy.getId();
-        String title = null;
+        GenreDto genreDto = GenreDto.builder()
+                .build();
 
         //Act
-        genreService.updateGenreById(comedyId, title);
+        genreService.updateGenreById(comedyId, genreDto);
         Genre updatedGenre = genreService.getGenreById(comedyId);
 
         //Assert

@@ -23,7 +23,6 @@ public class User {
     @Column(name = "names")
     private String name;
 
-
     @Column(name = "usernames", nullable = false, unique = true)
     private String username;
 

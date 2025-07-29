@@ -1,17 +1,13 @@
 package org.sda.mediaporter.dtos;
 
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
-import org.sda.mediaporter.models.enums.MediaTypes;
 
 @Getter
 @Builder
-public class CodecDto {
+public class ResolutionDto {
+
     @NotEmpty(message = "Name must not be empty")
     private String name;
-
-    @NotNull(message = "Media type must not be null")
-    private MediaTypes mediaType;
 }

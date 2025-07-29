@@ -26,7 +26,6 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "Movie title must not be empty")
     @Column(name = "movie_titles")
     private String title;
 

@@ -18,19 +18,16 @@ public class SourcePath {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "Path must not be empty")
     @Column(name = "paths", nullable = false)
     private String path;
 
     @Column(name = "titles")
     private String title;
 
-    @NotNull(message = "Path type must not be null")
     @Enumerated(EnumType.STRING)
     @Column(name = "path_types", nullable = false)
     private PathType pathType;
 
-    @NotNull(message = "Library item must not be null")
     @Enumerated(EnumType.STRING)
     @Column(name = "library_items", nullable = false)
     private LibraryItems libraryItem;

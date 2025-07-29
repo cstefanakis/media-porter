@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.sda.mediaporter.Services.*;
 import org.sda.mediaporter.api.OmdbApi;
 import org.sda.mediaporter.api.TheMovieDb;
+import org.sda.mediaporter.dtos.ContributorDto;
 import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.*;
@@ -205,6 +206,7 @@ public class MovieServiceImpl implements MovieService {
     private List<Genre> getGenres(List<String> apiGenres) {
         List<Genre> genres = new ArrayList<>();
         for (String genre : apiGenres){
+
             genres.add(genreService.autoCreateGenre(genre));
         }
         return genres;
@@ -214,7 +216,8 @@ public class MovieServiceImpl implements MovieService {
         List<Contributor> contributors = new ArrayList<>();
         for (String contributor : apiContributors){
             if(contributor != null){
-                contributors.add(contributorService.autoCreateContributor(contributor));
+                ContributorDto contributorName = ContributorDto.builder().fullName(contributor).build();
+                contributors.add(contributorService.autoCreateContributor(contributorName));
             }
         }
         return contributors;

@@ -23,20 +23,19 @@ public class Language {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "English title must not be empty")
     @Column(name = "english_title", nullable = false)
     private String englishTitle;
 
     @Column(name = "original_titles")
     private String originalTitle;
 
-    @Column(name = "iso_639_1", length = 2)
+    @Column(name = "iso_639_1")
     private String iso6391;
 
-    @Column(name = "iso_639_2b", length = 3)
+    @Column(name = "iso_639_2b")
     private String iso6392B;
 
-    @Column(name = "iso_639_2t", length = 3)
+    @Column(name = "iso_639_2t")
     private String iso6392T;
 
     @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, orphanRemoval = true)

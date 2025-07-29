@@ -19,7 +19,6 @@ public class Genre{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "Title must not be empty")
     @Column(name = "title", nullable = false)
     private String title;
 }

@@ -46,8 +46,7 @@ public class AudioChannelsServiceImpl implements AudioChannelService {
         AudioChannel audioChannel = new AudioChannel();
         audioChannel.setTitle(validatedTitle(audioChannel, audioChannelDto));
         audioChannel.setChannels(validatedChannels(audioChannel, audioChannelDto));
-        audioChannel.setDescription(validatedDescription(audioChannel, audioChannelDto.getDescription()));
-        System.out.println(audioChannel.getTitle() + " - " + audioChannelDto.getTitle());
+        audioChannel.setDescription(validatedDescription(audioChannel, audioChannelDto));
         return audioChannelRepository.save(audioChannel);
     }
 
@@ -62,7 +61,7 @@ public class AudioChannelsServiceImpl implements AudioChannelService {
         AudioChannel audioChannel = getAudioChannelById(id);
         audioChannel.setTitle(validatedTitle(audioChannel, audioChannelDto));
         audioChannel.setChannels(validatedChannels(audioChannel, audioChannelDto));
-        audioChannel.setDescription(validatedDescription(audioChannel, audioChannel.getDescription()));
+        audioChannel.setDescription(validatedDescription(audioChannel, audioChannelDto));
         audioChannelRepository.save(audioChannel);
     }
 
@@ -104,10 +103,12 @@ public class AudioChannelsServiceImpl implements AudioChannelService {
         throw new EntityExistsException(String.format("Audio channels with channels %s already exist",channels));
     }
 
-    private String validatedDescription(AudioChannel audioChannel, String description){
-        if(description == null){
+    private String validatedDescription(AudioChannel audioChannel, AudioChannelDto audioChannelDto){
+        if(audioChannelDto.getDescription() == null
+                || audioChannelDto.getDescription().equalsIgnoreCase(audioChannel.getDescription())){
             return audioChannel.getDescription();
         }
-        return description;
+
+        return audioChannelDto.getDescription();
     }
 }

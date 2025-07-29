@@ -8,11 +8,13 @@ import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Validated
 public class ResolutionServiceImpl implements ResolutionService {
 
     private final ResolutionRepository resolutionRepository;
@@ -76,17 +78,5 @@ public class ResolutionServiceImpl implements ResolutionService {
                 ()-> new EntityNotFoundException(String.format("Resolution with id %s not exist", id))
         );
         resolutionRepository.delete(resolution);
-    }
-
-    private String validatedResolution(Resolution resolution, String resolutionName){
-        String name = resolution.getName();
-        if(resolutionName == null && name != null){
-            return name;
-        }
-        Optional<Resolution> resolutionOptional = resolutionRepository.findByName(resolutionName);
-        if(resolutionOptional.isEmpty()){
-            return resolutionName;
-        }
-        throw new EntityExistsException(String.format("Resolution with name %s already exist", resolutionName));
     }
 }

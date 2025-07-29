@@ -1,5 +1,6 @@
 package org.sda.mediaporter.Services;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.dtos.GenreDto;
 import org.sda.mediaporter.models.Genre;
 
@@ -10,7 +11,7 @@ public interface GenreService {
     List<Genre> getAllGenres();
     Genre getGenreById(Long Id);
     Genre getGenreByTitle(String title);
-    Genre createGenre(GenreDto genreDto);
+    Genre createGenre(@Valid GenreDto genreDto);
     void updateGenreById(Long id, GenreDto genreDto);
     void deleteGenreById(Long id);
 

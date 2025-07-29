@@ -2,6 +2,7 @@ package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -138,7 +139,7 @@ class CountryServiceImplTest {
                 .nativeName("Colombia").build();
 
         //Assert and Act
-        assertThrows(RuntimeException.class, () -> countryService.createCountry(columbiaCountryDto));
+        assertThrows(ConstraintViolationException.class, () -> countryService.createCountry(columbiaCountryDto));
     }
 
     @Test

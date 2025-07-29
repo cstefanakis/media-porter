@@ -43,7 +43,7 @@ public class SourcePathController {
 
     @PutMapping("/{id}")
     public ResponseEntity<SourcePath> updateSourcePath(@PathVariable Long id,
-                                                       @RequestBody @Valid SourcePathDto sourcePathDto) {
+                                                       @RequestBody SourcePathDto sourcePathDto) {
         SourcePath updatedSourcePath = sourcePathService.updateSourcePath(id, sourcePathDto);
         return new ResponseEntity<>(updatedSourcePath, HttpStatus.OK);
     }

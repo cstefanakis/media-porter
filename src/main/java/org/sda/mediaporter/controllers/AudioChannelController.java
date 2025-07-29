@@ -46,7 +46,7 @@ public class AudioChannelController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateAudioChannelById(@PathVariable("id") Long id,
-                                                       @RequestBody @Valid AudioChannelDto audioChannelDto){
+                                                       @RequestBody AudioChannelDto audioChannelDto){
         audioChannelService.updateAudioChannelById(id, audioChannelDto);
         return ResponseEntity.ok().build();
     }

@@ -2,6 +2,7 @@ package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sda.mediaporter.Services.AudioChannelService;
@@ -120,7 +121,7 @@ class AudioChannelsServiceImplTest {
                 .build();
 
         //Act and Assert
-        assertThrows(RuntimeException.class, () -> audioChannelService.createAudioChannel(fullSurroundDto));
+        assertThrows(ConstraintViolationException.class, () -> audioChannelService.createAudioChannel(fullSurroundDto));
     }
 
     @Test
@@ -132,7 +133,7 @@ class AudioChannelsServiceImplTest {
                 .build();
 
         //Act and Assert
-        assertThrows(RuntimeException.class, () -> audioChannelService.createAudioChannel(fullSurroundDto));
+        assertThrows(ConstraintViolationException.class, () -> audioChannelService.createAudioChannel(fullSurroundDto));
     }
 
     @Test

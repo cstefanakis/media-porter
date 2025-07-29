@@ -155,9 +155,10 @@ class ResolutionServiceImplTest {
     void updateResolution_withNullName() {
         //Assert
         Long id = fullHd.getId();
+        ResolutionDto updatedResolutionDto = ResolutionDto.builder().build();
 
         //Act
-        resolutionService.updateResolution(id, null);
+        resolutionService.updateResolution(id, updatedResolutionDto);
         Resolution updatedResolution = resolutionService.getResolutionById(id);
 
         //Assert

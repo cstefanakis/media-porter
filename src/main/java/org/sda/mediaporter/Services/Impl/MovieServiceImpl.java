@@ -7,6 +7,7 @@ import org.sda.mediaporter.api.OmdbApi;
 import org.sda.mediaporter.api.TheMovieDb;
 import org.sda.mediaporter.dtos.ContributorDto;
 import org.sda.mediaporter.dtos.MovieFilterDto;
+import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.*;
 import org.sda.mediaporter.models.metadata.*;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@Validated
 public class MovieServiceImpl implements MovieService {
 
     private final GenreService genreService;
@@ -125,12 +128,12 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public Movie updateMovie(Long movieId, String title, Integer year) {
+    public Movie updateMovie(Long movieId, MovieUpdateDto movieUpdateDto) {
         Movie movie = getMovieById(movieId);
         String oldMovieSubDirectoryName = getGeneratedMovieSubFolder(movie.getTitle(), movie.getYear());
         Path moviePath = Path.of(movie.getPath());
         Path newPath = moviePath;
-        Movie updatedMovie = getMovieFromApiByTitle(movie, title, year);
+        Movie updatedMovie = getMovieFromApiByTitle(movie, movieUpdateDto.getTitle(), movieUpdateDto.getYear());
         System.out.println(oldMovieSubDirectoryName);
         while (newPath.toString().contains(oldMovieSubDirectoryName)){
             newPath = newPath.getParent();
@@ -197,9 +200,9 @@ public class MovieServiceImpl implements MovieService {
         System.out.println(countriesFromMovie);
         String[] countries = countriesFromMovie.split(",");
         try{
-            return Arrays.stream(countries).map(countryTitle -> countryService.getCountryByName(countryTitle)).toList();
+            return Arrays.stream(countries).map(countryService::getCountryByName).toList();
         }catch (EntityNotFoundException e) {
-            return Arrays.stream(countries).map(countryCode -> countryService.getCountryByCode(countryCode)).toList();
+            return Arrays.stream(countries).map(countryService::getCountryByCode).toList();
         }
     }
 
@@ -316,12 +319,12 @@ public class MovieServiceImpl implements MovieService {
                                     MovieFilterDto movieFilterDto) {
         List<Long> genres = movieFilterDto.getGenreIds();
         if(genres == null){
-            genres = genreService.getAllGenres().stream().map(g-> g.getId()).toList();
+            genres = genreService.getAllGenres().stream().map(Genre::getId).toList();
         }
 
         List<Long> countries = movieFilterDto.getCountryIds();
         if(countries == null){
-            countries = countryService.getAllCountries().stream().map(c-> c.getId()).toList();
+            countries = countryService.getAllCountries().stream().map(Country::getId).toList();
         }
 
         List<Long> audioLanguages = movieFilterDto.getALanguageIds();
@@ -502,7 +505,7 @@ public class MovieServiceImpl implements MovieService {
                         System.out.println("check language" + movieAudioLanguage.getEnglishTitle() + " - " + configLanguage.getEnglishTitle());
 
                         //check if the language is in configuration and the movie
-                        if (movieAudioLanguage != null && movieAudioLanguage.getEnglishTitle().equals(configLanguage.getEnglishTitle())) {
+                        if (movieAudioLanguage.getEnglishTitle() != null && movieAudioLanguage.getEnglishTitle().equals(configLanguage.getEnglishTitle())) {
                             System.out.println("language title: " + movieAudioLanguage.getEnglishTitle() + " " + configLanguage.getEnglishTitle());
                             //check audio channel
                             List<AudioChannel> configAudioChannels = configurationService.getAudioChannelsFromConfiguration(configuration);

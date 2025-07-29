@@ -8,11 +8,13 @@ import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.repositories.GenreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Validated
 public class GenreServiceImpl implements GenreService {
 
     private final GenreRepository genreRepository;
@@ -23,6 +25,9 @@ public class GenreServiceImpl implements GenreService {
     }
 
     public Genre autoCreateGenre(String title) {
+        if(title == null){
+            return null;
+        }
         Optional <Genre> genreOptional = genreRepository.findGenreByTitle(title);
         return genreOptional.orElseGet(() -> genreRepository.save(Genre.builder()
                 .title(capitalizeFirstLetter(title))
@@ -75,18 +80,23 @@ public class GenreServiceImpl implements GenreService {
         String title = genre.getTitle();
 
         Optional<Genre> genreOptional = genreRepository.findGenreByTitle(titleDto);
+        if(titleDto == null){
+            return title;
+        }
+
         if(title != null && genre.getTitle().equals(titleDto)) {
                 return title;
-            }
-        titleDto = capitalizeFirstLetter(titleDto);
+        }
+
         if (genreOptional.isEmpty()){
-            return titleDto;
+            return capitalizeFirstLetter(titleDto);
         }
         throw new EntityExistsException(String.format("Genre with title %s already exist", titleDto));
     }
 
     public static String capitalizeFirstLetter(String title) {
         String trimTitle = title.trim();
+
         return trimTitle.substring(0, 1).toUpperCase() + trimTitle.substring(1).toLowerCase();
     }
 }

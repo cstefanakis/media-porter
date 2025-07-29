@@ -1,13 +1,13 @@
 package org.sda.mediaporter.Services;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.dtos.MovieFilterDto;
+import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.Movie;
-import org.sda.mediaporter.models.SourcePath;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.List;
 
 
@@ -20,7 +20,7 @@ public interface MovieService {
     Movie getMovieByPath(String moviePath);
     void deleteMovieById(Long id);
     Movie moveMovie(Long movieId, Path toPathWithoutFileName);
-    Movie updateMovie(Long movieId, String title, Integer year);
+    Movie updateMovie(Long movieId, MovieUpdateDto movieUpdateDto);
     void copyMovie(Long movieId, Path toPathWithoutFileName);
     Page<Movie> organizedDownloadMovieFiles(Pageable page, Path moviesDownloadPath, Path destinationPath);
     Page<Movie> getMoviesFromPath(Pageable page, String path);

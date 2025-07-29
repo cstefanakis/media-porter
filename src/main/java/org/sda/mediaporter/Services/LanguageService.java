@@ -1,5 +1,6 @@
 package org.sda.mediaporter.Services;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.dtos.LanguageDto;
 import org.sda.mediaporter.models.Language;
 
@@ -11,7 +12,7 @@ public interface LanguageService {
     Language getLanguageByCode(String code);
     Language getLanguageByTitle(String languageTitle);
     Language getLanguageById(Long id);
-    Language createLanguage(LanguageDto languageDto);
+    Language createLanguage(@Valid LanguageDto languageDto);
     void updateLanguageById(Long id, LanguageDto languageDto);
     void deleteLanguageById(Long id);
 }

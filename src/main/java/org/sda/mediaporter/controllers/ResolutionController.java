@@ -2,12 +2,10 @@ package org.sda.mediaporter.controllers;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import org.apache.coyote.Response;
 import org.sda.mediaporter.Services.ResolutionService;
 import org.sda.mediaporter.dtos.ResolutionDto;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -50,7 +48,7 @@ public class ResolutionController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateResolution(@PathVariable("id") Long id,
-                                                 @RequestBody @Valid ResolutionDto resolutionDto){
+                                                 @RequestBody ResolutionDto resolutionDto){
         resolutionService.updateResolution(id, resolutionDto);
         return ResponseEntity.ok().build();
     }

@@ -1,7 +1,6 @@
 package org.sda.mediaporter.controllers;
 
 
-import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.ConfigurationService;
 import org.sda.mediaporter.dtos.ConfigurationDto;
 import org.sda.mediaporter.models.Configuration;
@@ -28,7 +27,7 @@ public class ConfigurationController {
     }
 
     @PutMapping()
-    public ResponseEntity<Void> updateConfiguration(@RequestBody @Valid ConfigurationDto configurationDto){
+    public ResponseEntity<Void> updateConfiguration(@RequestBody ConfigurationDto configurationDto){
         configurationService.updateConfiguration(configurationDto);
         return ResponseEntity.ok().build();
     }

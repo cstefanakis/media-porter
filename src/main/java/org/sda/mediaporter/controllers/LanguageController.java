@@ -53,7 +53,7 @@ public class LanguageController {
 
     @PutMapping("{id}")
     public ResponseEntity<Void> updateLanguageById(@PathVariable("id") Long id,
-                                                   @RequestBody @Valid LanguageDto languageDto){
+                                                   @RequestBody LanguageDto languageDto){
         languageService.updateLanguageById(id, languageDto);
         return ResponseEntity.ok().build();
     }

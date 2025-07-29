@@ -8,11 +8,13 @@ import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.repositories.metadata.AudioChannelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Validated
 public class AudioChannelsServiceImpl implements AudioChannelService {
 
     private final AudioChannelRepository audioChannelRepository;
@@ -87,20 +89,18 @@ public class AudioChannelsServiceImpl implements AudioChannelService {
 
     private Integer validatedChannels(AudioChannel audioChannel, AudioChannelDto audioChannelDto){
 
-        Integer channelsDto = audioChannelDto.getChannels();
-        Integer channels = audioChannel.getChannels();
-        if(channelsDto == null && channels != null){
-            return channels;
+        if(audioChannelDto.getChannels() == null && audioChannel.getChannels() != null){
+            return audioChannel.getChannels();
         }
 
-        if(channelsDto != null && channelsDto.equals(channels)){
-            return channelsDto;
+        if(audioChannelDto.getChannels() != null && audioChannelDto.getChannels().equals(audioChannel.getChannels())){
+            return audioChannelDto.getChannels();
         }
-        Optional<AudioChannel> audioChannelOptional = audioChannelRepository.findAudioChannelByChannel(channelsDto);
+        Optional<AudioChannel> audioChannelOptional = audioChannelRepository.findAudioChannelByChannel(audioChannelDto.getChannels());
         if(audioChannelOptional.isEmpty()){
-            return channelsDto;
+            return audioChannelDto.getChannels();
         }
-        throw new EntityExistsException(String.format("Audio channels with channels %s already exist",channels));
+        throw new EntityExistsException(String.format("Audio channels with channels %s already exist",audioChannel.getChannels()));
     }
 
     private String validatedDescription(AudioChannel audioChannel, AudioChannelDto audioChannelDto){

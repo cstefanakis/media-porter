@@ -1,8 +1,6 @@
 package org.sda.mediaporter.controllers;
 
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
-import org.aspectj.apache.bcel.classfile.Code;
 import org.sda.mediaporter.Services.CodecService;
 import org.sda.mediaporter.dtos.CodecDto;
 import org.sda.mediaporter.models.enums.MediaTypes;
@@ -57,7 +55,7 @@ public class CodecController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCodec(@PathVariable("id") Long id,
-                                             @RequestBody @Valid CodecDto codecDto){
+                                             @RequestBody CodecDto codecDto){
         codecService.updateCodec(id, codecDto);
         return ResponseEntity.ok().build();
     }

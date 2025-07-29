@@ -44,7 +44,7 @@ public class CountryController {
     }
 
     @PostMapping()
-    public ResponseEntity<Country> createCountry(@RequestBody @Valid CountryDto countryDto){
+    public ResponseEntity<Country> createCountry(@RequestBody CountryDto countryDto){
         Country country = countryService.createCountry(countryDto);
         return ResponseEntity.ok(country);
     }

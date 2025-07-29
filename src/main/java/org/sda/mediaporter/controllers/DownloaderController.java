@@ -52,7 +52,7 @@ public class DownloaderController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DownloadFile> updateDownloadedFile(@PathVariable int id, @RequestBody @Valid DownloadFileDto downloadFileDto) {
+    public ResponseEntity<DownloadFile> updateDownloadedFile(@PathVariable int id, @RequestBody DownloadFileDto downloadFileDto) {
         return ResponseEntity.ok().body(new DownloadFile());
     }
 }

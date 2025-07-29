@@ -18,7 +18,7 @@ public class Contributor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty
+    @NotEmpty(message = "Full name must not be empty")
     @Column(name = "full_names")
     private String fullName;
 

@@ -17,17 +17,16 @@ import lombok.*;
 public class AudioChannel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
-    @NotEmpty
+    @NotEmpty(message = "Title must not be null or empty")
     @Column(name = "titles")
-    String title;
+    private String title;
 
-    @NotNull
+    @NotNull(message = "Channels must not be null")
     @Column(name = "channels")
-    Integer channels;
+    private Integer channels;
 
     @Column(name = "descriptions")
-    String description;
-
+    private String description;
 }

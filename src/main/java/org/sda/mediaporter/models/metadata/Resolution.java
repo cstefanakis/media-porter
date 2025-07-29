@@ -13,10 +13,10 @@ import lombok.*;
 @AllArgsConstructor
 public class Resolution {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO) // AUTO uses provider defaults (can be sequence or identity)
     private Long id;
 
-    @NotEmpty
+    @NotEmpty(message = "Name must not be empty")
     @Column(name = "names")
     private String name;
 }

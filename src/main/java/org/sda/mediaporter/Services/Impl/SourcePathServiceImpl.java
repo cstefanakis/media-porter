@@ -6,15 +6,16 @@ import org.sda.mediaporter.Services.SourcePathService;
 import org.sda.mediaporter.dtos.SourcePathDto;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.enums.LibraryItems;
-import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.repositories.SourcePathRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Validated
 public class SourcePathServiceImpl implements SourcePathService {
 
     private final SourcePathRepository sourcePathRepository;

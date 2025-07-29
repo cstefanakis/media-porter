@@ -3,15 +3,18 @@ package org.sda.mediaporter.Services.Impl;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.ResolutionService;
+import org.sda.mediaporter.dtos.ResolutionDto;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Validated
 public class ResolutionServiceImpl implements ResolutionService {
 
     private final ResolutionRepository resolutionRepository;
@@ -33,28 +36,33 @@ public class ResolutionServiceImpl implements ResolutionService {
     }
 
     @Override
-    public Resolution createResolution(String resolutionName) {
-        Resolution resolution = new Resolution();
-        resolution.setName(validatedResolution(new Resolution(), resolutionName));
-        return resolutionRepository.save(resolution);
+    public Resolution createResolution(ResolutionDto resolutionDto) {
+        return resolutionRepository.save(toEntity(new Resolution(), resolutionDto));
     }
 
     @Override
-    public void updateResolution(Long resolutionId, String resolutionName) {
+    public void updateResolution(Long resolutionId, ResolutionDto resolutionDto) {
         Resolution resolution = getResolutionById(resolutionId);
-        resolution.setName(validatedResolutionName(resolution.getName(), resolutionName));
-        resolutionRepository.save(resolution);
+        resolutionRepository.save(toEntity(resolution, resolutionDto));
     }
 
-    private String validatedResolutionName(String resolutionName, String newResolutionName){
-        if(resolutionName != null && newResolutionName == null){
+    private Resolution toEntity(Resolution resolution, ResolutionDto resolutionDto){
+        resolution.setName(validatedResolutionName(resolution, resolutionDto));
+        return resolution;
+    }
+
+    private String validatedResolutionName(Resolution resolution, ResolutionDto resolutionDto){
+        String resolutionName = resolution.getName();
+        String resolutionNameDto = resolutionDto.getName();
+
+        if(resolutionName != null && resolutionNameDto == null){
             return resolutionName;
         }
-        Optional <Resolution> resolutionOptional = resolutionRepository.findByName(newResolutionName);
+        Optional <Resolution> resolutionOptional = resolutionRepository.findByName(resolutionNameDto);
         if(resolutionOptional.isEmpty()){
-            return newResolutionName.toLowerCase();
+            return resolutionNameDto.toLowerCase();
         }
-        throw new EntityExistsException(String.format("Resolution name with name %s already exist", newResolutionName));
+        throw new EntityExistsException(String.format("Resolution name with name %s already exist", resolutionNameDto));
     }
 
     @Override
@@ -70,17 +78,5 @@ public class ResolutionServiceImpl implements ResolutionService {
                 ()-> new EntityNotFoundException(String.format("Resolution with id %s not exist", id))
         );
         resolutionRepository.delete(resolution);
-    }
-
-    private String validatedResolution(Resolution resolution, String resolutionName){
-        String name = resolution.getName();
-        if(resolutionName == null && name != null){
-            return name;
-        }
-        Optional<Resolution> resolutionOptional = resolutionRepository.findByName(resolutionName);
-        if(resolutionOptional.isEmpty()){
-            return resolutionName;
-        }
-        throw new EntityExistsException(String.format("Resolution with name %s already exist", resolutionName));
     }
 }

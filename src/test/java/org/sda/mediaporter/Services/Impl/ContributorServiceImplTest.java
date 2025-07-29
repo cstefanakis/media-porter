@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.sda.mediaporter.Services.ContributorService;
+import org.sda.mediaporter.dtos.ContributorDto;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.repositories.ConfigurationRepository;
 import org.sda.mediaporter.repositories.ContributorRepository;
@@ -122,7 +123,9 @@ class ContributorServiceImplTest {
     @Test
     void autoCreateContributor_successfully() {
         //Arrest
-        String newContributor = "Dwayne Douglas Johnson";
+        ContributorDto newContributor = ContributorDto.builder()
+                .fullName("Dwayne Douglas Johnson")
+                .build();
 
         //Act
         Contributor autoCreatedContributor = contributorService.autoCreateContributor(newContributor);

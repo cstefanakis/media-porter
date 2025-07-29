@@ -18,24 +18,21 @@ public class SourcePath {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty
-    @Column(name = "paths")
+    @Column(name = "paths", nullable = false)
     private String path;
 
     @Column(name = "titles")
     private String title;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "path_types")
+    @Column(name = "path_types", nullable = false)
     private PathType pathType;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "library_items")
+    @Column(name = "library_items", nullable = false)
     private LibraryItems libraryItem;
 
-    public enum PathType{
+    public enum PathType {
         DOWNLOAD, SOURCE, EXTERNAL
     }
 }

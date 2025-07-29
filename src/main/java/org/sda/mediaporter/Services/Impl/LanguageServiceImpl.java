@@ -8,11 +8,13 @@ import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.repositories.LanguageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Validated
 public class LanguageServiceImpl implements LanguageService {
     private final LanguageRepository languageRepository;
 
@@ -90,23 +92,20 @@ public class LanguageServiceImpl implements LanguageService {
 
     private String validatedCode(String codeIso, String codeIsoDto){
 
-        Optional<Language> languageWithCodeIso = languageRepository.findByCode(codeIsoDto);
-
         if(codeIsoDto == null) {
             return codeIso;
         }
 
-        codeIsoDto = codeIsoDto.trim();
+        Optional<Language> languageWithCodeIso = languageRepository.findByCode(codeIsoDto);
 
         if(languageWithCodeIso.isPresent()) {
-            Language language = languageWithCodeIso.get();
-            if (language.getIso6391().equals(codeIso) || language.getIso6392B().equals(codeIso) || language.getIso6392T().equals(codeIso)) {
-                return codeIsoDto;
+            if (codeIso != null && codeIso.equalsIgnoreCase(codeIsoDto)) {
+                return codeIsoDto.trim();
             }
         }
 
         if(languageWithCodeIso.isEmpty()){
-            return codeIsoDto;
+            return codeIsoDto.trim();
         }
 
         throw new EntityExistsException(String.format("Language with code %s is exist",codeIso));
@@ -114,18 +113,15 @@ public class LanguageServiceImpl implements LanguageService {
 
     private String validatedTitle(String title, String titleDto){
 
-        Optional<Language> languageWithTitle = languageRepository.findByTitle(titleDto);
-
         if(titleDto == null) {
             return title;
         }
 
-        titleDto = titleDto.trim();
+        Optional<Language> languageWithTitle = languageRepository.findByTitle(titleDto);
 
         if(languageWithTitle.isPresent()) {
-            Language language = languageWithTitle.get();
-            if (language.getOriginalTitle().equals(title) || language.getEnglishTitle().equals(title)) {
-                return titleDto;
+            if (title != null && title.equalsIgnoreCase(titleDto)) {
+                return title;
             }
         }
 

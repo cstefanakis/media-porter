@@ -1,5 +1,6 @@
 package org.sda.mediaporter.Services;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.dtos.CountryDto;
 import org.sda.mediaporter.models.Country;
 
@@ -10,7 +11,7 @@ public interface CountryService {
     Country getCountryByName(String countryName);
     Country getCountryById(Long countryId);
     List<Country> getAllCountries();
-    Country createCountry(CountryDto countryDto);
+    Country createCountry(@Valid CountryDto countryDto);
     void updateCountry(Long countryId, CountryDto countryDto);
     void deleteCountryById(Long countryId);
 }

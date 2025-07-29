@@ -10,11 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/file-scanner")
-@CrossOrigin(origins = {
-        "http://localhost:5173",
-        "http://192.168.0.10:5173",
-        "http://192.168.192.131:5173"
-})
 
 public class FileScannerController {
     private final FileService fileScannerService;

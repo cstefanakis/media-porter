@@ -10,10 +10,9 @@ import org.sda.mediaporter.dtos.DownloadFileDto;
 import org.sda.mediaporter.models.DownloadFile;
 import org.sda.mediaporter.repositories.DownloaderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -21,9 +20,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@Validated
 public class DownloaderServiceImpl implements DownloaderService {
 
     private final DownloaderRepository downloaderRepository;

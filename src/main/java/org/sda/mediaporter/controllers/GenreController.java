@@ -1,7 +1,8 @@
 package org.sda.mediaporter.controllers;
 
-import org.apache.coyote.Response;
+import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.GenreService;
+import org.sda.mediaporter.dtos.GenreDto;
 import org.sda.mediaporter.models.Genre;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,15 +40,15 @@ public class GenreController {
     }
 
     @PostMapping()
-    public ResponseEntity<Genre> createGenre(@RequestParam ("title") String title){
-        Genre genre = genreService.createGenre(title);
+    public ResponseEntity<Genre> createGenre(@RequestBody @Valid GenreDto genreDto){
+        Genre genre = genreService.createGenre(genreDto);
         return ResponseEntity.ok(genre);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateGenreById(@PathVariable ("id") Long id,
-                                            @RequestParam ("title") String title){
-        genreService.updateGenreById(id, title);
+                                                @RequestBody GenreDto genreDto){
+        genreService.updateGenreById(id, genreDto);
         return ResponseEntity.ok().build();
     }
 

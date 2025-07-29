@@ -1,10 +1,13 @@
 package org.sda.mediaporter.dtos;
 
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class GenreResponseDto {
+@Builder
+public class GenreDto {
+
     @NotEmpty(message = "Title must not be empty")
-    String title;
+    private String title;
 }

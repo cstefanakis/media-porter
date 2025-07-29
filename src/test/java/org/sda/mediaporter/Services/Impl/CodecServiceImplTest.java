@@ -2,9 +2,9 @@ package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.sda.mediaporter.Services.CodecService;
 import org.sda.mediaporter.dtos.CodecDto;
 import org.sda.mediaporter.models.enums.MediaTypes;
@@ -206,7 +206,7 @@ class CodecServiceImplTest {
                 .build();
 
         //Assert and Act
-        assertThrows(RuntimeException.class, ()-> codecService.createCodec(codecDto));
+        assertThrows(ConstraintViolationException.class, ()-> codecService.createCodec(codecDto));
     }
 
     @Test

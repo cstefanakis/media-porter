@@ -1,10 +1,11 @@
 package org.sda.mediaporter.controllers;
 
-import org.apache.coyote.Response;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.sda.mediaporter.Services.ResolutionService;
+import org.sda.mediaporter.dtos.ResolutionDto;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class ResolutionController {
     }
 
     @GetMapping("/by-name")
-    public ResponseEntity<Resolution> getResolutionByName(@RequestParam("name") String name){
+    public ResponseEntity<Resolution> getResolutionByName(@NotEmpty(message = "Name must not be empty") @RequestParam("name") String name){
         Resolution resolution = resolutionService.getResolutionByName(name);
         return ResponseEntity.ok(resolution);
     }
@@ -40,15 +41,15 @@ public class ResolutionController {
     }
 
     @PostMapping()
-    public ResponseEntity<Resolution> createResolution(@RequestParam("name") String name){
-        Resolution createdResolution = resolutionService.createResolution(name);
+    public ResponseEntity<Resolution> createResolution(@RequestBody @Valid ResolutionDto resolutionDto){
+        Resolution createdResolution = resolutionService.createResolution(resolutionDto);
         return ResponseEntity.ok(createdResolution);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateResolution(@PathVariable("id") Long id,
-                                                 @RequestParam("name") String name){
-        resolutionService.updateResolution(id, name);
+                                                 @RequestBody ResolutionDto resolutionDto){
+        resolutionService.updateResolution(id, resolutionDto);
         return ResponseEntity.ok().build();
     }
 

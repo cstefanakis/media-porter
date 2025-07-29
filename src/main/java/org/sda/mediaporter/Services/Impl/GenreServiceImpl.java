@@ -3,16 +3,18 @@ package org.sda.mediaporter.Services.Impl;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.GenreService;
-import org.sda.mediaporter.dtos.GenreResponseDto;
+import org.sda.mediaporter.dtos.GenreDto;
 import org.sda.mediaporter.models.Genre;
 import org.sda.mediaporter.repositories.GenreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Validated
 public class GenreServiceImpl implements GenreService {
 
     private final GenreRepository genreRepository;
@@ -23,13 +25,13 @@ public class GenreServiceImpl implements GenreService {
     }
 
     public Genre autoCreateGenre(String title) {
-        Optional <Genre> genreOptional = genreRepository.findGenreByTitle(title);
-        if(genreOptional.isPresent()){
-            return genreOptional.get();
+        if(title == null){
+            return null;
         }
-        return genreRepository.save(Genre.builder()
+        Optional <Genre> genreOptional = genreRepository.findGenreByTitle(title);
+        return genreOptional.orElseGet(() -> genreRepository.save(Genre.builder()
                 .title(capitalizeFirstLetter(title))
-                .build());
+                .build()));
     }
 
     @Override
@@ -50,17 +52,21 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public Genre createGenre(String title) {
-        return genreRepository.save(Genre.builder()
-                .title(validatedTitle(new Genre(), title))
-                .build());
+    public Genre createGenre(GenreDto genreDto) {
+        return genreRepository.save(toEntity(new Genre(), genreDto));
     }
 
     @Override
-    public void updateGenreById(Long id, String title) {
+    public void updateGenreById(Long id, GenreDto genreDto) {
         Genre genre = getGenreById(id);
-        genre.setTitle(validatedTitle(genre, title));
-        genreRepository.save(genre);
+        genreRepository.save(toEntity(genre, genreDto));
+    }
+
+    private Genre toEntity(Genre genre, GenreDto genreDto){
+
+        genre.setTitle(validatedTitle(genre , genreDto));
+
+        return genre;
     }
 
     @Override
@@ -69,20 +75,28 @@ public class GenreServiceImpl implements GenreService {
         genreRepository.delete(genre);
     }
 
-    private String validatedTitle(Genre genre, String title){
-        Optional<Genre> genreOptional = genreRepository.findGenreByTitle(title);
-        if(genre.getTitle() != null && genre.getTitle().equals(title)) {
-                return genre.getTitle();
-            }
-        title = capitalizeFirstLetter(title);
-        if (genreOptional.isEmpty()){
+    private String validatedTitle(Genre genre, GenreDto genreDto){
+        String titleDto = genreDto.getTitle();
+        String title = genre.getTitle();
+
+        Optional<Genre> genreOptional = genreRepository.findGenreByTitle(titleDto);
+        if(titleDto == null){
             return title;
         }
-        throw new EntityExistsException(String.format("Genre with title %s already exist", title));
+
+        if(title != null && genre.getTitle().equals(titleDto)) {
+                return title;
+        }
+
+        if (genreOptional.isEmpty()){
+            return capitalizeFirstLetter(titleDto);
+        }
+        throw new EntityExistsException(String.format("Genre with title %s already exist", titleDto));
     }
 
     public static String capitalizeFirstLetter(String title) {
         String trimTitle = title.trim();
+
         return trimTitle.substring(0, 1).toUpperCase() + trimTitle.substring(1).toLowerCase();
     }
 }

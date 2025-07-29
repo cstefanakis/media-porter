@@ -1,5 +1,6 @@
 package org.sda.mediaporter.Services;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.dtos.CodecDto;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
@@ -12,7 +13,7 @@ public interface CodecService {
     Codec getCodecByName(String name);
     List<Codec> getAllCodecs();
     List<Codec> getByMediaType(MediaTypes mediaType);
-    Codec createCodec(CodecDto codecDto);
+    Codec createCodec(@Valid CodecDto codecDto);
     void updateCodec(Long codecId, CodecDto codecDto);
     void deleteCodec(Long codecId);
 }

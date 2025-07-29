@@ -3,6 +3,7 @@ package org.sda.mediaporter.Services.Impl;
 import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.ContributorService;
 import org.sda.mediaporter.api.TheMovieDbContributor;
+import org.sda.mediaporter.dtos.ContributorDto;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.repositories.ContributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +41,14 @@ public class ContributorServiceImpl implements ContributorService {
     }
 
     @Override
-    public Contributor autoCreateContributor(String fullName) {
-        TheMovieDbContributor apiContributor = new TheMovieDbContributor(fullName);
+    public Contributor autoCreateContributor(ContributorDto contributorDto) {
+
+        TheMovieDbContributor apiContributor = new TheMovieDbContributor(contributorDto.getFullName());
+
         String contributorName = apiContributor.getContributorName();
+
         Optional<Contributor> contributor = contributorRepository.findByFullName(contributorName);
+
         if(contributor.isEmpty()){
             Contributor newContributor = generatedContributor(apiContributor);
             if(newContributor.getFullName() != null){

@@ -1,9 +1,9 @@
 package org.sda.mediaporter.controllers;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.CountryService;
 import org.sda.mediaporter.dtos.CountryDto;
 import org.sda.mediaporter.models.Country;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,7 +51,7 @@ public class CountryController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCountry(@PathVariable("id") Long id,
-                                                 @RequestBody CountryDto countryDto){
+                                              @RequestBody @Valid CountryDto countryDto){
         countryService.updateCountry(id, countryDto);
         return ResponseEntity.ok().build();
     }

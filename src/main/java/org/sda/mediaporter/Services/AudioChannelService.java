@@ -1,5 +1,6 @@
 package org.sda.mediaporter.Services;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.dtos.AudioChannelDto;
 import org.sda.mediaporter.models.metadata.AudioChannel;
 
@@ -9,7 +10,7 @@ public interface AudioChannelService {
     AudioChannel getAudioChannelByChannels(Integer channels);
     List<AudioChannel> getAllAudioChannels();
     AudioChannel getAudioChannelById(Long id);
-    AudioChannel createAudioChannel(AudioChannelDto audioChannelDto);
+    AudioChannel createAudioChannel(@Valid AudioChannelDto audioChannelDto);
     void deleteAudioChannelById(Long id);
     void updateAudioChannelById(Long id, AudioChannelDto audioChannelDto);
 }

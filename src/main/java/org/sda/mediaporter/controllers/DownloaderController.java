@@ -1,5 +1,6 @@
 package org.sda.mediaporter.controllers;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.DownloaderService;
 import org.sda.mediaporter.dtos.DownloadFileDto;
 import org.sda.mediaporter.models.DownloadFile;
@@ -39,8 +40,7 @@ public class DownloaderController {
     }
 
     @PostMapping("/add-file")
-    public ResponseEntity<DownloadFile> addDownloadedFile(
-            @RequestBody DownloadFileDto downloadFileDto) {
+    public ResponseEntity<DownloadFile> addDownloadedFile(@RequestBody @Valid DownloadFileDto downloadFileDto) {
             DownloadFile createdDownloadFile = downloaderService.createdDownloadFile(downloadFileDto);
         return ResponseEntity.ok().body(createdDownloadFile);
     }
@@ -52,7 +52,7 @@ public class DownloaderController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DownloadFile> updateDownloadedFile(@PathVariable int id, @RequestBody DownloadFile downloadFile) {
+    public ResponseEntity<DownloadFile> updateDownloadedFile(@PathVariable int id, @RequestBody DownloadFileDto downloadFileDto) {
         return ResponseEntity.ok().body(new DownloadFile());
     }
 }

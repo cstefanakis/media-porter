@@ -18,7 +18,6 @@ public class Contributor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty
     @Column(name = "full_names")
     private String fullName;
 

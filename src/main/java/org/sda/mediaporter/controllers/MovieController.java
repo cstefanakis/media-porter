@@ -1,7 +1,9 @@
 package org.sda.mediaporter.controllers;
 
+import jakarta.validation.Valid;
 import org.sda.mediaporter.Services.MovieService;
 import org.sda.mediaporter.dtos.MovieFilterDto;
+import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.web.PageableDefault;
@@ -78,9 +80,8 @@ public class MovieController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Movie> updateMovie(@PathVariable("id") Long id,
-                                             @RequestParam(name = "title") String title,
-                                             @RequestParam(name = "year") Integer year) {
-        Movie movie = movieService.updateMovie(id, title, year);
+                                             @RequestBody MovieUpdateDto movieUpdateDto) {
+        Movie movie = movieService.updateMovie(id, movieUpdateDto);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
@@ -122,13 +123,15 @@ public class MovieController {
     }
 
     @GetMapping("/filter-movies")
-    public ResponseEntity<Page<Movie>> getMovieByTitle(@PageableDefault Pageable page, @RequestBody MovieFilterDto movieFilterDto) {
+    public ResponseEntity<Page<Movie>> getMovieByTitle(@PageableDefault Pageable page,
+                                                       @RequestBody @Valid MovieFilterDto movieFilterDto) {
         Page<Movie> movies = movieService.filterMovies(page, movieFilterDto);
         return ResponseEntity.ok(movies);
     }
 
     @GetMapping("/filter-movies-by-audio-languages")
-    public ResponseEntity<Page<Movie>> filterByAudioLanguage(@PageableDefault Pageable page, @RequestParam("languages") List<Long> languages) {
+    public ResponseEntity<Page<Movie>> filterByAudioLanguage(@PageableDefault Pageable page,
+                                                             @RequestParam("languages") List<Long> languages) {
         Page<Movie> movies = movieService.filterByAudioLanguage(page, languages);
         return ResponseEntity.ok(movies);
     }

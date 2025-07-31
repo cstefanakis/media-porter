@@ -1,5 +1,7 @@
 package org.sda.mediaporter.dataLoader;
 
+import jakarta.persistence.EntityNotFoundException;
+import org.sda.mediaporter.config.SpringSecurityConfig;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
 import org.sda.mediaporter.models.enums.MediaTypes;
@@ -13,6 +15,9 @@ import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.Set;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -25,9 +30,11 @@ public class DataLoader implements CommandLineRunner {
     private final SourcePathRepository sourcePathRepository;
     private final AudioChannelRepository audioChannelsRepository;
     private final CountryRepository countryRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public DataLoader(LanguageRepository languageRepository, GenreRepository genreRepository, ConfigurationRepository configurationRepository, CodecRepository codecRepository, ResolutionRepository resolutionRepository, SourcePathRepository sourcePathRepository, AudioChannelRepository audioChannelsRepository, CountryRepository countryRepository) {
+    public DataLoader(LanguageRepository languageRepository, GenreRepository genreRepository, ConfigurationRepository configurationRepository, CodecRepository codecRepository, ResolutionRepository resolutionRepository, SourcePathRepository sourcePathRepository, AudioChannelRepository audioChannelsRepository, CountryRepository countryRepository, UserRepository userRepository, RoleRepository roleRepository) {
         this.languageRepository = languageRepository;
         this.genreRepository = genreRepository;
         this.configurationRepository = configurationRepository;
@@ -36,10 +43,43 @@ public class DataLoader implements CommandLineRunner {
         this.sourcePathRepository = sourcePathRepository;
         this.audioChannelsRepository = audioChannelsRepository;
         this.countryRepository = countryRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
+        //Role data loader
+        if(roleRepository.count() == 0){
+            roleRepository.save(Role.builder()
+                            .name("ROLE_ADMIN")
+                    .build());
+            roleRepository.save(Role.builder()
+                            .name("ROLE_USER")
+                    .build());
+        }
+        //User data loader
+        if(userRepository.count() == 0){
+            
+            Role admin = roleRepository.findByName("ROLE_ADMIN").orElseThrow(()-> new EntityNotFoundException("Role not found"));
+            Role user = roleRepository.findByName("ROLE_USER").orElseThrow(()-> new EntityNotFoundException("Role not found"));
+
+            userRepository.save(User.builder()
+                            .email("admin@gmail.com")
+                            .username("admin")
+                            .password(new BCryptPasswordEncoder().encode("admin"))
+                            .roles(Set.of(user, admin))
+                    .build());
+
+            userRepository.save(User.builder()
+                    .email("user@gmail.com")
+                    .username("user")
+                    .password(new BCryptPasswordEncoder().encode("user"))
+                    .roles(Set.of(user))
+                    .build());
+
+        }
+
         //Codec data loader
         if(codecRepository.count() == 0){
             codecRepository.save(Codec.builder()

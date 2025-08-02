@@ -3,6 +3,7 @@ package org.sda.mediaporter.controllers;
 import org.sda.mediaporter.Services.FileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ public class FileScannerController {
         this.fileScannerService = fileScannerService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/files")
     public ResponseEntity<List<Path>> getScannedFiles (@RequestParam String path) {
         Path filePath = Path.of(path);

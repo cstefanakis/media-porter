@@ -5,6 +5,7 @@ import org.sda.mediaporter.Services.CountryService;
 import org.sda.mediaporter.dtos.CountryDto;
 import org.sda.mediaporter.models.Country;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,36 +20,42 @@ public class CountryController {
         this.countryService = countryService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/by-code")
     public ResponseEntity<Country> getCountryByCode(@RequestParam("code") String code){
         Country country = countryService.getCountryByCode(code);
         return ResponseEntity.ok(country);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/by-name")
     public ResponseEntity<Country> getCountryByName(@RequestParam("name") String name){
         Country country = countryService.getCountryByName(name);
         return ResponseEntity.ok(country);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Country> getCountryById(@PathVariable("id") Long id){
         Country country = countryService.getCountryById(id);
         return ResponseEntity.ok(country);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public ResponseEntity<List <Country>> getAllCountries(){
         List<Country> countries = countryService.getAllCountries();
         return ResponseEntity.ok(countries);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping()
     public ResponseEntity<Country> createCountry(@RequestBody CountryDto countryDto){
         Country country = countryService.createCountry(countryDto);
         return ResponseEntity.ok(country);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCountry(@PathVariable("id") Long id,
                                               @RequestBody @Valid CountryDto countryDto){
@@ -56,6 +63,7 @@ public class CountryController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCountryById(@PathVariable("id") Long id){
         countryService.deleteCountryById(id);

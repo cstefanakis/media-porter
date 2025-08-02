@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
@@ -20,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/movies")
-@CrossOrigin("http://localhost:5173")
 public class MovieController {
     private final MovieService movieService;
 
@@ -29,12 +29,14 @@ public class MovieController {
         this.movieService = movieService;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping()
     public ResponseEntity<Page<Movie>> getAllMovies(Pageable pageable) {
         Page<Movie> movies = movieService.getMovies(pageable);
         return ResponseEntity.ok(movies);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/get-movies-from-api-by-title-and-year")
     public ResponseEntity <Movie> getMovieFromApiByTitle(
             @RequestParam(name = "title") String title,
@@ -43,6 +45,7 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/get-by-title-and-year")
     public ResponseEntity<List<Movie>> getMoviesByTitleAndYear(@RequestParam("title") String title,
                                                                @RequestParam("year") Integer year){
@@ -50,25 +53,28 @@ public class MovieController {
         return ResponseEntity.ok(movies);
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/{id}")
     public ResponseEntity<Movie> getMovieById(@PathVariable("id") Long id) {
         Movie movie = movieService.getMovieById(id);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/get-by-path")
     public ResponseEntity<Movie> getMovieByPath(@RequestParam(name = "path") String path) {
         Movie movie = movieService.getMovieByPath(path);
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMovieById(@PathVariable("id") Long id) {
         movieService.deleteMovieById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/move/{id}")
     public ResponseEntity<Movie> moveMovie(@PathVariable("id") Long id,
                                            @RequestParam(name = "path") String path) {
@@ -78,6 +84,7 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Movie> updateMovie(@PathVariable("id") Long id,
                                              @RequestBody MovieUpdateDto movieUpdateDto) {
@@ -85,6 +92,7 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/copy/{id}")
     public ResponseEntity<Void> copyMovie(@PathVariable("id") Long id,
                                           @RequestParam(name = "path") String path) {
@@ -93,6 +101,7 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/organize-download-movies")
     public ResponseEntity<Page<Movie>> organizeDownloadMovies(Pageable page,
                                                               @RequestParam(name = "sourcePath") String sourcePath,
@@ -103,6 +112,7 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.OK).body(organizedMovies);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/create-movies-from-path")
     public ResponseEntity<Page<Movie>> getMoviesFromPath(Pageable page,
                                                          @RequestParam(name = "path") String path) {
@@ -110,18 +120,21 @@ public class MovieController {
         return ResponseEntity.ok(movies);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/get-last-five-added-movies")
     public ResponseEntity<Page<Movie>> getLastFiveMovies(Pageable pageable) {
         Page<Movie> movies = movieService.getFiveLastAddedMovies(pageable);
         return ResponseEntity.ok(movies);
     }
 
+    @PreAuthorize("hasAnyRole('USER', ADMIN)")
     @GetMapping("/get-top-five-movies")
     public ResponseEntity<Page<Movie>> getTopFiveMovies(Pageable pageable) {
         Page<Movie> movies = movieService.getTopFiveMovies(pageable);
         return ResponseEntity.ok(movies);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/filter-movies")
     public ResponseEntity<Page<Movie>> getMovieByTitle(@PageableDefault Pageable page,
                                                        @RequestBody @Valid MovieFilterDto movieFilterDto) {
@@ -129,6 +142,7 @@ public class MovieController {
         return ResponseEntity.ok(movies);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/filter-movies-by-audio-languages")
     public ResponseEntity<Page<Movie>> filterByAudioLanguage(@PageableDefault Pageable page,
                                                              @RequestParam("languages") List<Long> languages) {

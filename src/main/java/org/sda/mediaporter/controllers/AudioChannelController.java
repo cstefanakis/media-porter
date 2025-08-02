@@ -6,6 +6,7 @@ import org.sda.mediaporter.dtos.AudioChannelDto;
 import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,30 +21,35 @@ public class AudioChannelController {
         this.audioChannelService = audioChannelService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public ResponseEntity<List<AudioChannel>> getAllAudioChannels(){
         List<AudioChannel> audioChannels = audioChannelService.getAllAudioChannels();
         return ResponseEntity.ok(audioChannels);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<AudioChannel> getAudioChannelById(@PathVariable("id") Long id){
         AudioChannel audioChannel = audioChannelService.getAudioChannelById(id);
         return ResponseEntity.ok(audioChannel);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/by-channels")
     public ResponseEntity<AudioChannel> getAudioChannelByChannels(@RequestParam("channels") Integer channels){
         AudioChannel audioChannel = audioChannelService.getAudioChannelByChannels(channels);
         return ResponseEntity.ok(audioChannel);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping()
     public ResponseEntity<AudioChannel> createAudioChannel(@RequestBody @Valid AudioChannelDto audioChannelDto){
         AudioChannel audioChannel = audioChannelService.createAudioChannel(audioChannelDto);
         return ResponseEntity.ok(audioChannel);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateAudioChannelById(@PathVariable("id") Long id,
                                                        @RequestBody AudioChannelDto audioChannelDto){
@@ -51,6 +57,7 @@ public class AudioChannelController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAudioChannelById(@PathVariable ("id") Long id){
         audioChannelService.deleteAudioChannelById(id);

@@ -6,6 +6,7 @@ import org.sda.mediaporter.dtos.GenreDto;
 import org.sda.mediaporter.models.Genre;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,30 +22,35 @@ public class GenreController {
         this.genreService = genreService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public ResponseEntity<List<Genre>> getAllGenres(){
         List<Genre> genres = genreService.getAllGenres();
         return ResponseEntity.ok(genres);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Genre> getGenreById(@PathVariable ("id") Long id){
         Genre genre = genreService.getGenreById(id);
         return ResponseEntity.ok(genre);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/by-title")
     public ResponseEntity<Genre> getGenreByTitle(@RequestParam ("title") String title){
         Genre genre = genreService.getGenreByTitle(title);
         return ResponseEntity.ok(genre);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping()
     public ResponseEntity<Genre> createGenre(@RequestBody @Valid GenreDto genreDto){
         Genre genre = genreService.createGenre(genreDto);
         return ResponseEntity.ok(genre);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateGenreById(@PathVariable ("id") Long id,
                                                 @RequestBody GenreDto genreDto){
@@ -52,6 +58,7 @@ public class GenreController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGenreById(@PathVariable ("id") Long id){
         genreService.deleteGenreById(id);

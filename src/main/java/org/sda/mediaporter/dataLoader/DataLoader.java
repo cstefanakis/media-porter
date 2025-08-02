@@ -1,7 +1,6 @@
 package org.sda.mediaporter.dataLoader;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.sda.mediaporter.config.SpringSecurityConfig;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
 import org.sda.mediaporter.models.enums.MediaTypes;

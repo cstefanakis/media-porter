@@ -4,7 +4,6 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.sda.mediaporter.Services.LanguageService;
 import org.sda.mediaporter.dtos.LanguageDto;
 import org.sda.mediaporter.models.Language;
@@ -24,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.*;
 //Integration Testing
 @SpringBootTest
 @ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LanguageServiceImplTest {
 
     @Autowired

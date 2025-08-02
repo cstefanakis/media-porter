@@ -1,5 +1,6 @@
 package org.sda.mediaporter.dtos;
 
+import lombok.Builder;
 import lombok.Getter;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.models.Country;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@Builder
 public class MovieFilterDto {
     private String title;
     private Integer year;

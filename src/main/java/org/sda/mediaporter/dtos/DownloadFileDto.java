@@ -1,13 +1,14 @@
 package org.sda.mediaporter.dtos;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.sda.mediaporter.models.DownloadFile;
 import org.sda.mediaporter.models.enums.LibraryItems;
 
 @Getter
-@NoArgsConstructor
+@Builder
 public class DownloadFileDto {
 
     @NotBlank(message = "url must not be blank")

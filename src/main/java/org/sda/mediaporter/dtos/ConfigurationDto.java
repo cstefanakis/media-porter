@@ -3,6 +3,7 @@ package org.sda.mediaporter.dtos;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.sda.mediaporter.models.Genre;
@@ -14,7 +15,8 @@ import org.sda.mediaporter.models.metadata.Resolution;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Builder
+//@NoArgsConstructor
 public class ConfigurationDto {
     private Long id;
 

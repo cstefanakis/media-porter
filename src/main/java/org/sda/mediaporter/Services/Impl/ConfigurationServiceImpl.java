@@ -94,7 +94,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
 
     private Configuration toEntity(ConfigurationDto configurationDto) {
-
         Configuration config = getConfiguration();
         config.setMaxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null? this.maxDaysToPast: configurationDto.getMaxDatesSaveFile());
         config.setMaxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null? 0: configurationDto.getMaxDatesControlFilesFromExternalSource());

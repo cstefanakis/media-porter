@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -28,19 +29,26 @@ public class CodecServiceImpl implements CodecService {
 
     @Override
     public Codec getCodecByNameAndMediaType(String codecName, MediaTypes mediaType) {
-        return codecRepository.findByNameAndMediaType(codecName, mediaType).orElseThrow(
-                ()-> new EntityNotFoundException(String.format("Codec not found with name %s and mediaType: %s", codecName, mediaType)));
+        return codecRepository.findByNameAndMediaType(codecName, mediaType)
+                .orElseThrow(
+                        ()-> new EntityNotFoundException(String.format("Codec not found with name %s and mediaType: %s", codecName, mediaType))
+                );
     }
 
     @Override
     public Codec getCodecById(Long id) {
-        return codecRepository.findById(id).orElseThrow(
-                ()-> new EntityNotFoundException(String.format("Codec with id %s not found", id)));
+        return codecRepository.findById(id)
+                .orElseThrow(
+                        ()-> new EntityNotFoundException(String.format("Codec with id %s not found", id))
+                );
     }
 
     @Override
     public Codec getCodecByName(String codecName) {
-        return codecRepository.findByName(codecName).orElseThrow(()-> new EntityNotFoundException(String.format("Codec with name: %s not exist", codecName)));
+        return codecRepository.findByName(codecName)
+                .orElseThrow(
+                        ()-> new EntityNotFoundException(String.format("Codec with name: %s not exist", codecName))
+                );
     }
 
     @Override
@@ -61,6 +69,16 @@ public class CodecServiceImpl implements CodecService {
             return codecRepository.save(toEntity(new Codec(), codecDto));
         }
         throw new EntityExistsException(String.format("Codec with name %s already exist", codecDto.getName()));
+    }
+
+    @Override
+    public Codec autoCreateCodec(String codecName, MediaTypes mediaType) {
+        Optional<Codec> codec = codecRepository.findByName(codecName);
+        return codec.orElseGet(() -> codecRepository.save(
+                Codec.builder()
+                        .name(codecName)
+                        .mediaType(mediaType)
+                        .build()));
     }
 
     @Override

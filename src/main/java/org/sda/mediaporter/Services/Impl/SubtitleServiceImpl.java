@@ -9,6 +9,8 @@ import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Subtitle;
+import org.sda.mediaporter.repositories.LanguageRepository;
+import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,78 +23,81 @@ import java.util.Optional;
 @Service
 public class SubtitleServiceImpl implements SubtitleService {
 
-    private final SubtitleRepository subtitleRepository;
-    private final LanguageService languageService;
+    private final CodecRepository codecRepository;
+    private final LanguageRepository languageRepository;
     private final CodecService codecService;
 
     @Autowired
-    public SubtitleServiceImpl(SubtitleRepository subtitleRepository, LanguageService languageService, CodecService codecService) {
-        this.subtitleRepository = subtitleRepository;
-        this.languageService = languageService;
+    public SubtitleServiceImpl(CodecRepository codecRepository, LanguageRepository languageRepository, CodecService codecService) {
+        this.codecRepository = codecRepository;
+        this.languageRepository = languageRepository;
         this.codecService = codecService;
     }
 
     @Override
-    public Subtitle createSubtitle(Subtitle subtitle) {
-        return subtitleRepository.save(subtitle);
-    }
-
-    @Override
     public List<Subtitle> createSubtitleListFromFile(Path file, Movie movie) {
-        List<Subtitle> subtitlesList = new ArrayList<>();
+        List<Subtitle> subtitles = new ArrayList<>();
         if(!subtitleInfo(file).isEmpty()) {
-            String[] subtitles = subtitleInfo(file).split("\n");
+            String[] subtitlesInfo = subtitleInfo(file).split("\n");
 
-            for (String subtitle : subtitles) {
-                //Output String subrip,eng
-                String[] properties = subtitle.split(",",-1);
-                String subtitleCodecName = properties[0].isEmpty() || properties[0].equals("N/A")? null : properties[0].replaceAll("[^a-zA-Z0-9]", "");
-                String languageCT = null;
-                try {
-                    languageCT = properties[1].isEmpty() || properties[1].equals("N/A") || properties[1].trim().equals("und")? null : properties[1].replaceAll("[^a-zA-Z0-9]", "");
-                } catch (Exception ignored) {
-                }
-                Codec subtitleCodec = subtitleCodecName == null? null : codecService.getCodecByNameAndMediaType(subtitleCodecName, MediaTypes.SUBTITLE);
-                Language language = getLanguage(languageCT);
-                subtitlesList.add(subtitleRepository.save(Subtitle.builder()
-                                .language(language)
-                                .format(subtitleCodec)
-                                .movie(movie)
-                        .build()));
+            for (String subtitle : subtitlesInfo) {
+                subtitles.add(Subtitle.builder()
+                                .format(getSubtitleCodec(subtitlesProperties(subtitle)))
+                                .language(getLanguage(subtitlesProperties(subtitle)))
+                        .build());
             }
 
-        }return subtitlesList;
+        }return subtitles;
     }
 
-    private Language getLanguage(String language){
+    private String[] subtitlesProperties(String subtitle){
+        String[] fileInfo =  subtitle.split(",", -1);
+        String[] properties = new String[2];
+        for(int i = 0 ; i < properties.length ; i++){
+            if(i < fileInfo.length){
+                properties[i] = fileInfo[i];
+            }else{
+                properties[i] = null;
+            }
+        }
+        return properties;
+    }
+
+    private Codec getSubtitleCodec(String[] subtitlesProperties) {
+        String subtitleCodec = subtitlesProperties[0];
+        if(subtitleCodec == null){
+            return null;
+        }
+
+        subtitleCodec = subtitleCodec.trim();
+        if(subtitleCodec.equalsIgnoreCase("N/A")){
+            return null;
+        }
+
+        subtitleCodec = subtitleCodec.replaceAll("[^a-zA-Z0-9]", "");
+        if(subtitleCodec.isBlank()){
+            return null;
+        }
+
+        String finalAudioCodec = subtitleCodec;
+        return codecRepository.findByNameAndMediaType(subtitleCodec, MediaTypes.SUBTITLE)
+                .orElseGet(() -> codecService.autoCreateCodec(finalAudioCodec, MediaTypes.SUBTITLE));
+    }
+
+    private Language getLanguage(String[] subtitlesProperties){
+        String language = subtitlesProperties[1];
         if(language == null){
             return null;
         }
-        try {
-            return languageService.getLanguageByCode(language);
-        } catch (EntityNotFoundException e1) {
-            try {
-                return languageService.getLanguageByTitle(language);
-            } catch (EntityNotFoundException e2) {
-                return null;
-            }
+
+        language = language.trim();
+        if(language.isEmpty()
+                || language.equalsIgnoreCase("N/A")
+                || language.equalsIgnoreCase("und")){
+            return null;
         }
-    }
 
-    @Override
-    public Subtitle updateMovieSubtitle(Long id, Subtitle subtitle, Movie movie) {
-        Optional<Subtitle> subtitleEntity = subtitleRepository.findById(id);
-        if (subtitleEntity.isPresent()) {
-            Subtitle subtitleToUpdate = subtitleEntity.get();
-            subtitleToUpdate.setMovie(movie);
-            subtitleRepository.save(toEntity(subtitleToUpdate, subtitle));
-        }throw new EntityNotFoundException(String.format("Subtitle with id %s not found", id));
-    }
-
-    private Subtitle toEntity(Subtitle toUpdateSubtitle, Subtitle subtitle) {
-        toUpdateSubtitle.setLanguage(subtitle.getLanguage() == null? toUpdateSubtitle.getLanguage() : subtitle.getLanguage());
-        toUpdateSubtitle.setFormat(subtitle.getFormat() == null? toUpdateSubtitle.getFormat() : subtitle.getFormat());
-        return toUpdateSubtitle;
+        return languageRepository.findByCodeOrTitle(language).orElse(null);
     }
 
     //Output String subrip,eng

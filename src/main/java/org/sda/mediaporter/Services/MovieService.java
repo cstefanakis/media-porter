@@ -26,6 +26,7 @@ public interface MovieService {
     Page<Movie> getMoviesFromPath(Pageable page, String path);
     Movie generateAndMoveMovieFile(Movie movie, Path destinationPath);
     Page <Movie> getFiveLastAddedMovies(Pageable pageable);
+//    Movie createMovie(Path file);
 
     Page<Movie> getTopFiveMovies(Pageable pageable);
 

@@ -71,8 +71,8 @@ public class SourcePathServiceImpl implements SourcePathService {
         for(SourcePath.PathType pathType : SourcePath.PathType.values()) {
             if(pathType != SourcePath.PathType.EXTERNAL) {
                 for (LibraryItems libraryItem : LibraryItems.values()) {
-                    Optional<SourcePath> movieDownloadSource = sourcePathRepository.findSourcePathByPathTypeAndMediaType(pathType, libraryItem);
-                    if (movieDownloadSource.isPresent() && updatedSourcePath.getPathType().equals(pathType) && updatedSourcePath.getLibraryItem().equals(libraryItem)) {
+                    List<SourcePath> movieDownloadSource = sourcePathRepository.findSourcePathByPathTypeAndLibraryItem(pathType, libraryItem);
+                    if (!movieDownloadSource.isEmpty() && updatedSourcePath.getPathType().equals(pathType) && updatedSourcePath.getLibraryItem().equals(libraryItem)) {
                         throw new EntityExistsException(String.format("Source path with type: %s and library item already: %s already exist", pathType, libraryItem));
                     }
                 }

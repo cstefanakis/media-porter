@@ -24,19 +24,6 @@ public class LanguageServiceImpl implements LanguageService {
     }
 
     @Override
-    public Language autoCreateLanguageByTitle(String title) {
-        Optional<Language> languageOptional = languageRepository.findByTitle(title.trim().toLowerCase());
-        if (languageOptional.isPresent()) {
-            return languageOptional.get();
-        }
-
-        if (!title.isEmpty()) {
-            return languageRepository.save(Language.builder().englishTitle(title).build());
-        }
-        return null;
-    }
-
-    @Override
     public List<Language> getAllLanguages() {
         return languageRepository.findAll();
     }
@@ -81,7 +68,6 @@ public class LanguageServiceImpl implements LanguageService {
     }
 
     private Language toEntity(Language language, LanguageDto languageDto){
-
         language.setEnglishTitle(validatedTitle(language.getEnglishTitle(), languageDto.getEnglishTitle()));
         language.setOriginalTitle(validatedTitle(language.getOriginalTitle(), languageDto.getOriginalTitle()));
         language.setIso6391(validatedCode(language.getIso6391(), languageDto.getIso6391()));

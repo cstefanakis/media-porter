@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 @Validated
@@ -38,6 +39,18 @@ public class ResolutionServiceImpl implements ResolutionService {
     @Override
     public Resolution createResolution(ResolutionDto resolutionDto) {
         return resolutionRepository.save(toEntity(new Resolution(), resolutionDto));
+    }
+
+    @Override
+    public Resolution autoCreateResolution(String resolution) {
+        return resolution == null
+                ? null
+                : resolutionRepository.findByName(resolution)
+                .orElseGet(() ->resolutionRepository.save
+                        (Resolution.builder()
+                                .name(resolution)
+                                .build())
+                );
     }
 
     @Override

@@ -54,6 +54,17 @@ public class CountryServiceImpl implements CountryService {
     }
 
     @Override
+    public Country autoCreateCountry(String country) {
+        return country == null
+                ? null
+                : countryRepository.findCountryByName(country)
+                .orElseGet(() -> countryRepository.save(
+                        Country.builder()
+                                .englishName(country)
+                                .build()));
+    }
+
+    @Override
     public void updateCountry(Long countryId, CountryDto countryDto) {
         Country country = getCountryById(countryId);
         countryRepository.save(toEntity(country, countryDto));
@@ -66,15 +77,13 @@ public class CountryServiceImpl implements CountryService {
     }
 
     private Country toEntity(Country country, CountryDto countryDto){
-        country.setIso2Code(validatedCode(country.getIso2Code(), countryDto.getIso2Code()));
-
-        country.setIso3Code(validatedCode(country.getIso3Code(), countryDto.getIso3Code()));
-
-        country.setEnglishName(validatedName(country.getEnglishName(), countryDto.getEnglishName()));
-
-        country.setNativeName(validatedName(country.getNativeName(), countryDto.getNativeName()));
-
-        return country;
+        return Country.builder()
+                .id(country.getId())
+                .iso2Code(validatedCode(country.getIso2Code(), countryDto.getIso2Code()))
+                .iso3Code(validatedCode(country.getIso3Code(), countryDto.getIso3Code()))
+                .englishName(validatedName(country.getEnglishName(), countryDto.getEnglishName()))
+                .nativeName(validatedName(country.getNativeName(), countryDto.getNativeName()))
+                .build();
     }
 
     private String validatedCode(String countryCode, String countryCodeDto){

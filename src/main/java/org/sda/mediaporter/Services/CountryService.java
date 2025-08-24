@@ -12,6 +12,7 @@ public interface CountryService {
     Country getCountryById(Long countryId);
     List<Country> getAllCountries();
     Country createCountry(@Valid CountryDto countryDto);
+    Country autoCreateCountry(String country);
     void updateCountry(Long countryId, CountryDto countryDto);
     void deleteCountryById(Long countryId);
 }

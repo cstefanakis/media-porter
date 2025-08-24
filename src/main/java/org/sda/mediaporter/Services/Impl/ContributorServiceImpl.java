@@ -3,7 +3,6 @@ package org.sda.mediaporter.Services.Impl;
 import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.Services.ContributorService;
 import org.sda.mediaporter.api.TheMovieDbContributor;
-import org.sda.mediaporter.dtos.ContributorDto;
 import org.sda.mediaporter.models.Contributor;
 import org.sda.mediaporter.repositories.ContributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,28 +40,21 @@ public class ContributorServiceImpl implements ContributorService {
     }
 
     @Override
-    public Contributor autoCreateContributor(ContributorDto contributorDto) {
-
-        TheMovieDbContributor apiContributor = new TheMovieDbContributor(contributorDto.getFullName());
-
-        String contributorName = apiContributor.getContributorName();
-
-        Optional<Contributor> contributor = contributorRepository.findByFullName(contributorName);
-
-        if(contributor.isEmpty()){
-            Contributor newContributor = generatedContributor(apiContributor);
-            if(newContributor.getFullName() != null){
-                return contributorRepository.save(newContributor);
-            }
+    public Contributor autoCreateContributor(String contributor) {
+        TheMovieDbContributor apiContributor = new TheMovieDbContributor(contributor);
+        try {
+            String contributorName = apiContributor.getContributorName();
+            return contributor == null || contributorName == null
+                    ? null
+                    : contributorRepository.findByFullName(contributor)
+                    .orElseGet(() -> contributorRepository.save(Contributor.builder()
+                            .fullName(contributorName)
+                            .poster(apiContributor.getContributorPoster())
+                            .website(apiContributor.getContributorWebsite())
+                            .build())
+                    );
+        }catch (RuntimeException e){
+            return null;
         }
-        return null;
-    }
-
-    private Contributor generatedContributor(TheMovieDbContributor apiContributor){
-        Contributor contributor = new Contributor();
-        contributor.setFullName(apiContributor.getContributorName());
-        contributor.setPoster(apiContributor.getContributorPoster());
-        contributor.setWebsite(apiContributor.getContributorWebsite());
-        return contributor;
     }
 }

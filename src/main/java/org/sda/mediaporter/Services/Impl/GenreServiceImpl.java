@@ -25,13 +25,13 @@ public class GenreServiceImpl implements GenreService {
     }
 
     public Genre autoCreateGenre(String title) {
-        if(title == null){
-            return null;
-        }
-        Optional <Genre> genreOptional = genreRepository.findGenreByTitle(title);
-        return genreOptional.orElseGet(() -> genreRepository.save(Genre.builder()
-                .title(capitalizeFirstLetter(title))
-                .build()));
+        return title == null
+                ? null
+                : genreRepository.findGenreByTitle(title)
+                .orElseGet(() -> genreRepository.save(
+                        Genre.builder()
+                                .title(capitalizeFirstLetter(title))
+                                .build()));
     }
 
     @Override

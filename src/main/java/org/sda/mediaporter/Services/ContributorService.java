@@ -9,5 +9,5 @@ public interface ContributorService {
     Contributor getContributorById(Long id);
     Contributor getContributorByFullName(String fullName);
     Page<Contributor> getAllContributors(Pageable pageable);
-    Contributor autoCreateContributor(ContributorDto contributorDto);
+    Contributor autoCreateContributor(String contributor);
 }

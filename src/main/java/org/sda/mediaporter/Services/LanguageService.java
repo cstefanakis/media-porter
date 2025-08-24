@@ -7,7 +7,6 @@ import org.sda.mediaporter.models.Language;
 import java.util.List;
 
 public interface LanguageService {
-    Language autoCreateLanguageByTitle(String title);
     List<Language> getAllLanguages();
     Language getLanguageByCode(String code);
     Language getLanguageByTitle(String languageTitle);

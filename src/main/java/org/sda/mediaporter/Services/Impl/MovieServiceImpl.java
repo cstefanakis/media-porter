@@ -1,6 +1,7 @@
 package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.json.JSONException;
 import org.sda.mediaporter.Services.*;
 import org.sda.mediaporter.api.OmdbApi;
@@ -11,6 +12,7 @@ import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.*;
 import org.sda.mediaporter.models.metadata.*;
+import org.sda.mediaporter.repositories.CountryRepository;
 import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.SourcePathRepository;
 import org.sda.mediaporter.repositories.MovieRepository;
@@ -45,6 +47,7 @@ public class MovieServiceImpl implements MovieService {
     private final LanguageService languageService;
     private final LanguageRepository languageRepository;
     private final MovieRepository movieRepository;
+    private final CountryRepository countryRepository;
     private final FileService fileService;
     private final AudioService audioService;
     private final VideoService videoService;
@@ -53,16 +56,18 @@ public class MovieServiceImpl implements MovieService {
     private final ConfigurationService configurationService;
     private final CodecRepository codecRepository;
     private final CountryService countryService;
+    private final CodecService codecService;
 
     private Integer year;
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, LanguageRepository languageRepository, MovieRepository movieRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, SourcePathRepository sourcePathRepository, ConfigurationService configurationService, CodecRepository codecRepository, CountryService countryService) {
+    public MovieServiceImpl(GenreService genreService, ContributorService contributorService, LanguageService languageService, LanguageRepository languageRepository, MovieRepository movieRepository, CountryRepository countryRepository, FileService fileService, AudioService audioService, VideoService videoService, SubtitleService subtitleService, SourcePathRepository sourcePathRepository, ConfigurationService configurationService, CodecRepository codecRepository, CountryService countryService, CodecService codecService) {
         this.genreService = genreService;
         this.contributorService = contributorService;
         this.languageService = languageService;
         this.languageRepository = languageRepository;
         this.movieRepository = movieRepository;
+        this.countryRepository = countryRepository;
         this.fileService = fileService;
         this.audioService = audioService;
         this.videoService = videoService;
@@ -71,16 +76,27 @@ public class MovieServiceImpl implements MovieService {
         this.configurationService = configurationService;
         this.codecRepository = codecRepository;
         this.countryService = countryService;
+        this.codecService = codecService;
     }
 
     @Override
     public Page<Movie> getMovies(Pageable pageable) {
         Page<Movie> movies =  movieRepository.findAll(pageable);
+
         for (Movie movie : movies) {
-            if(!Files.exists(Path.of(movie.getPath()))){
+            String moviePath = movie.getPath();
+
+            if(moviePath == null || moviePath.isEmpty()){
                 movieRepository.delete(movie);
             }
-        }return movies;
+            if(moviePath != null) {
+                if (!Files.exists(Path.of(moviePath))) {
+                    movieRepository.delete(movie);
+                }
+            }
+        }
+        movies = movieRepository.findAll(pageable);
+        return movies;
     }
 
     @Override
@@ -186,52 +202,36 @@ public class MovieServiceImpl implements MovieService {
         movie.setWriters(getContributors(omdbApi.getWriter()));
         movie.setActors(getContributors(omdbApi.getActors()));
         movie.setPlot(omdbApi.getPlot() == null || omdbApi.getPlot().equals("N/A")? theMovieDb.getOverview() : omdbApi.getPlot());
-        movie.setCountries(getCountries(omdbApi));
-        movie.setPoster(omdbApi.getPoster() == null || omdbApi.getPoster().equals("N/A") ? theMovieDb.getPoster() : omdbApi.getPoster());
+        movie.setCountries(getCountries(omdbApi.getCountries()));
+        movie.setPoster(omdbApi.getPoster() == null ? theMovieDb.getPoster() : omdbApi.getPoster());
         movie.setLanguages(getLanguagesByTitle(omdbApi.getLanguages()));
         return movie;
     }
 
-    private List<Country> getCountries(OmdbApi omdbApi){
-        String countriesFromMovie = omdbApi.getCountry();
-        if(countriesFromMovie == null){
-            return null;
-        }
-        System.out.println(countriesFromMovie);
-        String[] countries = countriesFromMovie.split(",");
-        try{
-            return Arrays.stream(countries).map(countryService::getCountryByName).toList();
-        }catch (EntityNotFoundException e) {
-            return Arrays.stream(countries).map(countryService::getCountryByCode).toList();
-        }
+    private List<Country> getCountries(List<String> apiCountries){
+        apiCountries.forEach(System.out::println);
+        return apiCountries.stream()
+                .map(c -> countryService.autoCreateCountry(c))
+                .toList();
     }
 
     private List<Genre> getGenres(List<String> apiGenres) {
-        List<Genre> genres = new ArrayList<>();
-        for (String genre : apiGenres){
-
-            genres.add(genreService.autoCreateGenre(genre));
-        }
-        return genres;
+        return apiGenres.stream()
+                .map(g -> genreService.autoCreateGenre(g))
+                .toList();
     }
 
     private List<Contributor> getContributors(List<String> apiContributors) {
-        List<Contributor> contributors = new ArrayList<>();
-        for (String contributor : apiContributors){
-            if(contributor != null){
-                ContributorDto contributorName = ContributorDto.builder().fullName(contributor).build();
-                contributors.add(contributorService.autoCreateContributor(contributorName));
-            }
-        }
-        return contributors;
+        return apiContributors.stream()
+                .map(c -> contributorService.autoCreateContributor(c))
+                .toList();
     }
 
     private List<Language> getLanguagesByTitle(List<String> apiLanguages) {
-        List<Language> languages = new ArrayList<>();
-        for (String language : apiLanguages){
-            languages.add(languageService.autoCreateLanguageByTitle(language));
-        }
-        return languages;
+        return apiLanguages.stream()
+                .map(l -> languageRepository.findByCodeOrTitle(l).orElse(null))
+                .filter(l -> l != null)
+                .toList();
     }
 
     @Override
@@ -269,6 +269,9 @@ public class MovieServiceImpl implements MovieService {
 
     //create movie with metadata options and details from api
     private void createMovie(Path file){
+        //create video properties
+        String codec = videoService.getCodecFromFilePathViFFMpeg(file);
+        codecService.autoCreateCodec(codec, MediaTypes.VIDEO);
         //get data for movie from Api
         Movie movie = getMovieFromApi(new Movie(), title(file.getFileName().toString()));
         movie.setModificationDate(getModificationTimeFromFile(file));
@@ -294,12 +297,23 @@ public class MovieServiceImpl implements MovieService {
 
     public Movie generateAndMoveMovieFile(Movie movie, Path destinationPath){
         Path moviePath = Path.of(movie.getPath());
-        String movieTitle = movie.getTitle() == null? "Untitled_Movies" : movie.getTitle();
+        String movieTitle = movie.getTitle() == null
+                ? "Untitled_Movies"
+                : movie.getTitle().replaceAll("[<>:\"/\\\\]", "");
+
         String moviePathExtension = fileService.getFileExtensionWithDot(moviePath);
+
         Path untitledDestinationPath = moviePath.resolve(movieTitle + File.separator + moviePath.getFileName());
-        Path destinationFullPath = movie.getTitle() == null? untitledDestinationPath : destinationPath.resolve(createGeneratedDirectories(destinationPath, movie) + File.separator + getGeneratedMovieFileName(movie) + moviePathExtension);
+
+        Path destinationFullPath = movie.getTitle() == null
+                ? untitledDestinationPath
+                : destinationPath.resolve(
+                        createGeneratedDirectories(destinationPath, movie) + File.separator + getGeneratedMovieFileName(movie) + moviePathExtension);
+
         fileService.moveFile(moviePath, getGeneratedMovieSubFolder(movieTitle, movie.getYear()), destinationFullPath);
+
         movie.setPath(destinationFullPath.toString());
+
         return movieRepository.save(movie);
 
     }
@@ -328,9 +342,7 @@ public class MovieServiceImpl implements MovieService {
         }
 
         List<Long> audioLanguages = movieFilterDto.getALanguageIds();
-//        if(audioLanguages == null){
-//            audioLanguages = languageService.getAllLanguages().stream().map(a -> a.getId()).toList();
-//        }
+
         return movieRepository.filterMovies(
                 page,
                 movieFilterDto.getTitle(),
@@ -354,23 +366,30 @@ public class MovieServiceImpl implements MovieService {
     public void moveMoviesFromDownloadPathsToMoviesPath() {
             try {
                 List<SourcePath> movieDownloadPaths = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.DOWNLOAD);
+
                 SourcePath moviesPath = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.SOURCE).getFirst();
+
                 for (SourcePath path : movieDownloadPaths) {
                     List<Path> videoFiles = fileService.getVideoFiles(Path.of(path.getPath()));
+                    videoFiles.forEach(System.out::println);
                     for (Path file : videoFiles) {
+
                         createGenerateAndMoveFile(file, moviesPath);
+
                     }
                 }
             }catch (NoSuchElementException e){
-                throw new RuntimeException("no sources sets");
+                throw new NoSuchElementException("no sources sets");
             }
     }
 
     private void createGenerateAndMoveFile(Path file, SourcePath moviesPath){
         Optional<Movie> movieFromDb = movieRepository.findByPath(file.toString());
+
         if (movieFromDb.isEmpty()) {
             createMovie(file);
         }
+
         Movie movie = movieRepository.findByPath(file.toString()).orElseThrow(() -> new RuntimeException("Movie not found for path: " + file));
         generateAndMoveMovieFile(movie, Path.of(moviesPath.getPath()));
     }
@@ -558,6 +577,9 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private String getVideoToString(Movie movie){
+        if(movie.getVideo() == null){
+            return "";
+        }
         String videoResolution = movie.getVideo().getResolution() == null ? "" : movie.getVideo().getResolution().getName();
         String videoCodec = movie.getVideo().getCodec() == null ? "" : movie.getVideo().getCodec().getName();
         return videoResolution.isEmpty() && videoCodec.isEmpty() ? "" :
@@ -565,6 +587,9 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private String getAudioToString(Movie movie){
+        if(movie.getAudios() == null){
+            return "";
+        }
         try {
             return movie.getAudios() == null || movie.getAudios().isEmpty() ? "" :
                     String.format(" (%s)", getLanguagesToString(movie.getAudios()));

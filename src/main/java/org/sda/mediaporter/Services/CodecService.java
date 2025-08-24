@@ -14,6 +14,7 @@ public interface CodecService {
     List<Codec> getAllCodecs();
     List<Codec> getByMediaType(MediaTypes mediaType);
     Codec createCodec(@Valid CodecDto codecDto);
+    Codec autoCreateCodec(String codecName, MediaTypes mediaType);
     void updateCodec(Long codecId, CodecDto codecDto);
     void deleteCodec(Long codecId);
 }

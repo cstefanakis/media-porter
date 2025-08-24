@@ -27,11 +27,11 @@ public class Audio {
     @JoinColumn(name = "audio_channel_ids")
     private AudioChannel audioChannel;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "codec_ids")
     private Codec codec;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "language_ids")
     private Language language;
 

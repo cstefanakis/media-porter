@@ -11,12 +11,25 @@ import java.util.Optional;
 @Repository
 public interface CountryRepository extends JpaRepository<Country, Long> {
     @Query("""
-    SELECT c FROM Country c 
-    WHERE LOWER(TRIM(c.iso2Code)) = LOWER(TRIM(:code)) 
+    SELECT c FROM Country c
+    WHERE LOWER(TRIM(c.iso2Code)) = LOWER(TRIM(:code))
        OR LOWER(TRIM(c.iso3Code)) = LOWER(TRIM(:code))
     """)
     Optional<Country> findCountryByCode(@Param("code") String code);
 
-    @Query("select c from Country c where lower(trim(c.englishName)) = lower(trim(:countryName)) or lower(trim(c.nativeName)) = lower(trim(:countryName))")
+    @Query("""
+            SELECT c FROM Country c
+            WHERE LOWER(TRIM(c.englishName)) = LOWER(TRIM(:countryName))
+                OR LOWER(TRIM(c.nativeName)) = LOWER(TRIM(:countryName))
+           """)
     Optional<Country> findCountryByName(@Param ("countryName") String countryName);
+
+    @Query("""
+            SELECT c FROM Country c
+            WHERE LOWER(TRIM(c.englishName)) = LOWER(TRIM(:country))
+                OR LOWER(TRIM(c.nativeName)) = LOWER(TRIM(:country))
+                OR LOWER(TRIM(c.iso2Code)) = LOWER(TRIM(:country))
+                OR LOWER(TRIM(c.iso3Code)) = LOWER(TRIM(:country))
+           """)
+    Optional<Country> findCountryByNameOrCode(@Param ("country") String country);
 }

@@ -88,14 +88,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public void updateConfiguration(ConfigurationDto configurationDto) {
-        System.out.println(configurationDto.getMaxDatesControlFilesFromExternalSource());
         Configuration configuration = toEntity(configurationDto);
         configurationRepository.save(configuration);
     }
 
 
     private Configuration toEntity(ConfigurationDto configurationDto) {
-
         Configuration config = getConfiguration();
         config.setMaxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null? this.maxDaysToPast: configurationDto.getMaxDatesSaveFile());
         config.setMaxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null? 0: configurationDto.getMaxDatesControlFilesFromExternalSource());

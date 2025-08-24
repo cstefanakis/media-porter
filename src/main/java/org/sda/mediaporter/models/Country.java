@@ -18,16 +18,16 @@ public class Country {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "iso_2_codes", nullable = false, length = 2, unique = true)
+    @Column(name = "iso_2_codes", length = 2, unique = true)
     private String iso2Code;
 
-    @Column(name = "iso_3_codes", nullable = false, length = 3, unique = true)
+    @Column(name = "iso_3_codes",length = 3, unique = true)
     private String iso3Code;
 
     @Column(name = "english_names", nullable = false)
     private String englishName;
 
-    @Column(name = "native_names", nullable = false)
+    @Column(name = "native_names")
     private String nativeName;
 
 }

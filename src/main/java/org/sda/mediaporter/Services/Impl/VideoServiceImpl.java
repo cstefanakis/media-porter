@@ -8,6 +8,8 @@ import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.models.metadata.Video;
+import org.sda.mediaporter.repositories.metadata.CodecRepository;
+import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.sda.mediaporter.repositories.metadata.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,18 +18,23 @@ import java.lang.module.ResolutionException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class VideoServiceImpl implements VideoService {
     private final VideoRepository videoRepository;
     private final CodecService codecService;
     private final ResolutionService resolutionService;
+    private final ResolutionRepository resolutionRepository;
+    private final CodecRepository codecRepository;
 
     @Autowired
-    public VideoServiceImpl(VideoRepository videoRepository, CodecService codecService, ResolutionService resolutionService) {
+    public VideoServiceImpl(VideoRepository videoRepository, CodecService codecService, ResolutionService resolutionService, ResolutionRepository resolutionRepository, CodecRepository codecRepository) {
         this.videoRepository = videoRepository;
         this.codecService = codecService;
         this.resolutionService = resolutionService;
+        this.resolutionRepository = resolutionRepository;
+        this.codecRepository = codecRepository;
     }
 
     @Override
@@ -41,31 +48,87 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public Video getVideoFromPath(Path file) {
-        if(!videoInfo(file).isEmpty()) {
-            String[] properties = videoInfo(file).split(",", -1);
-            try {
-                String codecName = properties[0].isEmpty()  || properties[0].trim().equals("N/A")? null : properties[0].replaceAll("[^a-zA-Z0-9]", "");
-                Integer resolutionHeight = properties[1].isEmpty() || properties[1].trim().equals("N/A") ? null : Integer.parseInt(properties[1].replaceAll("[^a-zA-Z0-9]", ""));
-                Integer videoBitrate = properties[2].isEmpty() || properties[2].trim().equals("N/A") ? null : Integer.parseInt(properties[2].replaceAll("[^a-zA-Z0-9]", ""));
-
-                Codec videoCodec = codecName == null? null : codecService.getCodecByNameAndMediaType(codecName, MediaTypes.VIDEO);
-                Resolution resolution = generatedResolution(resolutionHeight);
-                Integer videoBitrateKbps = videoBitrate == null? null: videoBitrate / 1000;
-
-                return Video.builder()
-                        .codec(videoCodec)
-                        .resolution(resolution)
-                        .bitrate(videoBitrateKbps)
-                        .build();
-            }catch (ResolutionException e){
-                return null;
-            }
-
-        }return null;
+    public String getCodecFromFilePathViFFMpeg(Path file) {
+        return validatedProperties(file, 0);
     }
 
-    private Resolution generatedResolution(Integer height){
+    @Override
+    public String getResolutionFromFilePathViFFMpeg(Path file) {
+         Integer height = parseValidatedPropertiesToInteger(file, 1);
+         return generatedResolutionByHeight(height);
+    }
+
+    @Override
+    public Integer getBitrateFromFilePathViFFMpeg(Path file) {
+        Integer bitrate =  parseValidatedPropertiesToInteger(file, 2);
+        return bitrate != null?
+                bitrate / 1000
+                :null;
+    }
+
+    private String[] videoProperties(Path file){
+        String videoInfo = videoInfo(file);
+
+        if(videoInfo.isEmpty()) {
+            return null;
+        }
+
+        String[] videoPropertiesSplit = videoInfo.split(",", -1);
+
+        if(videoPropertiesSplit.length > 3){
+            return null;
+        }
+
+        String[] videoProperties = new String[3];
+
+        System.arraycopy(videoPropertiesSplit, 0, videoProperties, 0, videoPropertiesSplit.length);
+
+        return videoProperties;
+    }
+
+    private String validatedProperties(Path file, int length){
+        String [] videoProperties = videoProperties(file);
+        if(videoProperties == null || videoProperties[length] == null){
+            return null;
+        }
+
+        String resolution = videoProperties[length].trim().toLowerCase();
+
+        return switch (resolution) {
+            case "", "n/a" -> null;
+            default -> resolution.replaceAll("[^a-zA-Z0-9]", "");
+        };
+
+    }
+
+    private Integer parseValidatedPropertiesToInteger(Path file, int length){
+        String property = validatedProperties(file, length);
+        return property == null
+                ? null
+                : Integer.parseInt(property);
+    }
+
+    @Override
+    public Video getVideoFromPath(Path file) {
+        String propertyCodec = getCodecFromFilePathViFFMpeg(file);
+        String propertyResolution = getResolutionFromFilePathViFFMpeg(file);
+        Integer propertyBitrateKbps = getBitrateFromFilePathViFFMpeg(file);
+
+        Codec codec = codecService.autoCreateCodec(propertyCodec, MediaTypes.VIDEO);
+        Resolution resolution = resolutionService.autoCreateResolution(propertyResolution);
+
+        return propertyCodec == null
+                && propertyResolution == null
+                && propertyBitrateKbps == null
+                ? null
+                : Video.builder()
+                    .codec(codec)
+                    .resolution(resolution)
+                    .bitrate(propertyBitrateKbps)
+                .build();
+    }
+
+    private String generatedResolutionByHeight(Integer height){
         if(height == null){
             return null;
         }
@@ -84,7 +147,7 @@ public class VideoServiceImpl implements VideoService {
             System.out.println("resolution height: " + height);
             if(height > entity.getKey()){
                 System.out.println(entity.getKey());
-                return resolutionService.getResolutionByName(entity.getValue());
+                return entity.getValue();
             }
         }
         return null;

@@ -12,17 +12,27 @@ import java.util.Optional;
 public interface LanguageRepository extends JpaRepository<Language, Long> {
 
     @Query("""
-    SELECT l FROM Language l 
-        WHERE LOWER(TRIM(l.englishTitle)) = LOWER(TRIM(:languageTitle)) 
-        OR LOWER(TRIM(l.originalTitle)) = LOWER(TRIM(:languageTitle))
+    SELECT l FROM Language l
+        WHERE  LOWER(TRIM(l.englishTitle)) = LOWER(TRIM(:languageTitle)) 
+            OR LOWER(TRIM(l.originalTitle)) = LOWER(TRIM(:languageTitle))
     """)
     Optional<Language> findByTitle(@Param("languageTitle") String languageTitle);
 
     @Query("""
     SELECT l FROM Language l
         WHERE LOWER(TRIM(l.iso6391)) = LOWER(TRIM(:code))
-        OR LOWER(TRIM(l.iso6392B)) = LOWER(TRIM(:code))
-        OR LOWER(TRIM(l.iso6392T)) = LOWER(TRIM(:code))
+            OR LOWER(TRIM(l.iso6392B)) = LOWER(TRIM(:code))
+            OR LOWER(TRIM(l.iso6392T)) = LOWER(TRIM(:code))
     """)
     Optional<Language> findByCode(@Param("code") String code);
+
+    @Query("""
+        SELECT l FROM Language l
+        WHERE LOWER(TRIM(l.iso6391)) = LOWER(TRIM(:codeOrTitle))
+            OR LOWER(TRIM(l.iso6392B)) = LOWER(TRIM(:codeOrTitle))
+            OR LOWER(TRIM(l.iso6392T)) = LOWER(TRIM(:codeOrTitle))
+            OR LOWER(TRIM(l.englishTitle)) = LOWER(TRIM(:codeOrTitle))
+            OR LOWER(TRIM(l.originalTitle)) = LOWER(TRIM(:codeOrTitle))
+     """)
+    Optional<Language> findByCodeOrTitle(@Param("codeOrTitle") String codeOrTitle);
 }

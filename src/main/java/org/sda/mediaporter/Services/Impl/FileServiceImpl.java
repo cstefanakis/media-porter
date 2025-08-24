@@ -28,22 +28,26 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<Path> getVideoFiles(Path path){
-        return getVideoFilesOfSource(path);
+        try{
+            return Files.walk(path).filter(file -> isVideoExtension(file.getFileName().toString())).toList();
+        }catch (IOException e){
+            return List.of();
+        }
     }
 
 
     @Override
-    public void copyFile(Path fromFullPath, Path toFullPath) {
-        Path prepareFullPath = toFullPath.resolveSibling(toFullPath.getFileName() + ".copy");
-        if((Files.exists(toFullPath) && !isSameSizeBetweenTowFiles(fromFullPath,toFullPath)) ||
-                !Files.exists(toFullPath)){
+    public void copyFile(Path filePath, Path destinationFilePath) {
+        Path prepareFullPath = destinationFilePath.resolveSibling(destinationFilePath.getFileName() + ".copy");
+        if((Files.exists(destinationFilePath) && !isSameSizeBetweenTowFiles(filePath,destinationFilePath)) ||
+                !Files.exists(destinationFilePath)){
             try {
-                Files.copy(fromFullPath, prepareFullPath);
+                Files.copy(filePath, prepareFullPath);
                 FileTime now = localDateTimeToFileTime(LocalDateTime.now());
                 Files.setLastModifiedTime(prepareFullPath, now);
-                Files.move(prepareFullPath, toFullPath);
+                Files.move(prepareFullPath, destinationFilePath);
             } catch (IOException e) {
-                throw new RuntimeException(String.format("Failed to copy file %s to %s", fromFullPath, toFullPath));
+                throw new RuntimeException(String.format("Failed to copy file %s to %s", filePath, destinationFilePath));
             }
         }
     }
@@ -144,16 +148,6 @@ public class FileServiceImpl implements FileService {
         return "";
     }
 
-    //scan files
-    @Override
-    public List<Path> getVideoFilesOfSource(Path path){
-        try{
-            return Files.walk(path).filter(file -> isVideoExtension(file.getFileName().toString())).toList();
-        }catch (IOException e){
-            return List.of();
-        }
-    }
-
     @Override
     public Path createdDirectories(Path sourcePath, String[] directories) {
         StringBuilder path = new StringBuilder();
@@ -181,14 +175,6 @@ public class FileServiceImpl implements FileService {
                 return true;
             }
         }return false;
-    }
-
-    public static Integer convertStringToInt(String string){
-        Pattern pattern = Pattern.compile("^\\d+$");
-        Matcher matcher = pattern.matcher(string.trim());
-        if(matcher.matches()){
-            return Integer.parseInt(matcher.group());
-        }return null;
     }
 
     public static String runCommand(String[] command) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,6 +19,7 @@ import org.sda.mediaporter.models.metadata.Video;
 
 @Data
 @Entity
+@Builder
 @Table(name = "movies")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -47,9 +49,9 @@ public class Movie {
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
-    private List<Genre> genres = new ArrayList<>();
+    private List<Genre> genres;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_directors",
             joinColumns = @JoinColumn(name = "movie_ids"),
@@ -57,7 +59,7 @@ public class Movie {
     )
     private List<Contributor> directors;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_writers",
             joinColumns = @JoinColumn(name = "movie_ids"),
@@ -65,7 +67,7 @@ public class Movie {
     )
     private List<Contributor> writers;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_actors",
             joinColumns = @JoinColumn(name = "movie_ids"),
@@ -76,7 +78,7 @@ public class Movie {
     @Column(name = "plots", columnDefinition = "TEXT")
     private String plot;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_countries",
             joinColumns = @JoinColumn(name = "movie_id"),
@@ -87,7 +89,7 @@ public class Movie {
     @Column(name = "posters")
     private String poster;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_languages",
             joinColumns = @JoinColumn(name = "movie_ids"),
@@ -95,17 +97,26 @@ public class Movie {
     )
     private List<Language> languages;
 
-    @OneToOne(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "movie"
+            ,fetch = FetchType.EAGER
+            ,cascade = CascadeType.ALL
+            ,orphanRemoval = true)
     @JsonManagedReference
     private Video video;
 
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "movie"
+            ,fetch = FetchType.EAGER
+            ,cascade = CascadeType.ALL
+            ,orphanRemoval = true)
     @JsonManagedReference
     private List<Audio> audios;
 
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "movie"
+            ,fetch = FetchType.EAGER
+            ,cascade = CascadeType.ALL
+            ,orphanRemoval = true)
     @JsonManagedReference
-    private List<Subtitle> subtitles = new ArrayList<>();
+    private List<Subtitle> subtitles;
 
     @Column(name = "paths")
     private String path;

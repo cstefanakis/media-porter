@@ -40,125 +40,98 @@ public class OmdbApi {
     }
 
     public Integer getYear(){
+        if(!rootObject().has("Year")){
+            return null;
+        }
         return rootObject().getInt("Year");
     }
 
     public LocalDate getReleasedDate(){
-
-            String date = rootObject().getString("Released");
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
-            if (date != null && !date.isEmpty() && !date.equalsIgnoreCase("N/A")){
-                return LocalDate.parse(date, formatter);
-            }
+        if(!rootObject().has("Released")){
             return null;
+        }
 
+        String date = rootObject().getString("Released");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
+        return date != null && !date.isEmpty() && !date.equalsIgnoreCase("N/A")
+                ? LocalDate.parse(date, formatter)
+                : null;
     }
 
     public List<String> getGenre(){
-
-            List<String> genres = new ArrayList<>();
-            String[] apiGenres = rootObject().getString("Genre")
-                    .replace(" ", "")
-                    .split(",");
-            Collections.addAll(genres, apiGenres);
-            return genres.stream().filter(g-> !g.equalsIgnoreCase("N/A")).toList();
-
+        return getApiProperties("Genre");
     }
 
     public List<String> getDirector(){
-        if(rootObject().has("Director")) {
-            String[] directors = rootObject().getString("Director")
-                    .split(",");
-            return Arrays.stream(directors).filter(d-> !d.equalsIgnoreCase("N/A")).toList();
-        }
-        return Collections.emptyList();
+        return getApiProperties("Director");
     }
+
     public List<String> getWriter(){
-        if(rootObject().has("Writer")) {
-            String[] writers = rootObject().getString("Writer")
-                    .replace(", ", ",")
-                    .split(",");
-            return Arrays.stream(writers).filter(w-> !w.equalsIgnoreCase("N/A")).toList();
-        }
-        return Collections.emptyList();
+        return getApiProperties("Writer");
     }
 
     public List<String> getActors(){
-        if(rootObject().has("Actors")){
-            String[] actors =  rootObject().getString("Actors")
-                    .replace(", ", ",")
-                    .split(",");
-            return Arrays.stream(actors).filter(a-> !a.equalsIgnoreCase("N/A")).toList();
-        }
-        return Collections.emptyList();
+        return getApiProperties("Actors");
     }
 
     public String getPlot(){
-        if(rootObject().has("Plot")){
-            String plot = rootObject().getString("Plot");
-            if(!plot.equalsIgnoreCase("N/A")){
-                return plot;
-            }
-        }
-        return null;
+        return getApiProperty("Plot");
     }
 
     public List<String> getLanguages(){
-            String[] languages = rootObject().getString("Language")
-                    .replace(" ", "")
-                    .split(",");
-
-            return Arrays.stream(languages).filter(l-> !l.equals("N/A")).toList();
+        return getApiProperties("Language");
     }
 
-    public String getCountry(){
-        if(rootObject().has("Country")) {
-            String country = rootObject().getString("Country");
-            if(!country.equalsIgnoreCase("N/A")){
-                return country;
-            }
-        }
-        return null;
+    public List<String> getCountries(){
+        return getApiProperties("Country");
     }
 
     public String getPoster(){
-        if(rootObject().has("Poster")) {
-            String poster =  rootObject().getString("Poster");
-            if(!poster.equalsIgnoreCase("N/A")){
-                return poster;
-            }
-        }
-        return null;
+        return getApiProperty("Poster");
     }
     public Double getImdbRating(){
         if(rootObject().has("imdbRating")){
-            String rate = rootObject().getString("imdbRating");
-            if (rate != null && !rate.isEmpty() && !rate.equalsIgnoreCase("N/A")){
-                return rootObject().getDouble("imdbRating");
-            }
-            return  null;
+            return null;
         }
-        return null;
+
+        return rootObject().getDouble("imdbRating");
     }
 
     public String getType(){
-        if(rootObject().has("Type")){
-            String type = rootObject().getString("Type");
-            if(!type.equalsIgnoreCase("N/A")){
-                return type;
-            }
-        }
-        return null;
+        return getApiProperty("Type");
     }
 
     public String getBoxOffice(){
-        if(rootObject().has("BoxOffice")){
-            String boxOffice = rootObject().getString("BoxOffice");
-            if(!boxOffice.equalsIgnoreCase("N/A")){
-                return boxOffice;
-            }
+        return getApiProperty("BoxOffice");
+    }
+
+    private String getApiProperty(String apiProperty){
+        if(rootObject().has(apiProperty)) {
+            return null;
         }
-        return null;
+
+        String property =  rootObject().getString(apiProperty);
+        return property.equalsIgnoreCase("N/A")
+                ? null
+                : property;
+    }
+
+    private List<String> getApiProperties(String property){
+        if(!rootObject().has(property)){
+            return null;
+        }
+
+        String[] properties = rootObject().getString(property)
+                .split(",");
+
+        List<String> propertiesList =  Arrays.stream(properties)
+                .filter(c -> !c.equalsIgnoreCase("N/A"))
+                .map(c -> c.trim())
+                .toList();
+
+        return propertiesList.isEmpty()
+                ? null
+                :propertiesList;
     }
 
 }

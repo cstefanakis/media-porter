@@ -6,6 +6,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -30,5 +31,9 @@ public class ApiConnect {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public JSONObject getRootObject(ApiConnect api){
+        return new JSONObject(api.getJsonString());
     }
 }

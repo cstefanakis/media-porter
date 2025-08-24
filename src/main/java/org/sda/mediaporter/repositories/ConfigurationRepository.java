@@ -15,22 +15,40 @@ import java.util.List;
 
 @Repository
 public interface ConfigurationRepository extends JpaRepository<Configuration, Long> {
-    @Query("select c.genres from Configuration c where c = :configuration")
+    @Query("""
+            SELECT c.genres FROM Configuration c
+                WHERE c = :configuration
+            """)
     List<Genre> findGenresFromConfiguration(@Param("configuration") Configuration configuration);
 
-    @Query("select c.videoCodecs from Configuration c where c = :configuration")
+    @Query("""
+            SELECT c.videoCodecs FROM Configuration c
+                WHERE c = :configuration
+            """)
     List<Codec> findVideoCodecsFromConfiguration(@Param("configuration") Configuration configuration);
 
-    @Query("select c.audioCodecs from Configuration c where c = :configuration")
+    @Query("""
+        SELECT c.audioCodecs FROM Configuration c
+            WHERE c = :configuration
+        """)
     List<Codec> findAudioCodecsFromConfiguration(@Param("configuration") Configuration configuration);
 
-    @Query("select c.audioChannels from Configuration c where c = :configuration")
+    @Query("""
+        SELECT c.audioChannels FROM Configuration c
+            WHERE c = :configuration
+        """)
     List<AudioChannel> findAudioChannelsFromConfiguration(@Param("configuration") Configuration configuration);
 
-    @Query("select c.audioLanguages from Configuration c where c = :configuration")
+    @Query("""
+        SELECT c.audioLanguages FROM Configuration c
+            WHERE c = :configuration
+        """)
     List<Language> findLanguagesFromConfiguration(@Param("configuration") Configuration configuration);
 
-    @Query("select c.videoResolutions from Configuration c where c = :configuration")
+    @Query("""
+        SELECT c.videoResolutions FROM Configuration c
+            WHERE c = :configuration
+        """)
     List<Resolution> findVideoResolutionsFromConfiguration(@Param("configuration") Configuration configuration);
 
 }

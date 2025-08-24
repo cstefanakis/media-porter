@@ -104,7 +104,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000","eng"};
 
         //Act
-        Codec audioCodec = audioService.getAudioCodec(audioProperties);
+        Codec audioCodec = audioService.getAudioCodec(audioProperties[0]);
 
         //Assert
         assertNotNull(audioCodec.getId());
@@ -118,7 +118,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"mp3", "2","128000","eng"};
 
         //Act
-        Codec audioCodec = audioService.getAudioCodec(audioProperties);
+        Codec audioCodec = audioService.getAudioCodec(audioProperties[0]);
 
         //Assert
         assertNotNull(audioCodec.getId());
@@ -132,7 +132,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"a-a/ c", "2","128000","eng"};
 
         //Act
-        Codec audioCodec = audioService.getAudioCodec(audioProperties);
+        Codec audioCodec = audioService.getAudioCodec(audioProperties[0]);
 
         //Assert
         assertNotNull(audioCodec.getId());
@@ -146,7 +146,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"N/A", "2","128000","eng"};
 
         //Act
-        Codec audioCodec = audioService.getAudioCodec(audioProperties);
+        Codec audioCodec = audioService.getAudioCodec(audioProperties[0]);
 
         //Assert
         assertNull(audioCodec);
@@ -158,7 +158,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"", "2","128000","eng"};
 
         //Act
-        Codec audioCodec = audioService.getAudioCodec(audioProperties);
+        Codec audioCodec = audioService.getAudioCodec(audioProperties[0]);
 
         //Assert
         assertNull(audioCodec);
@@ -170,7 +170,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{null, "2","128000","eng"};
 
         //Act
-        Codec audioCodec = audioService.getAudioCodec(audioProperties);
+        Codec audioCodec = audioService.getAudioCodec(audioProperties[0]);
 
         //Assert
         assertNull(audioCodec);
@@ -182,7 +182,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000","eng"};
 
         //Act
-        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties);
+        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties[1]);
 
         //Assert
         assertNotNull(audioChannel.getId());
@@ -197,7 +197,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "5","128000","eng"};
 
         //Act
-        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties);
+        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties[1]);
         //Assert
         assertNotNull(audioChannel.getId());
         assertEquals(5, audioChannel.getChannels());
@@ -211,7 +211,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", " 2-","128000","eng"};
 
         //Act
-        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties);
+        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties[1]);
 
         //Assert
         assertNotNull(audioChannel.getId());
@@ -226,7 +226,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "N/A","128000","eng"};
 
         //Act
-        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties);
+        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties[1]);
 
         //Assert
         assertNull(audioChannel);
@@ -238,7 +238,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "","128000","eng"};
 
         //Act
-        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties);
+        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties[1]);
 
         //Assert
         assertNull(audioChannel);
@@ -250,7 +250,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", null,"128000","eng"};
 
         //Act
-        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties);
+        AudioChannel audioChannel = audioService.getAudioChannel(audioProperties[1]);
 
         //Assert
         assertNull(audioChannel);
@@ -266,7 +266,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000","eng"};
 
         //Act
-        Integer bitrate = audioService.getAudioBitrate(audioProperties);
+        Integer bitrate = audioService.getAudioBitrate(audioProperties[2]);
 
         //Assert
         assertEquals(128, bitrate);
@@ -278,7 +278,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2"," 128-00 0 ","eng"};
 
         //Act
-        Integer bitrate = audioService.getAudioBitrate(audioProperties);
+        Integer bitrate = audioService.getAudioBitrate(audioProperties[2]);
 
         //Assert
         assertEquals(128, bitrate);
@@ -290,7 +290,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","N/A","eng"};
 
         //Act
-        Integer bitrate = audioService.getAudioBitrate(audioProperties);
+        Integer bitrate = audioService.getAudioBitrate(audioProperties[2]);
 
         //Assert
         assertNull(bitrate);
@@ -302,7 +302,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","","eng"};
 
         //Act
-        Integer bitrate = audioService.getAudioBitrate(audioProperties);
+        Integer bitrate = audioService.getAudioBitrate(audioProperties[2]);
 
         //Assert
         assertNull(bitrate);
@@ -314,7 +314,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2",null,"eng"};
 
         //Act
-        Integer bitrate = audioService.getAudioBitrate(audioProperties);
+        Integer bitrate = audioService.getAudioBitrate(audioProperties[2]);
 
         //Assert
         assertNull(bitrate);
@@ -327,7 +327,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000","spa"};
 
         //Act
-        Language language = audioService.getAudioLanguageByCode(audioProperties);
+        Language language = audioService.getAudioLanguageByCode(audioProperties[3]);
 
         //Assert
         assertNotNull(language.getId());
@@ -344,7 +344,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000","es"};
 
         //Act
-        Language language = audioService.getAudioLanguageByCode(audioProperties);
+        Language language = audioService.getAudioLanguageByCode(audioProperties[3]);
 
         //Assert
         assertNotNull(language.getId());
@@ -361,7 +361,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000","Spanish"};
 
         //Act
-        Language language = audioService.getAudioLanguageByCode(audioProperties);
+        Language language = audioService.getAudioLanguageByCode(audioProperties[3]);
 
         //Assert
         assertNotNull(language.getId());
@@ -378,7 +378,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000","Español"};
 
         //Act
-        Language language = audioService.getAudioLanguageByCode(audioProperties);
+        Language language = audioService.getAudioLanguageByCode(audioProperties[3]);
 
         //Assert
         assertNotNull(language.getId());
@@ -395,7 +395,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"mp3", "2","128000","FI"};
 
         //Act
-        Language language = audioService.getAudioLanguageByCode(audioProperties);
+        Language language = audioService.getAudioLanguageByCode(audioProperties[3]);
 
         //Assert
         assertNull(language);
@@ -407,7 +407,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000","N/A"};
 
         //Act
-        Language language = audioService.getAudioLanguageByCode(audioProperties);
+        Language language = audioService.getAudioLanguageByCode(audioProperties[3]);
 
         //Assert
         assertNull(language);
@@ -419,7 +419,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000",""};
 
         //Act
-        Language language = audioService.getAudioLanguageByCode(audioProperties);
+        Language language = audioService.getAudioLanguageByCode(audioProperties[3]);
 
         //Assert
         assertNull(language);
@@ -431,7 +431,7 @@ class AudioServiceTest {
         String[] audioProperties = new String[]{"aac", "2","128000",null};
 
         //Act
-        Language language = audioService.getAudioLanguageByCode(audioProperties);
+        Language language = audioService.getAudioLanguageByCode(audioProperties[3]);
 
         //Assert
         assertNull(language);

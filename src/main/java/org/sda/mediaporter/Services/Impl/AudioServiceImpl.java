@@ -32,17 +32,15 @@ public class AudioServiceImpl implements AudioService {
     private final AudioRepository audioRepository;
     private final CodecService codecService;
     private final CodecRepository codecRepository;
-    private final LanguageService languageService;
     private final LanguageRepository languageRepository;
     private final AudioChannelService audioChannelService;
     private final AudioChannelRepository audioChannelRepository;
 
     @Autowired
-    public AudioServiceImpl(AudioRepository audioRepository, CodecService codecService, CodecRepository codecRepository, LanguageService languageService, LanguageRepository languageRepository, AudioChannelService audioChannelService, AudioChannelRepository audioChannelRepository) {
+    public AudioServiceImpl(AudioRepository audioRepository, CodecService codecService, CodecRepository codecRepository, LanguageRepository languageRepository, AudioChannelService audioChannelService, AudioChannelRepository audioChannelRepository) {
         this.audioRepository = audioRepository;
         this.codecService = codecService;
         this.codecRepository = codecRepository;
-        this.languageService = languageService;
         this.languageRepository = languageRepository;
         this.audioChannelService = audioChannelService;
         this.audioChannelRepository = audioChannelRepository;
@@ -66,10 +64,10 @@ public class AudioServiceImpl implements AudioService {
             for(String audio : audioInfoArray) {
                 //Create array for all properties in audio
                 audios.add((Audio.builder()
-                        .codec(getAudioCodec(properties(audio)))
-                        .bitrate(getAudioBitrate(properties(audio)))
-                        .audioChannel(getAudioChannel(properties(audio)))
-                        .language(getAudioLanguageByCode(properties(audio)))
+                        .codec(getAudioCodec(properties(audio)[0]))
+                        .bitrate(getAudioBitrate(properties(audio)[2]))
+                        .audioChannel(getAudioChannel(properties(audio)[1]))
+                        .language(getAudioLanguageByCode(properties(audio)[3]))
                         .build()));
             }
         }return audios;
@@ -89,46 +87,43 @@ public class AudioServiceImpl implements AudioService {
     }
 
     @Override
-    public Codec getAudioCodec(String[] audioProperties) {
-        String audioCodec = audioProperties[0];
-        if(audioCodec == null){
+    public Codec getAudioCodec(String codecAudioProperty) {
+        if(codecAudioProperty == null){
             return null;
         }
 
-        audioCodec = audioCodec.trim();
-        if(audioCodec.equals("N/A")){
+        codecAudioProperty = codecAudioProperty.trim();
+        if(codecAudioProperty.equals("N/A")){
             return null;
         }
 
-        audioCodec = audioCodec.replaceAll("[^a-zA-Z0-9]", "");
-        if(audioCodec.isBlank()){
+        codecAudioProperty = codecAudioProperty.replaceAll("[^a-zA-Z0-9]", "");
+        if(codecAudioProperty.isBlank()){
             return null;
         }
 
-        String finalAudioCodec = audioCodec;
-        return codecRepository.findByNameAndMediaType(audioCodec, MediaTypes.AUDIO)
+        String finalAudioCodec = codecAudioProperty;
+        return codecRepository.findByNameAndMediaType(codecAudioProperty, MediaTypes.AUDIO)
                 .orElseGet(() -> codecService.autoCreateCodec(finalAudioCodec, MediaTypes.AUDIO));
     }
 
     @Override
-    public AudioChannel getAudioChannel(String[] audioProperties) {
-
-        String audioChannel = audioProperties[1];
-        if(audioChannel == null){
+    public AudioChannel getAudioChannel(String chanelAudioProperty) {
+        if(chanelAudioProperty == null){
             return null;
         }
 
-        audioChannel = audioChannel.trim();
-        if(audioChannel.equals("N/A")){
+        chanelAudioProperty = chanelAudioProperty.trim();
+        if(chanelAudioProperty.equals("N/A")){
             return null;
         }
 
-        audioChannel = audioChannel.replaceAll("[^a-zA-Z0-9]", "");
-        if(audioChannel.isBlank()){
+        chanelAudioProperty = chanelAudioProperty.replaceAll("[^a-zA-Z0-9]", "");
+        if(chanelAudioProperty.isBlank()){
             return null;
         }
 
-        int audioChannelInt = Integer.parseInt(audioChannel);
+        int audioChannelInt = Integer.parseInt(chanelAudioProperty);
         return audioChannelRepository.findAudioChannelByChannel(audioChannelInt).orElseGet(
                 () -> audioChannelService.createAudioChannel(AudioChannelDto.builder()
                                 .title(String.format("%s Channels Sound", audioChannelInt))
@@ -137,36 +132,32 @@ public class AudioServiceImpl implements AudioService {
     }
 
     @Override
-    public Integer getAudioBitrate(String[] audioProperties) {
-        String bitrate = audioProperties[2];
-
-        if(bitrate == null){
+    public Integer getAudioBitrate(String bitrateAudioProperty) {
+        if(bitrateAudioProperty == null){
             return null;
         }
 
-        return bitrate.isEmpty()
-                || bitrate.trim().equals("N/A")
+        return bitrateAudioProperty.isEmpty()
+                || bitrateAudioProperty.trim().equals("N/A")
                 ? null
-                : Integer.parseInt(bitrate.replaceAll("[^a-zA-Z0-9]", "")) / 1000;
+                : Integer.parseInt(bitrateAudioProperty.replaceAll("[^a-zA-Z0-9]", "")) / 1000;
     }
 
     @Override
-    public Language getAudioLanguageByCode(String[] audioProperties) {
-        String language = audioProperties[3];
-
-        if(language == null){
+    public Language getAudioLanguageByCode(String codeLanguageAudioProperty) {
+        if(codeLanguageAudioProperty == null){
             return null;
         }
 
-        language = language.trim();
+        codeLanguageAudioProperty = codeLanguageAudioProperty.trim();
 
-        if(language.isEmpty()
-                || language.equals("N/A")
-                || language.equals("und")){
+        if(codeLanguageAudioProperty.isEmpty()
+                || codeLanguageAudioProperty.equals("N/A")
+                || codeLanguageAudioProperty.equals("und")){
             return null;
         }
 
-        return languageRepository.findByCodeOrTitle(language).orElse(null);
+        return languageRepository.findByCodeOrTitle(codeLanguageAudioProperty).orElse(null);
     }
 
     //Output aac,2,128000,eng

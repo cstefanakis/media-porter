@@ -12,9 +12,9 @@ import java.util.List;
 public interface AudioService {
     List<Audio> createAudioListFromFile(Path file, Movie movie);
     List<Audio> getAudioListFromFile(Path file);
-    Codec getAudioCodec(String[] audioProperties);
-    AudioChannel getAudioChannel(String[] audioProperties);
-    Integer getAudioBitrate(String[] audioProperties);
-    Language getAudioLanguageByCode(String[] audioProperties);
+    Codec getAudioCodec(String codecAudioProperty);
+    AudioChannel getAudioChannel(String channelAudioProperty);
+    Integer getAudioBitrate(String bitrateAudioProperty);
+    Language getAudioLanguageByCode(String codeLanguageAudioProperty);
 
 }

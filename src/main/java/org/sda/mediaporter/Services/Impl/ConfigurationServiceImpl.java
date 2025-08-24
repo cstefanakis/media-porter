@@ -88,7 +88,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public void updateConfiguration(ConfigurationDto configurationDto) {
-        System.out.println(configurationDto.getMaxDatesControlFilesFromExternalSource());
         Configuration configuration = toEntity(configurationDto);
         configurationRepository.save(configuration);
     }

@@ -1,6 +1,7 @@
 package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.apache.commons.codec.language.bm.Languages;
 import org.sda.mediaporter.Services.ConfigurationService;
 import org.sda.mediaporter.dtos.ConfigurationDto;
 import org.sda.mediaporter.models.Configuration;
@@ -95,31 +96,27 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private Configuration toEntity(ConfigurationDto configurationDto) {
         Configuration config = getConfiguration();
-        config.setMaxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null? this.maxDaysToPast: configurationDto.getMaxDatesSaveFile());
-        config.setMaxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null? 0: configurationDto.getMaxDatesControlFilesFromExternalSource());
-
-        config.setVideoResolutions(validatedResolutions(configurationDto, config));
-
-        config.setFirstVideoBitrateValueRange(validatedFirstVideoBitrateValueRange(configurationDto, config));
-        config.setSecondVideoBitrateValueRange(validatedSecondVideoBitrateValueRange(configurationDto, config));
-
-        config.setVideoCodecs(validatedCodecs(configurationDto.getVideoCodecs(), MediaTypes.VIDEO, config.getVideoCodecs()));
-
-        config.setFirstAudioBitrateValueRange(validatedFirstAudioBitrateValueRange(configurationDto, config));
-        config.setSecondAudioBitrateValueRange(validatedSecondAudioBitrateValueRange(configurationDto, config));
-
-        config.setAudioChannels(validatedAudioChannels(configurationDto, config));
-
-        config.setAudioCodecs(validatedCodecs(configurationDto.getAudioCodecs(), MediaTypes.AUDIO, config.getAudioCodecs()));
-
-        config.setGenres(validatedGenres(configurationDto, config));
-
-        config.setAudioLanguages(configurationDto.getLanguages());
-
-        config.setFirstVideoSizeRange(validatedFirstVideoSizeRangeRange(configurationDto, config));
-        config.setSecondVideoSizeRange(validatedSecondVideoSizeRangeRange(configurationDto, config));
-
-        return config;
+        return Configuration.builder()
+                .id(config.getId())
+                .maxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null
+                        ? this.maxDaysToPast
+                        : configurationDto.getMaxDatesSaveFile())
+                .maxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null
+                        ? 0
+                        : configurationDto.getMaxDatesControlFilesFromExternalSource())
+                .videoResolutions(validatedResolutions(configurationDto, config))
+                .firstVideoBitrateValueRange(validatedFirstVideoBitrateValueRange(configurationDto, config))
+                .secondVideoBitrateValueRange(validatedSecondVideoBitrateValueRange(configurationDto, config))
+                .videoCodecs(validatedCodecs(configurationDto.getVideoCodecs(), MediaTypes.VIDEO, config.getVideoCodecs()))
+                .firstAudioBitrateValueRange(validatedFirstAudioBitrateValueRange(configurationDto, config))
+                .secondAudioBitrateValueRange(validatedSecondAudioBitrateValueRange(configurationDto, config))
+                .audioChannels(validatedAudioChannels(configurationDto, config))
+                .audioCodecs(validatedCodecs(configurationDto.getAudioCodecs(), MediaTypes.AUDIO, config.getAudioCodecs()))
+                .genres(validatedGenres(configurationDto, config))
+                .audioLanguages(validatedLanguages(configurationDto, config))
+                .firstVideoSizeRange(validatedFirstVideoSizeRangeRange(configurationDto, config))
+                .secondVideoSizeRange(validatedSecondVideoSizeRangeRange(configurationDto, config))
+                .build();
     }
 
     private Integer validatedFirstVideoBitrateValueRange(ConfigurationDto configurationDto, Configuration configuration){

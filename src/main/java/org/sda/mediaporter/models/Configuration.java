@@ -29,7 +29,7 @@ public class Configuration {
     @Column(name ="max_dates_control_files_from_external_sources")
     private Integer maxDatesControlFilesFromExternalSource;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "configuration_resolution",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -43,7 +43,7 @@ public class Configuration {
     @Column(name = "second_video_bitrates_range")
     private Integer secondVideoBitrateValueRange;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "configuration_videoCodec",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -57,7 +57,7 @@ public class Configuration {
     @Column(name = "second_audio_bitrates_range")
     private Integer secondAudioBitrateValueRange;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "configuration_audioChannel",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -65,7 +65,7 @@ public class Configuration {
     )
     private List<AudioChannel> audioChannels;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "configuration_audioCodec",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -73,7 +73,7 @@ public class Configuration {
     )
     private List<Codec> audioCodecs;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "configuration_genre",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -81,7 +81,7 @@ public class Configuration {
     )
     private List<Genre> genres;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "configuration_language",
             joinColumns = @JoinColumn(name = "configuration_id"),

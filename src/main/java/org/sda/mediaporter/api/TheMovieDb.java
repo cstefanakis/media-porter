@@ -1,5 +1,6 @@
 package org.sda.mediaporter.api;
 
+import lombok.Getter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 public class TheMovieDb {
     private final ApiConnect theMovieDb;
+    @Getter
     private ApiConnect movie;
     private final String apiKey = "7c97b163195d9428522398e8f1c32f63";
     private String search;
@@ -22,7 +24,6 @@ public class TheMovieDb {
         String url = String.format("https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s", apiKey, search(search), year);
         theMovieDb = new ApiConnect(url);
         this.resultsObjectIndex = fileIndex(year);
-        System.out.println(getMovieId());
         this.movie = new ApiConnect(String.format("https://api.themoviedb.org/3/movie/%s?api_key=%s", getMovieId(), apiKey));
     }
 

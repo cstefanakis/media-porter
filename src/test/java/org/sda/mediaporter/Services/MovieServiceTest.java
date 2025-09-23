@@ -8,11 +8,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sda.mediaporter.dtos.MovieUpdateDto;
-import org.sda.mediaporter.models.Country;
-import org.sda.mediaporter.models.Language;
-import org.sda.mediaporter.models.Movie;
-import org.sda.mediaporter.models.SourcePath;
+import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
+import org.sda.mediaporter.models.enums.MediaTypes;
+import org.sda.mediaporter.models.metadata.AudioChannel;
+import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.repositories.*;
 import org.sda.mediaporter.repositories.metadata.*;
@@ -71,15 +71,27 @@ class MovieServiceTest {
     private AudioRepository audioRepository;
 
     @Autowired
+    private FileService fileService;
+
+    @Autowired
     private MovieService movieService;
 
     private Resolution hd;
     private Country us;
     private SourcePath downloadsSource;
+    private AudioChannel stereo;
+    private Codec aac;
+    private Codec mp3;
+    private Codec h264;
+    private Codec h265;
+    private Genre action;
+    private Language english;
+    private Language czech;
     private SourcePath externalSource;
     private SourcePath moviesSource;
     private String thorMovieFileName = "Thor (2011) - Official Trailer [HD] (816p_24fps_H264-128kbit_AAC).mp4";
     private String titanicMovieFileName = "Titanic (1997) ¦ Official Trailer (720p_24fps_H264-128kbit_AAC).mp4";
+    private String notitledFileName = "notitled (720p_24fps_H264-128kbit_AAC).mp4";
 
     @BeforeEach
     void setup(){
@@ -96,36 +108,82 @@ class MovieServiceTest {
         countryRepository.deleteAll();
 
         //create resolutions
-        hd = (Resolution.builder()
+        this.mp3 = codecRepository.save(Codec.builder()
+                .mediaType(MediaTypes.AUDIO)
+                .name("MP3")
+                .build());
+
+        this.aac = codecRepository.save(Codec.builder()
+                .mediaType(MediaTypes.AUDIO)
+                .name("AAC")
+                .build());
+
+        this.h264 = codecRepository.save(Codec.builder()
+                .mediaType(MediaTypes.VIDEO)
+                .name("H264")
+                .build());
+
+        this.h265 = codecRepository.save(Codec.builder()
+                .mediaType(MediaTypes.VIDEO)
+                .name("H265")
+                .build());
+
+        this.action = genreRepository.save(Genre.builder()
+                .title("Action")
+                .build());
+
+        this.hd = resolutionRepository.save(Resolution.builder()
                 .name("720p")
                 .build());
 
-        us = (Country.builder()
+        this.us = countryRepository.save(Country.builder()
                 .iso2Code("US")
                 .iso3Code("USA")
                 .englishName("United States")
                 .nativeName("United States")
                 .build());
 
-        downloadsSource = (SourcePath.builder()
+        this.czech = languageRepository.save(Language.builder()
+                .iso6391("cs")
+                .iso6392B("cze")
+                .iso6392T("ces")
+                .englishTitle("Czech")
+                .originalTitle("Čeština")
+                .build());
+
+        this.english = languageRepository.save(Language.builder()
+                .iso6391("en")
+                .iso6392B("eng")
+                .iso6392T("eng")
+                .englishTitle("English")
+                .originalTitle("English")
+                .build());
+
+        this.downloadsSource = sourcePathRepository.save((SourcePath.builder()
                         .libraryItem(LibraryItems.MOVIE)
                         .title("Downloads")
                         .pathType(SourcePath.PathType.DOWNLOAD)
-                        .path("src\\test\\resources\\movies\\downloads")
-                .build());
+                        .path("src/test/resources/movies/downloads")
+                .build()));
 
-        moviesSource = (SourcePath.builder()
+        this.externalSource = sourcePathRepository.save((SourcePath.builder()
                 .libraryItem(LibraryItems.MOVIE)
                 .title("External")
                 .pathType(SourcePath.PathType.EXTERNAL)
                 .path("src\\test\\resources\\movies\\external")
-                .build());
+                .build()));
 
-        externalSource = (SourcePath.builder()
+        this.moviesSource = sourcePathRepository.save((SourcePath.builder()
                 .libraryItem(LibraryItems.MOVIE)
                 .title("Movies")
                 .pathType(SourcePath.PathType.SOURCE)
                 .path("src\\test\\resources\\movies\\movies")
+                .build()));
+
+        this.stereo = audioChannelRepository.save(AudioChannel.builder()
+                .title("2 Stereo")
+                .channels(2)
+                .description("Two-channel stereo sound")
                 .build());
 
         languageRepository.save(Language.builder()
@@ -164,6 +222,9 @@ class MovieServiceTest {
                     Path.of(downloadsSource.getPath()
                             + File.separator
                             + titanicMovieFileName));
+            Files.copy(Path.of("src/test/resources/movies/notitled (720p_24fps_H264-128kbit_AAC).mp4"),
+                    Path.of("src/test/resources/movies/downloads/notitled (720p_24fps_H264-128kbit_AAC).mp4"));
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -173,9 +234,6 @@ class MovieServiceTest {
     @Test
     void getMoviesFromPath() {
         //Arrest
-        sourcePathRepository.save(downloadsSource);
-        sourcePathRepository.save(moviesSource);
-
         Pageable page = Pageable.ofSize(10);
         List<SourcePath> downloadPaths = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.DOWNLOAD);
 
@@ -220,9 +278,6 @@ class MovieServiceTest {
     @Test
     void getMoviesFromPath_withAllEntities() {
         //Arrest
-        sourcePathRepository.save(downloadsSource);
-        sourcePathRepository.save(moviesSource);
-        countryRepository.save(us);
 
         Pageable page = Pageable.ofSize(10);
         List<SourcePath> downloadPaths = sourcePathRepository.findSourcePathsByPathType(SourcePath.PathType.DOWNLOAD);
@@ -262,12 +317,19 @@ class MovieServiceTest {
 
     @Test
     void updateMovie(){
-        //Arrest
+        //Assert
+        assertNotNull(this.downloadsSource.getId());
+        assertEquals("src/test/resources/movies/downloads", this.downloadsSource.getPath());
+
         Movie uncknounMovie = movieRepository.save(Movie.builder()
                 .title("notitled (720p_24fps_H264-128kbit_AAC).mp4")
                         .year(2025)
-                .path("src/test/resources/movies/notitled (720p_24fps_H264-128kbit_AAC).mp4")
+                .path("src/test/resources/movies/downloads/notitled (720p_24fps_H264-128kbit_AAC).mp4")
                 .build());
+        //Assert
+        assertNotNull(uncknounMovie.getId());
+        assertEquals("src/test/resources/movies/downloads/notitled (720p_24fps_H264-128kbit_AAC).mp4", uncknounMovie.getPath());
+        assertTrue(uncknounMovie.getPath().contains(this.downloadsSource.getPath()));
 
         MovieUpdateDto updateDto = MovieUpdateDto.builder()
                 .title("Superman")
@@ -276,35 +338,148 @@ class MovieServiceTest {
 
         //Act
         movieService.updateMovie(uncknounMovie.getId(), updateDto);
+        Movie updatedMovie = movieRepository.findById(uncknounMovie.getId()).orElse(null);
 
         //Assert
-        assertNotNull(uncknounMovie.getReleaseDate());
+        assertNotNull(updatedMovie);
+        assertEquals(Path.of("src\\test\\resources\\movies\\downloads\\Superman (2025)\\Superman (2025) (Country [United States, Canada, Australia, New Zealand]) (Genres [Action, Adventure, Sci-fi]) (Rating 7.558).mp4").normalize(), Path.of(updatedMovie.getPath()).normalize());
+        assertEquals("Superman", updatedMovie.getTitle());
+        assertEquals(2025, updatedMovie.getYear());
+        assertNotNull(updatedMovie.getPlot());
+        assertNotNull(updatedMovie.getWriters());
+        assertNotNull(updatedMovie.getDirectors());
+        assertNotNull(updatedMovie.getActors());
+        assertNotNull(updatedMovie.getLanguages());
+        assertNotNull(updatedMovie.getReleaseDate());
+        assertNotNull(updatedMovie.getCountries());
+        assertNotNull(updatedMovie.getGenres());
+        assertNotNull(updatedMovie.getOriginalTitle());
+        assertNotNull(updatedMovie.getModificationDate());
+        assertNotNull(updatedMovie.getRating());
     }
 
-    @AfterEach
-    void redirect_files(){
-        //clean sources for next test
-        List<Path> testSources = List.of(
-                Path.of(downloadsSource.getPath()),
-                Path.of(moviesSource.getPath()),
-                Path.of(externalSource.getPath()));
-        for(Path testSource : testSources) {
-            try {
-                if (Files.exists(testSource)) {
-                    Files.walk(testSource)
-                            .sorted(Comparator.reverseOrder()) // delete files first, then directories
-                            .forEach(path -> {
-                                try {
-                                    Files.deleteIfExists(path);
-                                } catch (IOException e) {
-                                    throw new UncheckedIOException(e);
-                                }
-                            });
-                }
-                Files.createDirectory(testSource);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    @Test
+    void moveMovie(){
+        //Arrest
+        Movie thor = movieRepository.save(Movie.builder()
+                        .title("Thor")
+                        .year(2011)
+                        .path(downloadsSource.getPath()
+                                + File.separator
+                                + thorMovieFileName)
+                .build());
+        Path destinationPath = Path.of("src\\test\\resources\\movies\\movies\\Thor (2011)\\Thor (2011).mp4");
+        //Act
+        thor = movieService.moveMovie(thor.getId(), Path.of(this.moviesSource.getPath()));
+        //Assert
+        assertEquals(destinationPath.toString(), thor.getPath());
+        assertTrue(Files.exists(destinationPath));
+
     }
+
+    @Test
+    void moveMovie_withNoYear(){
+        //Arrest
+        Movie thor = movieRepository.save(Movie.builder()
+                .title("Thor")
+                .path(downloadsSource.getPath()
+                        + File.separator
+                        + thorMovieFileName)
+                .build());
+        Path destinationPath = Path.of("src\\test\\resources\\movies\\movies\\Thor\\Thor.mp4");
+        //Act
+        thor = movieService.moveMovie(thor.getId(), Path.of(this.moviesSource.getPath()));
+        //Assert
+        assertEquals(destinationPath.toString(), thor.getPath());
+        assertTrue(Files.exists(destinationPath));
+    }
+
+    @Test
+    void moveMoviesFromDownloadPathsToMoviesPath(){
+        //Act
+        movieService.moveMoviesFromDownloadPathsToMoviesPath();
+    }
+
+//    @Test
+//    void autoCopyMoviesFromExternalSource() {
+//        //Arrest
+//        List<Path> testSources = List.of(
+//                Path.of(downloadsSource.getPath()),
+//                Path.of(moviesSource.getPath()),
+//                Path.of(externalSource.getPath()));
+//        for(Path testSource : testSources) {
+//            try {
+//                if (Files.exists(testSource)) {
+//                    Files.walk(testSource)
+//                            .sorted(Comparator.reverseOrder())
+//                            .forEach(path -> {
+//                                try {
+//                                    Files.deleteIfExists(path);
+//                                } catch (IOException e) {
+//                                    throw new UncheckedIOException(e);
+//                                }
+//                            });
+//                }
+//                Files.createDirectory(testSource);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//
+//        List<Path> files = fileService.getVideoFiles(Path.of("src/test/resources/movies"));
+//        files.forEach(p -> {
+//            fileService.copyFile(p, Path.of(
+//                    this.externalSource.getPath()
+//                            + File.separator
+//                            + p.getFileName()));
+//                });
+//
+//        Configuration configuration = configurationRepository.save(Configuration.builder()
+//                .id(1L)
+//                .maxDatesSaveFile(9000)
+//                .maxDatesControlFilesFromExternalSource(0)
+//                .videoResolutions(List.of(this.hd))
+//                .firstVideoBitrateValueRange(0)
+//                .secondVideoBitrateValueRange(200000000)
+//                .firstAudioBitrateValueRange(0)
+//                .secondAudioBitrateValueRange(2048000)
+//                .audioChannels(List.of(this.stereo))
+//                .firstVideoSizeRange(0.0)
+//                .secondVideoSizeRange(31457280.0)
+//                .audioCodecs(List.of(this.aac))
+//                .videoCodecs(List.of(this.h264))
+//                .genres(List.of(this.action))
+//                .audioLanguages(List.of(this.english))
+//                .build());
+//
+//        //Act
+//        movieService.autoCopyMoviesFromExternalSource();
+//    }
+
+//    @AfterEach
+//    void redirect_files(){
+//        //clean sources for next test
+//        List<Path> testSources = List.of(
+//                Path.of(downloadsSource.getPath()),
+//                Path.of(moviesSource.getPath()),
+//                Path.of(externalSource.getPath()));
+//        for(Path testSource : testSources) {
+//            try {
+//                if (Files.exists(testSource)) {
+//                    Files.walk(testSource)
+//                            .sorted(Comparator.reverseOrder())
+//                            .forEach(path -> {
+//                                try {
+//                                    Files.deleteIfExists(path);
+//                                } catch (IOException e) {
+//                                    throw new UncheckedIOException(e);
+//                                }
+//                            });
+//                }
+//                Files.createDirectory(testSource);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
 }

@@ -3,6 +3,9 @@ package org.sda.mediaporter.Services;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.sda.mediaporter.models.SourcePath;
+import org.sda.mediaporter.models.enums.LibraryItems;
+import org.sda.mediaporter.repositories.SourcePathRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -23,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class FileServiceTest {
 
     @Autowired
+    private SourcePathRepository sourcePathRepository;
+
+    @Autowired
     private FileService fileService;
 
     private Path downloadPath = Path.of("src/test/resources/movies/downloads");
@@ -32,6 +38,28 @@ class FileServiceTest {
 
     @BeforeEach
     void setup(){
+        sourcePathRepository.deleteAll();
+        sourcePathRepository.save(SourcePath.builder()
+                        .path(downloadPath.toString())
+                        .title("Downloads")
+                        .pathType(SourcePath.PathType.DOWNLOAD)
+                        .libraryItem(LibraryItems.MOVIE)
+                .build());
+
+        sourcePathRepository.save(SourcePath.builder()
+                        .path(moviesPath.toString())
+                        .title("movies")
+                        .pathType(SourcePath.PathType.SOURCE)
+                        .libraryItem(LibraryItems.MOVIE)
+                .build());
+
+        sourcePathRepository.save(SourcePath.builder()
+                .path(externalPath.toString())
+                .title("movies")
+                .pathType(SourcePath.PathType.EXTERNAL)
+                .libraryItem(LibraryItems.MOVIE)
+                .build());
+
         Path filePath = Path.of("src/test/resources/movies/notitled (720p_24fps_H264-128kbit_AAC).mp4");
         Path destinationFilePath = Path.of("src/test/resources/movies/downloads/superman (2025)/superman (2025) Trailer.mp4");
         try {
@@ -82,7 +110,7 @@ class FileServiceTest {
         Path destinationFilePath = Path.of("src/test/resources/movies/movies/superman (2025) Trailer.mp4");
 
         //Act
-        fileService.moveFile(this.supermanFile, "superman (2025)", destinationFilePath);
+        fileService.moveFile(this.supermanFile, destinationFilePath);
         List<Path> files = fileService.getVideoFiles(this.moviesPath);
 
         //Assert
@@ -94,12 +122,13 @@ class FileServiceTest {
     void renameFile() {
         //Arrest
         String newName = "Batman (2022)";
-        String oldSubDirectoryName = "superman (2025)";
+        String[] directories = new String[] {"Batman (2022)"};
         //Act
-        fileService.renameFile(this.supermanFile, oldSubDirectoryName, newName);
+        fileService.renameFile(this.supermanFile, newName, directories);
         List<Path> files = fileService.getVideoFiles(this.downloadPath);
         //Assert
-        assertTrue(Files.exists(Path.of("src/test/resources/movies/downloads/Batman (2022).mp4")));
+        assertTrue(Files.exists(Path.of("src/test/resources/movies/downloads/Batman (2022)/Batman (2022).mp4")));
+        assertFalse(Files.exists(Path.of("src/test/resources/movies/downloads/superman (2025)/superman (2025)")));
         assertFalse(Files.exists(Path.of("src/test/resources/movies/downloads/superman (2025)")));
     }
 
@@ -121,37 +150,6 @@ class FileServiceTest {
         //Assert
         assertTrue(Files.exists(createdDirPath));
         assertEquals(createdDirPath, newPath);
-    }
-
-    @Test
-    void generatedDestinationPathFromFilePath() {
-        //Arrest
-        String fileNameContain = "superman (2025)";
-        String nameWithExtension = "Batman (2025).mp4";
-
-        //Act
-        Path filePath = fileService.generatedDestinationPathFromFilePath(this.supermanFile, fileNameContain, nameWithExtension);
-
-        //Assert
-        assertEquals(Path.of("src\\test\\resources\\movies\\downloads\\Batman (2025).mp4"), filePath);
-    }
-
-    @Test
-    void deleteSubDirectories() {
-        //Arrest
-        String fileNameContain = "superman (2025)";
-        //Act
-        List<Path> files = new ArrayList<>();
-        try {
-            Files.delete(this.supermanFile);
-            fileService.deleteSubDirectories(this.supermanFile, fileNameContain);
-            files  = Files.walk(this.downloadPath).toList();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        //Assert
-        assertEquals(Path.of("src\\test\\resources\\movies\\downloads"),
-                files.getFirst());
     }
 
     @Test

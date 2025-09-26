@@ -16,7 +16,24 @@ Features
 
 Installation & Setup
 
+1. Install FFmpeg
+  Windows:
+    https://ffmpeg.org/download.html
+  Linux:
+    sudo apt update
+    sudo apt install ffmpeg
 
+2. Clone the repository:
+  https://github.com/cstefanakis/media-porter.git
+
+3. Navigate to the project directory:
+  cd media-porter
+
+4. Configure your application.properties with:
+  Database connection (MySQL URL, username, password)
+
+5. Build and run the application:
+  ./mvnw spring-boot:run
 
 Usage
 

@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -491,6 +492,9 @@ public class MovieServiceImpl implements MovieService {
     private boolean isIncludedGenres(Configuration configuration, Movie movie){
         List<Genre> movieGenres = movie.getGenres();
         List<Genre> configurationGenres = configurationService.getGenresFromConfiguration(configuration);
+        if (configurationGenres == null || movieGenres == null) {
+            return false;
+        }
         return configurationGenres.retainAll(movieGenres);
     }
 
@@ -600,9 +604,11 @@ public class MovieServiceImpl implements MovieService {
 
 
     private String getGeneratedMovieFileName(Movie movie){
-        String title = movie.getTitle()
-                .replace(fileService.getFileExtensionWithDot(Path.of(movie.getTitle())), "")
+        String title = movie.getTitle().toString();
+        Normalizer.normalize(title, Normalizer.Form.NFKC);
+        title = title
                 .replaceAll("[\\\\/:*?\"<>|]", "");
+        System.out.println(title);
         Integer year = movie.getYear();
         String video = getVideoToString(movie);
         String audio = getAudioToString(movie);

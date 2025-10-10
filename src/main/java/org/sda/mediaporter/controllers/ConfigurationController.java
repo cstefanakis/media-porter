@@ -30,9 +30,10 @@ public class ConfigurationController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping()
-    public ResponseEntity<Void> updateConfiguration(@RequestBody ConfigurationDto configurationDto){
+    public ResponseEntity<Configuration> updateConfiguration(@RequestBody ConfigurationDto configurationDto){
         configurationService.updateConfiguration(configurationDto);
-        return ResponseEntity.ok().build();
+        Configuration configuration = configurationService.getConfiguration();
+        return ResponseEntity.ok().body(configuration);
     }
 
 }

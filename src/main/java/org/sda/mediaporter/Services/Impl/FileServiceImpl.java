@@ -39,7 +39,10 @@ public class FileServiceImpl implements FileService {
     @Override
     public List<Path> getVideoFiles(Path path){
         try{
-            return Files.walk(path).filter(file -> isVideoExtension(file.getFileName().toString())).toList();
+            return Files.walk(path)
+                    .filter(Files::isRegularFile)
+                    .filter(file -> isVideoExtension(file.getFileName().toString()))
+                    .toList();
         }catch (IOException e){
             return List.of();
         }

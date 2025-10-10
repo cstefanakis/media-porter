@@ -3,6 +3,7 @@ package org.sda.mediaporter.dtos;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,8 @@ import java.util.List;
 
 @Getter
 @Builder
-//@NoArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class ConfigurationDto {
     private Long id;
 
@@ -27,7 +29,7 @@ public class ConfigurationDto {
     @Max(value = 9000, message = "maxDatesControlFilesFromExternalSource must be less than or equal to 9000")
     private Integer maxDatesControlFilesFromExternalSource;
 
-    private List<Resolution> videoResolutions;
+    private List<Long> videoResolutionIds;
 
     @PositiveOrZero(message = "firstVideoBitrateValueRange must be zero or positive")
     @Max(value = 200000000, message = "firstVideoBitrateValueRange must be less than or equal to 200000000")
@@ -37,7 +39,7 @@ public class ConfigurationDto {
     @Max(value = 200000000, message = "secondVideoBitrateValueRange must be less than or equal to 200000000")
     private Integer secondVideoBitrateValueRange;
 
-    private List<Codec> videoCodecs;
+    private List<Long> videoCodecIds;
 
     @PositiveOrZero(message = "firstAudioBitrateValueRange must be zero or positive")
     @Max(value = 2048000, message = "firstAudioBitrateValueRange must be less than or equal to 2048000")
@@ -47,13 +49,13 @@ public class ConfigurationDto {
     @Max(value = 2048000, message = "secondAudioBitrateValueRange must be less than or equal to 2048000")
     private Integer secondAudioBitrateValueRange;
 
-    private List<AudioChannel> audioChannels;
+    private List<Long> audioChannelIds;
 
-    private List<Codec> audioCodecs;
+    private List<Long> audioCodecIds;
 
-    private List<Genre> genres;
+    private List<Long> genreIds;
 
-    private List<Language> languages;
+    private List<Long> languageIds;
 
     @PositiveOrZero(message = "firstVideoSizeRange must be zero or positive")
     @Max(value = 31464320, message = "firstVideoSizeRange must be less than or equal to 31464320")

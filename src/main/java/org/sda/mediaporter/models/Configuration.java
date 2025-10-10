@@ -1,13 +1,8 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Resolution;
@@ -15,7 +10,8 @@ import org.sda.mediaporter.models.metadata.Resolution;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,7 +25,8 @@ public class Configuration {
     @Column(name ="max_dates_control_files_from_external_sources")
     private Integer maxDatesControlFilesFromExternalSource;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference("videoResolutions")
     @JoinTable(
             name = "configuration_resolution",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -43,7 +40,8 @@ public class Configuration {
     @Column(name = "second_video_bitrates_range")
     private Integer secondVideoBitrateValueRange;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference("videoCodecs")
     @JoinTable(
             name = "configuration_videoCodec",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -57,7 +55,8 @@ public class Configuration {
     @Column(name = "second_audio_bitrates_range")
     private Integer secondAudioBitrateValueRange;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference("audioChannels")
     @JoinTable(
             name = "configuration_audioChannel",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -65,7 +64,8 @@ public class Configuration {
     )
     private List<AudioChannel> audioChannels;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference("audioCodecs")
     @JoinTable(
             name = "configuration_audioCodec",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -73,7 +73,8 @@ public class Configuration {
     )
     private List<Codec> audioCodecs;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference("genres")
     @JoinTable(
             name = "configuration_genre",
             joinColumns = @JoinColumn(name = "configuration_id"),
@@ -81,7 +82,8 @@ public class Configuration {
     )
     private List<Genre> genres;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference("configurationAudioLanguages")
     @JoinTable(
             name = "configuration_language",
             joinColumns = @JoinColumn(name = "configuration_id"),

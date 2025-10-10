@@ -2,6 +2,7 @@ package org.sda.mediaporter.models.metadata;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.Language;
@@ -33,6 +34,7 @@ public class Audio {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "language_ids")
+    @JsonManagedReference("audioLanguages")
     private Language language;
 
     @ManyToOne

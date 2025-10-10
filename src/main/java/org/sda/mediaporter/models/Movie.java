@@ -95,6 +95,7 @@ public class Movie {
             joinColumns = @JoinColumn(name = "movie_ids"),
             inverseJoinColumns = @JoinColumn(name = "language_ids")
     )
+    @JsonManagedReference("movieLanguages")
     private List<Language> languages;
 
     @OneToOne(mappedBy = "movie"

@@ -39,14 +39,18 @@ public class Language {
     private String iso6392T;
 
     @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
+    @JsonBackReference("audioLanguages")
     private List<Audio> audios;
 
     @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
+    @JsonBackReference("subtitleLanguages")
     private List<Subtitle> subtitles;
 
     @ManyToMany(mappedBy = "languages", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JsonBackReference
+    @JsonBackReference("movieLanguages")
     private List<Movie> movies;
+
+    @ManyToMany(mappedBy = "audioLanguages")
+    @JsonBackReference("configurationAudioLanguages")
+    private List<Configuration> audioLanguagesConfiguration;
 }

@@ -1,6 +1,7 @@
 package org.sda.mediaporter.Services.Impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.apache.commons.codec.language.bm.Languages;
 import org.sda.mediaporter.Services.ConfigurationService;
 import org.sda.mediaporter.dtos.ConfigurationDto;
 import org.sda.mediaporter.models.Configuration;
@@ -23,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Validated
@@ -95,31 +97,27 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private Configuration toEntity(ConfigurationDto configurationDto) {
         Configuration config = getConfiguration();
-        config.setMaxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null? this.maxDaysToPast: configurationDto.getMaxDatesSaveFile());
-        config.setMaxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null? 0: configurationDto.getMaxDatesControlFilesFromExternalSource());
-
-        config.setVideoResolutions(validatedResolutions(configurationDto, config));
-
-        config.setFirstVideoBitrateValueRange(validatedFirstVideoBitrateValueRange(configurationDto, config));
-        config.setSecondVideoBitrateValueRange(validatedSecondVideoBitrateValueRange(configurationDto, config));
-
-        config.setVideoCodecs(validatedCodecs(configurationDto.getVideoCodecs(), MediaTypes.VIDEO, config.getVideoCodecs()));
-
-        config.setFirstAudioBitrateValueRange(validatedFirstAudioBitrateValueRange(configurationDto, config));
-        config.setSecondAudioBitrateValueRange(validatedSecondAudioBitrateValueRange(configurationDto, config));
-
-        config.setAudioChannels(validatedAudioChannels(configurationDto, config));
-
-        config.setAudioCodecs(validatedCodecs(configurationDto.getAudioCodecs(), MediaTypes.AUDIO, config.getAudioCodecs()));
-
-        config.setGenres(validatedGenres(configurationDto, config));
-
-        config.setAudioLanguages(configurationDto.getLanguages());
-
-        config.setFirstVideoSizeRange(validatedFirstVideoSizeRangeRange(configurationDto, config));
-        config.setSecondVideoSizeRange(validatedSecondVideoSizeRangeRange(configurationDto, config));
-
-        return config;
+        return Configuration.builder()
+                .id(config.getId())
+                .maxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null
+                        ? this.maxDaysToPast
+                        : configurationDto.getMaxDatesSaveFile())
+                .maxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null
+                        ? 0
+                        : configurationDto.getMaxDatesControlFilesFromExternalSource())
+                .videoResolutions(validatedResolutions(configurationDto, config))
+                .firstVideoBitrateValueRange(validatedFirstVideoBitrateValueRange(configurationDto, config))
+                .secondVideoBitrateValueRange(validatedSecondVideoBitrateValueRange(configurationDto, config))
+                .videoCodecs(validatedCodecs(configurationDto.getVideoCodecIds(), MediaTypes.VIDEO, config.getVideoCodecs()))
+                .firstAudioBitrateValueRange(validatedFirstAudioBitrateValueRange(configurationDto, config))
+                .secondAudioBitrateValueRange(validatedSecondAudioBitrateValueRange(configurationDto, config))
+                .audioChannels(validatedAudioChannels(configurationDto, config))
+                .audioCodecs(validatedCodecs(configurationDto.getAudioCodecIds(), MediaTypes.AUDIO, config.getAudioCodecs()))
+                .genres(validatedGenres(configurationDto, config))
+                .audioLanguages(validatedLanguages(configurationDto, config))
+                .firstVideoSizeRange(validatedFirstVideoSizeRangeRange(configurationDto, config))
+                .secondVideoSizeRange(validatedSecondVideoSizeRangeRange(configurationDto, config))
+                .build();
     }
 
     private Integer validatedFirstVideoBitrateValueRange(ConfigurationDto configurationDto, Configuration configuration){
@@ -215,7 +213,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private List<Genre> validatedGenres(ConfigurationDto configurationDto, Configuration configuration){
-        List<Genre> genresDto = configurationDto.getGenres();
+        List<Long> genresDto = configurationDto.getGenreIds();
         List<Genre> genres = configuration.getGenres();
 
         if(genresDto == null && genres == null){
@@ -224,10 +222,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if(genresDto == null){
             return genres;
         }
-        return new ArrayList<>(new HashSet<>(genresDto));
+        return configurationDto
+                .getGenreIds()
+                .stream()
+                .map(id -> genreRepository.findById(id).orElse(null))
+                .filter(id -> id != null)
+                .toList();
     }
 
-    private List<Codec> validatedCodecs(List<Codec> codecsFromDto, MediaTypes mediaType, List<Codec> codecs){
+    private List<Codec> validatedCodecs(List<Long> codecsFromDto, MediaTypes mediaType, List<Codec> codecs){
 
         if(codecsFromDto == null && codecs == null){
             return codecRepository.findByMediaType(mediaType);
@@ -236,11 +239,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if(codecsFromDto == null){
             return codecs;
         }
-        return new ArrayList<>(new HashSet<>(codecsFromDto));
+        return codecsFromDto
+                .stream()
+                .map(id -> codecRepository.findById(id).orElse(null))
+                .filter(id -> id != null)
+                .toList();
     }
 
     private List<Language> validatedLanguages(ConfigurationDto configurationDto, Configuration configuration){
-        List<Language> languagesDto = configurationDto.getLanguages();
+        List<Long> languagesDto = configurationDto.getLanguageIds();
         List<Language> languages = configuration.getAudioLanguages();
         if(languagesDto == null && languages == null){
             return languageRepository.findAll();
@@ -248,11 +255,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if(languagesDto == null){
             return languages;
         }
-        return new ArrayList<>(new HashSet<>(languagesDto));
+        return configurationDto
+                .getLanguageIds()
+                .stream()
+                .map(id -> languageRepository.findById(id).orElse(null))
+                .filter(id -> id != null)
+                .toList();
     }
 
     private List<Resolution> validatedResolutions(ConfigurationDto configurationDto, Configuration configuration){
-        List<Resolution> resolutionsDto = configurationDto.getVideoResolutions();
+        List<Long> resolutionsDto = configurationDto.getVideoResolutionIds();
         List<Resolution> resolutions = configuration.getVideoResolutions();
         if(resolutionsDto == null && resolutions == null){
             return resolutionRepository.findAll();
@@ -260,11 +272,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if(resolutionsDto == null){
             return resolutions;
         }
-        return new ArrayList<>(new HashSet<>(resolutionsDto));
+        return configurationDto
+                .getVideoResolutionIds()
+                .stream()
+                .map(id -> resolutionRepository.findById(id).orElse(null))
+                .filter(id -> id != null)
+                .toList();
     }
 
     private List<AudioChannel> validatedAudioChannels(ConfigurationDto configurationDto, Configuration configuration){
-        List<AudioChannel> audioChannelsDto = configurationDto.getAudioChannels();
+        List<Long> audioChannelsDto = configurationDto.getAudioChannelIds();
         List<AudioChannel> audioChannels = configuration.getAudioChannels();
         if(audioChannelsDto == null && audioChannels == null){
             return audioChannelRepository.findAll();
@@ -272,6 +289,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if(audioChannelsDto == null){
             return audioChannels;
         }
-        return new ArrayList<>(new HashSet<>(audioChannelsDto));
+        return configurationDto
+                .getAudioChannelIds()
+                .stream()
+                .map(id -> audioChannelRepository.findById(id).orElse(null))
+                .filter(id -> id != null)
+                .toList();
     }
 }

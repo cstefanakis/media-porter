@@ -32,4 +32,10 @@ public interface CodecRepository extends JpaRepository<Codec, Long> {
            """)
     List<Codec> findByMediaType(@Param("mediaType") MediaTypes mediaType);
 
+    @Query("""
+            SELECT c.id FROM Codec c
+            WHERE c.mediaType = :mediaType
+            """)
+    List<Long> findIdsByMediaType(@Param("mediaType") MediaTypes mediaType);
+
 }

@@ -9,12 +9,12 @@ public interface FileService {
     List<Path> getVideoFiles(Path path);
     void copyFile(Path filePath, Path destinationFilePath);
     void deleteFile(Path path, String fileNameContain);
-    void moveFile(Path fromFullPath, String filenameTitleAndYear, Path toFullPath);
-    Path renameFile(Path filePath,String oldSubDirectoryName, String newName);
+    void moveFile(Path fromFullPath, Path toFullPath);
+    Path renameFile(Path filePath, String newFileName, String[] newSubdirectories);
     String getFileExtensionWithDot(Path file);
     Path createdDirectories(Path sourcePath, String[] directories);
-    Path generatedDestinationPathFromFilePath(Path filePath, String fileNameContain, String nameWithExtension);
-    void deleteSubDirectories(Path filePath, String fileNameContain);
+//    Path generatedDestinationPathFromFilePath(Path filePath, String fileNameContain, String nameWithExtension);
+//    void deleteSubDirectories(Path filePath, String fileNameContain);
     LocalDateTime getModificationLocalDateTimeOfPath(Path path);
     FileTime localDateTimeToFileTime(LocalDateTime localDateTime);
 }

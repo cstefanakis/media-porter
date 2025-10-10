@@ -38,9 +38,10 @@ public class SpringSecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable())
+        http
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((authorize) -> {
-                    //Movie
                     authorize.requestMatchers("/api/movies/**").permitAll();
                     authorize.requestMatchers("/api/sources/**").permitAll();
                     authorize.requestMatchers("/api/downloader/**").permitAll();
@@ -54,10 +55,10 @@ public class SpringSecurityConfig {
                     authorize.requestMatchers("/api/genres/**").permitAll();
                     authorize.requestMatchers("/api/contributors/**").permitAll();
                     authorize.requestMatchers("/api/countries/**").permitAll();
-                    authorize.requestMatchers("/api/auth/**").permitAll();
                     authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     authorize.anyRequest().authenticated();
-                }).httpBasic(Customizer.withDefaults());
+                })
+                .httpBasic(Customizer.withDefaults());
 
         http.exceptionHandling( exception -> exception
                 .authenticationEntryPoint(authenticationEntryPoint));

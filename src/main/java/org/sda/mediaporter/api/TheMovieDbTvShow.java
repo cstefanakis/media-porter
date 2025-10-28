@@ -3,15 +3,13 @@ package org.sda.mediaporter.api;
 import lombok.Getter;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.sda.mediaporter.models.Genre;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public class TheMovieDbTvShow {
-    private ApiConnect apiConnect;
     private final String apiKey = "7c97b163195d9428522398e8f1c32f63";
-    private JSONObject results;
+    private final JSONObject results;
 
     @Getter
     private Long id;
@@ -48,8 +46,8 @@ public class TheMovieDbTvShow {
 
     private JSONObject tvShowResults (String tvShowName){
         String url = String.format("https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s", this.apiKey, tvShowName.replace(" ", "+"));
-        this.apiConnect = new ApiConnect(url);
-        String jsonFile = this.apiConnect.getJsonString();
+        ApiConnect apiConnect = new ApiConnect(url);
+        String jsonFile = apiConnect.getJsonString();
         JSONObject tvShow = new JSONObject(jsonFile);
         JSONArray results = tvShow.getJSONArray("results");
         return results.isEmpty()

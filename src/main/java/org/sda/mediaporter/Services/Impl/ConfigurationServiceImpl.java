@@ -215,6 +215,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private List<Genre> validatedGenres(ConfigurationDto configurationDto, Configuration configuration){
         List<Long> genresDto = configurationDto.getGenreIds();
         List<Genre> genres = configuration.getGenres();
+        System.out.println(genresDto);
 
         if(genresDto == null && genres == null){
             return genreRepository.findAll();
@@ -249,6 +250,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private List<Language> validatedLanguages(ConfigurationDto configurationDto, Configuration configuration){
         List<Long> languagesDto = configurationDto.getLanguageIds();
         List<Language> languages = configuration.getAudioLanguages();
+        System.out.println(languagesDto);
         if(languagesDto == null && languages == null){
             return languageRepository.findAll();
         }

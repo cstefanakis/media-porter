@@ -214,9 +214,9 @@ class ConfigurationServiceTest {
         //Arrest
         Configuration configuration = configurationRepository.findById(1L).orElse(null);
         Genre action = genreRepository.findGenreByTitle("Action").orElse(null);
-        List<Genre> genres = List.of(action);
+        List<Long> genres = List.of(action.getId());
         ConfigurationDto configurationDto = ConfigurationDto.builder()
-                .genres(genres)
+                .genreIds(genres)
                 .build();
         //Act
         configurationService.updateConfiguration(configurationDto);

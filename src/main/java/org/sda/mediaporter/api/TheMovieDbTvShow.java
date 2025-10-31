@@ -3,7 +3,6 @@ package org.sda.mediaporter.api;
 import lombok.Getter;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -28,16 +27,16 @@ public class TheMovieDbTvShow {
     @Getter
     private List<String> countries;
     @Getter
-    private List<Integer> genres;
+    private List<String> genres;
 
 
     public TheMovieDbTvShow(String tvShowName) {
         this.results = tvShowResults(tvShowName);
         this.id = id();
-        this.originalName = originalName();
-        this.poster = poster();
-        this.overview = overview();
-        this.originalLanguage = originalLanguage();
+        this.originalName = getValidatedStringObject(this.results, "original_name");
+        this.poster = String.format("https://image.tmdb.org/t/p/w500%s", getValidatedStringObject(this.results, "poster_path"));
+        this.overview = getValidatedStringObject(this.results, "overview");
+        this.originalLanguage = getValidatedStringObject(this.results, "original_language");
         this.firstAirDate = firstAirDate();
         this.rate = rate();
         this.countries = countries();
@@ -58,7 +57,7 @@ public class TheMovieDbTvShow {
     private Long id (){
         String key = "id";
 
-        if(!checkObjects(key)){
+        if(!checkObjects(this.results, key)){
             return null;
         }
 
@@ -67,64 +66,22 @@ public class TheMovieDbTvShow {
                 : this.results.getLong(key);
     }
 
-    private String originalName(){
-        String key = "original_name";
-
-        if(!checkObjects(key)){
+    private String getValidatedStringObject(JSONObject object, String key){
+        if(!checkObjects(object, key)){
             return null;
         }
 
-        String originalName = results.getString(key);
+        String result = object.getString(key);
 
-        return originalName.isEmpty()
+        return result.isEmpty()
                 ? null
-                : originalName;
-    }
-
-    private String poster() {
-        String key = "poster_path";
-
-        if(!checkObjects(key)){
-            return null;
-        }
-        String poster =  results.getString(key);
-
-        return poster.isEmpty()
-            ? null
-            :String.format("https://image.tmdb.org/t/p/w500%s",poster);
-    }
-
-    private String overview() {
-        String key = "overview";
-
-        if(!checkObjects(key)){
-            return null;
-        }
-        String overview =  results.getString(key);
-
-        return overview.isEmpty()
-                ? null
-                : overview;
-    }
-
-    private String originalLanguage(){
-        String key = "original_language";
-
-        if(!checkObjects(key)){
-            return null;
-        }
-
-        String originalLanguage =  results.getString(key);
-
-        return originalLanguage.isEmpty()
-                ? null
-                : originalLanguage;
+                : result;
     }
 
     private LocalDate firstAirDate(){
         String key = "first_air_date";
 
-        if(!checkObjects(key)){
+        if(!checkObjects(this.results, key)){
             return null;
         }
 
@@ -138,7 +95,7 @@ public class TheMovieDbTvShow {
     private Double rate(){
         String key  = "vote_average";
 
-        if(!checkObjects(key )){
+        if(!checkObjects(this.results, key)){
             return null;
         }
 
@@ -152,13 +109,15 @@ public class TheMovieDbTvShow {
     private List<String> countries(){
         String key = "origin_country";
 
-        if(!checkObjects(key)){
+        if(!checkObjects(this.results, key)){
             return null;
         }
 
         JSONArray countriesJsonArray = results.getJSONArray(key);
 
         List<Object> countries = countriesJsonArray.toList();
+
+
 
         return countries.isEmpty()
                 ? null
@@ -167,29 +126,25 @@ public class TheMovieDbTvShow {
                     .toList();
     }
 
-    private List<Integer> genres(){
+    private List<String> genres(){
         String key = "genre_ids";
 
-        if(!checkObjects(key)){
+        if(!checkObjects(this.results, key)){
             return null;
         }
 
         List<Object> genreIds = results.getJSONArray(key).toList();
 
+
         return genreIds.isEmpty()
                 ? null
                 : genreIds.stream()
-                    .map(obj -> ((Number) obj).intValue())
+
+                    .map(c-> new TheMovieDbGenres(((Number) c).longValue()).getName())
                     .toList();
     }
 
-    private boolean checkObjects(String objectName){
-        if(this.results == null){
-            return false;
-        }
-        if(!this.results.has(objectName)){
-            return false;
-        }
-        return true;
+    private boolean checkObjects(JSONObject object, String key){
+        return object != null && (!object.isNull(key) || !object.isEmpty() || object.has(key));
     }
 }

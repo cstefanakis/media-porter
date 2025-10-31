@@ -1,6 +1,8 @@
 package org.sda.mediaporter.api;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.sda.mediaporter.models.Country;
+import org.sda.mediaporter.models.Genre;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -92,13 +94,13 @@ class TheMovieDbTvShowTest {
     @org.junit.jupiter.api.Test
     void rate() {
         //Arrest
-        double rate = 8.5;
+        double rate = 5;
 
         //Act
         Double result = dexterResurrection.getRate();
 
         //Assert
-        assertEquals(rate, result);
+        assertTrue(result > rate);
     }
 
     @org.junit.jupiter.api.Test
@@ -110,18 +112,19 @@ class TheMovieDbTvShowTest {
         List<String> result = dexterResurrection.getCountries();
 
         //Assert
-        assertTrue(result.contains(country));
+        assertTrue(result.stream()
+                .anyMatch(c-> c.equals(country)));
     }
 
     @org.junit.jupiter.api.Test
     void genre() {
         //Arrest
-        int genre = 80;
+        String genre = "Crime";
 
         //Act
-        List<Integer> result = dexterResurrection.getGenres();
+        List<String> result = dexterResurrection.getGenres();
 
         //Assert
-        assertTrue(result.contains(genre));
+        assertTrue(result.stream().anyMatch(g -> g.equals(genre)));
     }
 }

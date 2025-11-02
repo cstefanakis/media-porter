@@ -53,4 +53,8 @@ public class Language {
     @ManyToMany(mappedBy = "audioLanguages")
     @JsonBackReference("configurationAudioLanguages")
     private List<Configuration> audioLanguagesConfiguration;
+
+    @ManyToMany(mappedBy = "languages")
+    @JsonBackReference("tv_show_languages")
+    private List<TvShow> tvShows;
 }

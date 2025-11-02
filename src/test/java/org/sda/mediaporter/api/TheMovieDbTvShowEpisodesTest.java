@@ -173,7 +173,7 @@ class TheMovieDbTvShowEpisodesTest {
         String image = "https://image.tmdb.org/t/p/w500"+"/cdxZjP0S2K1FGO3NiXbQAM6TqwS.jpg";
 
         //Act
-        String result = dexter.getImage();
+        String result = dexter.getImageUrl();
 
         //Assert
         assertEquals(image, result);

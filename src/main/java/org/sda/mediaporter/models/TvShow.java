@@ -39,9 +39,9 @@ public class TvShow {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name= "movie_genres",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "genre_id")
+            name= "tv_show_genres",
+            joinColumns = @JoinColumn(name = "tv_show_ids"),
+            inverseJoinColumns = @JoinColumn(name = "genre_ids")
     )
     private List<Genre> genres;
 
@@ -50,9 +50,9 @@ public class TvShow {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "movie_countries",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "Country_id")
+            name = "tv_show_countries",
+            joinColumns = @JoinColumn(name = "tv_show_ids"),
+            inverseJoinColumns = @JoinColumn(name = "country_ids")
     )
     private List<Country> countries;
 
@@ -61,11 +61,11 @@ public class TvShow {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "movie_languages",
-            joinColumns = @JoinColumn(name = "movie_ids"),
+            name = "tv_show_languages",
+            joinColumns = @JoinColumn(name = "tv_show_ids"),
             inverseJoinColumns = @JoinColumn(name = "language_ids")
     )
-    @JsonManagedReference("movieLanguages")
+    @JsonManagedReference("tv_show_Languages")
     private List<Language> languages;
 
     @Column(name = "home_Pages")
@@ -79,5 +79,12 @@ public class TvShow {
 
     @Column(name = "last_Ait_Dates")
     private LocalDate lastAirDate;
+
+    @OneToMany(mappedBy = "tvShow", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("episodes")
+    private List<TvShowEpisode> tvShowEpisodes;
+
+    @Column(name = "Last_Modification_Date")
+    private LocalDate lastModificationDate;
 
 }

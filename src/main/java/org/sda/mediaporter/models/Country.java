@@ -1,11 +1,14 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -29,5 +32,9 @@ public class Country {
 
     @Column(name = "native_names")
     private String nativeName;
+
+    @ManyToMany(mappedBy = "countries")
+    @JsonBackReference("tv_show_countries")
+    private List<TvShow> tvShows;
 
 }

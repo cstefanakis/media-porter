@@ -35,7 +35,7 @@ public class TheMovieDbTvShowEpisodes {
     @Getter
     private Double rate;
     @Getter
-    private String image;
+    private String imageUrl;
 
     public TheMovieDbTvShowEpisodes(int tvShowId, int season, int episode) {
         this.result = result(tvShowId, season, episode);
@@ -49,7 +49,7 @@ public class TheMovieDbTvShowEpisodes {
         this.episodeName = getValidatedStringObject(this.result, "name");
         this.overview = getValidatedStringObject(this.result, "overview");
         this.rate = getValidatedRate();
-        this.image = String.format("https://image.tmdb.org/t/p/w500%s",getValidatedStringObject(this.result, "still_path"));
+        this.imageUrl = String.format("https://image.tmdb.org/t/p/w500%s",getValidatedStringObject(this.result, "still_path"));
     }
 
     private JSONObject result(int tvShowId, int season, int episode){

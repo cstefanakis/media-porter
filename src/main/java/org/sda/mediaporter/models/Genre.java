@@ -26,4 +26,8 @@ public class Genre{
     @JsonBackReference("genres")
     private List<Configuration> genresConfiguration;
 
+    @ManyToMany(mappedBy = "genres")
+    @JsonBackReference("tv_show_genres")
+    private List<TvShow> tvShowsGenres;
+
 }

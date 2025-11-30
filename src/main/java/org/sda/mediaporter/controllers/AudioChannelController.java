@@ -1,8 +1,6 @@
 package org.sda.mediaporter.controllers;
 
-import jakarta.validation.Valid;
-import org.sda.mediaporter.Services.AudioChannelService;
-import org.sda.mediaporter.dtos.AudioChannelDto;
+import org.sda.mediaporter.services.audioServices.AudioChannelService;
 import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,28 +39,4 @@ public class AudioChannelController {
         AudioChannel audioChannel = audioChannelService.getAudioChannelByChannels(channels);
         return ResponseEntity.ok(audioChannel);
     }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping()
-    public ResponseEntity<AudioChannel> createAudioChannel(@RequestBody @Valid AudioChannelDto audioChannelDto){
-        AudioChannel audioChannel = audioChannelService.createAudioChannel(audioChannelDto);
-        return ResponseEntity.ok(audioChannel);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
-    public ResponseEntity<Void> updateAudioChannelById(@PathVariable("id") Long id,
-                                                       @RequestBody AudioChannelDto audioChannelDto){
-        audioChannelService.updateAudioChannelById(id, audioChannelDto);
-        return ResponseEntity.ok().build();
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAudioChannelById(@PathVariable ("id") Long id){
-        audioChannelService.deleteAudioChannelById(id);
-        return ResponseEntity.noContent().build();
-    }
-
-
 }

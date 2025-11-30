@@ -2,10 +2,12 @@ package org.sda.mediaporter.models.metadata;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.Configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,16 +23,17 @@ public class AudioChannel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "titles")
+    @Column(name = "title")
     private String title;
 
     @Column(name = "channels")
     private Integer channels;
 
-    @Column(name = "descriptions")
+    @Column(name = "description")
     private String description;
 
-    @ManyToMany(mappedBy = "audioChannels")
-    @JsonBackReference("audioChannels")
-    private List<Configuration> audioChannelsConfiguration;
+    @OneToMany(mappedBy = "audioChannel",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<Audio> audios;
 }

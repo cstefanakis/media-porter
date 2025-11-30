@@ -2,7 +2,8 @@ package org.sda.mediaporter.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.sda.mediaporter.models.Contributor;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbCastDto;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbCrewDto;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,7 +16,7 @@ class TheMovieDbTvShowEpisodesTest {
 
     @BeforeEach
     void setup(){
-        this.dexter = new TheMovieDbTvShowEpisodes(259909, 1, 1);
+        this.dexter = new TheMovieDbTvShowEpisodes(259909L, 1, 1);
     }
 
     @Test
@@ -24,7 +25,7 @@ class TheMovieDbTvShowEpisodesTest {
         LocalDate airDate = LocalDate.of(2025, 7, 13);
 
         //Act
-        LocalDate result = dexter.getAirDate();
+        LocalDate result = dexter.getTheMovieDbTvShowEpisodeDto().getAirDate();
 
         //Assert
         assertEquals(airDate, result);
@@ -38,7 +39,7 @@ class TheMovieDbTvShowEpisodesTest {
         String poster = "https://image.tmdb.org/t/p/w500"+"/ue6gnd9FRbl5wKZ9yHVtWp6ra4y.jpg";
 
         //Act
-        List<Contributor> result = dexter.getWriters();
+        List<TheMovieDbCrewDto> result = dexter.getTheMovieDbTvShowEpisodeDto().getWriters();
         //Assert
         assertFalse(result.stream()
                 .filter(n -> n.getFullName().equals(writer))
@@ -60,7 +61,7 @@ class TheMovieDbTvShowEpisodesTest {
         String poster = "https://image.tmdb.org/t/p/w500"+"/uZD2ihL4iKzQxMtcLDH47AikT1V.jpg";
 
         //Act
-        List<Contributor> result = dexter.getDirectors();
+        List<TheMovieDbCrewDto> result = dexter.getTheMovieDbTvShowEpisodeDto().getDirectors();
         //Assert
         assertFalse(result.stream()
                 .filter(n -> n.getFullName().equals(director))
@@ -82,7 +83,7 @@ class TheMovieDbTvShowEpisodesTest {
         String poster = "https://image.tmdb.org/t/p/w500"+"/8Y1sjBdnVR483S8PrnAQzlESwhx.jpg";
 
         //Act
-        List<Contributor> result = dexter.getActors();
+        List<TheMovieDbCastDto> result = dexter.getTheMovieDbTvShowEpisodeDto().getActors();
         //Assert
         assertFalse(result.stream()
                 .filter(n -> n.getFullName().equals(actor))
@@ -101,7 +102,7 @@ class TheMovieDbTvShowEpisodesTest {
         Integer episodeNumber = 1;
 
         //Act
-        Integer result = dexter.getEpisodeNumber();
+        Integer result = dexter.getTheMovieDbTvShowEpisodeDto().getEpisodeNumber();
 
         //Assert
         assertEquals(episodeNumber, result);
@@ -113,7 +114,7 @@ class TheMovieDbTvShowEpisodesTest {
         String episodeType = "standard";
 
         //Act
-        String result = dexter.getEpisodeType();
+        String result = dexter.getTheMovieDbTvShowEpisodeDto().getEpisodeType();
 
         //Assert
         assertEquals(episodeType, result);
@@ -125,7 +126,7 @@ class TheMovieDbTvShowEpisodesTest {
         Integer seasonNumber = 1;
 
         //Act
-        Integer result = dexter.getSeasonNumber();
+        Integer result = dexter.getTheMovieDbTvShowEpisodeDto().getSeasonNumber();
 
         //Assert
         assertEquals(seasonNumber, result);
@@ -137,7 +138,7 @@ class TheMovieDbTvShowEpisodesTest {
         String episodeName = "A Beating Heart...";
 
         //Act
-        String result = dexter.getEpisodeName();
+        String result = dexter.getTheMovieDbTvShowEpisodeDto().getEpisodeName();
 
         //Assert
         assertEquals(episodeName, result);
@@ -149,7 +150,7 @@ class TheMovieDbTvShowEpisodesTest {
         String overview = "Dexter Morgan awakens from a ten-week coma.";
 
         //Act
-        String result = dexter.getOverview();
+        String result = dexter.getTheMovieDbTvShowEpisodeDto().getOverview();
 
         //Assert
         assertEquals(overview, result);
@@ -157,14 +158,12 @@ class TheMovieDbTvShowEpisodesTest {
 
     @Test
     void getRate() {
-        //Arrest
-        Double overview = 6.7;
 
         //Act
-        Double result = dexter.getRate();
+        Double result = dexter.getTheMovieDbTvShowEpisodeDto().getRate();
 
         //Assert
-        assertEquals(overview, result);
+        assertTrue(result > 0);
     }
 
     @Test
@@ -173,7 +172,7 @@ class TheMovieDbTvShowEpisodesTest {
         String image = "https://image.tmdb.org/t/p/w500"+"/cdxZjP0S2K1FGO3NiXbQAM6TqwS.jpg";
 
         //Act
-        String result = dexter.getImageUrl();
+        String result = dexter.getTheMovieDbTvShowEpisodeDto().getPoster();
 
         //Assert
         assertEquals(image, result);

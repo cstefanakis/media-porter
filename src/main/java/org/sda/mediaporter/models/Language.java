@@ -26,35 +26,35 @@ public class Language {
     @Column(name = "english_title", nullable = false)
     private String englishTitle;
 
-    @Column(name = "original_titles")
+    @Column(name = "original_title")
     private String originalTitle;
 
-    @Column(name = "iso_639_1")
+    @Column(name = "iso_639_1",
+            length = 3)
     private String iso6391;
 
-    @Column(name = "iso_639_2b")
+    @Column(name = "iso_639_2b",
+            length = 3)
     private String iso6392B;
 
-    @Column(name = "iso_639_2t")
+    @Column(name = "iso_639_2t",
+            length = 3)
     private String iso6392T;
 
-    @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference("audioLanguages")
+    @OneToMany(mappedBy = "language",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Audio> audios;
 
-    @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference("subtitleLanguages")
+    @OneToMany(mappedBy = "language",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Subtitle> subtitles;
 
-    @ManyToMany(mappedBy = "languages", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JsonBackReference("movieLanguages")
+    @OneToMany(mappedBy = "originalLanguage",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Movie> movies;
 
-    @ManyToMany(mappedBy = "audioLanguages")
-    @JsonBackReference("configurationAudioLanguages")
-    private List<Configuration> audioLanguagesConfiguration;
-
     @ManyToMany(mappedBy = "languages")
-    @JsonBackReference("tv_show_languages")
     private List<TvShow> tvShows;
 }

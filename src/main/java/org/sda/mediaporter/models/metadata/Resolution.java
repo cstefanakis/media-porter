@@ -1,9 +1,7 @@
 package org.sda.mediaporter.models.metadata;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.sda.mediaporter.models.Configuration;
 
 import java.util.List;
 
@@ -19,11 +17,9 @@ public class Resolution {
     @GeneratedValue(strategy = GenerationType.AUTO) // AUTO uses provider defaults (can be sequence or identity)
     private Long id;
 
-    @Column(name = "names")
+    @Column(name = "name")
     private String name;
 
-    @ManyToMany(mappedBy = "videoResolutions")
-    @JsonBackReference("videoResolutions")
-    private List<Configuration> resolutionsConfiguration;
-
+    @OneToMany(mappedBy ="resolution")
+    private List<Video> videos;
 }

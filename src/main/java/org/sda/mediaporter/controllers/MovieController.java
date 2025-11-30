@@ -1,9 +1,8 @@
 package org.sda.mediaporter.controllers;
 
 import jakarta.validation.Valid;
-import org.sda.mediaporter.Services.MovieService;
+import org.sda.mediaporter.services.movieServices.MovieService;
 import org.sda.mediaporter.dtos.MovieFilterDto;
-import org.sda.mediaporter.dtos.MovieUpdateDto;
 import org.sda.mediaporter.models.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.web.PageableDefault;
@@ -12,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -37,19 +34,10 @@ public class MovieController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    @GetMapping("/get-movies-from-api-by-title-and-year")
-    public ResponseEntity <Movie> getMovieFromApiByTitle(
-            @RequestParam(name = "title") String title,
-            @RequestParam(name = "year", required = false) Integer year) {
-        Movie movie = movieService.getMovieFromApiByTitle(new Movie(), title, year);
-        return ResponseEntity.status(HttpStatus.OK).body(movie);
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/get-by-title-and-year")
     public ResponseEntity<List<Movie>> getMoviesByTitleAndYear(@RequestParam("title") String title,
                                                                @RequestParam("year") Integer year){
-        List<Movie> movies = movieService.getMovieByTitleAndYear(title, year);
+        List<Movie> movies = movieService.getMoviesByTitleAndYear(title, year);
         return ResponseEntity.ok(movies);
     }
 
@@ -72,52 +60,6 @@ public class MovieController {
     public ResponseEntity<Void> deleteMovieById(@PathVariable("id") Long id) {
         movieService.deleteMovieById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/move/{id}")
-    public ResponseEntity<Movie> moveMovie(@PathVariable("id") Long id,
-                                           @RequestParam(name = "path") String path) {
-        Path destinationPath = Paths.get(path);
-        Movie movieFromDb = movieService.getMovieById(id);
-        Movie movie = movieService.generateAndMoveMovieFile(movieFromDb, destinationPath);
-        return ResponseEntity.status(HttpStatus.OK).body(movie);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
-    public ResponseEntity<Movie> updateMovie(@PathVariable("id") Long id,
-                                             @RequestBody MovieUpdateDto movieUpdateDto) {
-        Movie movie = movieService.updateMovie(id, movieUpdateDto);
-        return ResponseEntity.status(HttpStatus.OK).body(movie);
-    }
-
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @PostMapping("/copy/{id}")
-    public ResponseEntity<Void> copyMovie(@PathVariable("id") Long id,
-                                          @RequestParam(name = "path") String path) {
-        Path destinationPath = Paths.get(path);
-        movieService.copyMovie(id, destinationPath);
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @PostMapping("/organize-download-movies")
-    public ResponseEntity<Page<Movie>> organizeDownloadMovies(Pageable page,
-                                                              @RequestParam(name = "sourcePath") String sourcePath,
-                                                              @RequestParam(name = "destinationPath") String destinationPath) {
-        Path downloadMoviesPath = Paths.get(sourcePath);
-        Path destinationMoviesPath = Paths.get(destinationPath);
-        Page<Movie> organizedMovies = movieService.organizedDownloadMovieFiles(page, downloadMoviesPath, destinationMoviesPath);
-        return ResponseEntity.status(HttpStatus.OK).body(organizedMovies);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/create-movies-from-path")
-    public ResponseEntity<Page<Movie>> getMoviesFromPath(Pageable page,
-                                                         @RequestParam(name = "path") String path) {
-        Page<Movie> movies = movieService.getMoviesFromPath(page, path);
-        return ResponseEntity.ok(movies);
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")

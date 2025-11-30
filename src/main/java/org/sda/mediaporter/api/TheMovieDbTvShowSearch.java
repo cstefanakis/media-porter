@@ -3,69 +3,53 @@ package org.sda.mediaporter.api;
 import lombok.Getter;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.sda.mediaporter.models.TvShow;
-
-import java.time.LocalDate;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowSearchDTO;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TheMovieDbTvShowSearch {
-    private final String apiKey = "7c97b163195d9428522398e8f1c32f63";
-    private final JSONObject results;
+    private final TheMovieDb theMovieDb = new TheMovieDb();
+    private final JSONObject root;
 
     @Getter
-    List<TvShow> tvShows;
+    List<TheMovieDbTvShowSearchDTO> tvShows;
 
     public TheMovieDbTvShowSearch(String tvShowName) {
-        this.results = tvShowResults(tvShowName);
+        this.root = tvShowResults(tvShowName);
         this.tvShows = getValidatedTVShows();
 
     }
 
     private JSONObject tvShowResults (String tvShowName){
-        String url = String.format("https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s", this.apiKey, tvShowName.replace(" ", "+"));
+        String url = String.format("https://api.themoviedb.org/3/search/tv?api_key=%s&query=%s", theMovieDb.getApiKey(), tvShowName.replace(" ", "+"));
         ApiConnect apiConnect = new ApiConnect(url);
         String jsonFile = apiConnect.getJsonString();
         return new JSONObject(jsonFile);
     }
 
-    private List<TvShow> getValidatedTVShows(){
+    private List<TheMovieDbTvShowSearchDTO> getValidatedTVShows(){
         String objectKey = "results";
-        List<TvShow> tvShowsList = new ArrayList<>();
-        if(checkObjects(this.results, objectKey)){
-            JSONArray tvShows = this.results.getJSONArray(objectKey);
+        List<TheMovieDbTvShowSearchDTO> tvShowsList = new ArrayList<>();
+        if(theMovieDb.isValidatedObject(this.root, objectKey)){
+            JSONArray tvShows = this.root.getJSONArray(objectKey);
             for (int i = 0; i < tvShows.length(); i++) {
                 JSONObject tvShow = tvShows.getJSONObject(i);
-                tvShowsList.add(TvShow.builder()
-                                .id(getValidatedId(tvShow, "id"))
-                                .title(getValidatedStringObject(tvShow, "name"))
-                                .originalTitle(getValidatedStringObject(tvShow, "original_name"))
-                                .year(getYearFromLocalDateObject(tvShow, "first_air_date"))
-                        .build());
+                tvShowsList.add(buildTheMovieDbTvShowSearchDTO(tvShow));
             }
         }
         return tvShowsList;
     }
 
-    private Long getValidatedId (JSONObject object, String key){
-        return checkObjects(object, key)
-                ? object.getLong(key)
-                : null;
-    }
-
-    private String getValidatedStringObject(JSONObject object, String key){
-        return checkObjects(object, key)
-                ? object.getString(key)
-                : null;
-    }
-
-    private Integer getYearFromLocalDateObject(JSONObject object, String key){
-        return checkObjects(object, key)
-                ? LocalDate.parse(object.getString(key)).getYear()
-                : null;
-    }
-
-    private boolean checkObjects(JSONObject object, String key){
-        return object != null && (!object.isNull(key) || !object.isEmpty() || object.has(key));
+    private TheMovieDbTvShowSearchDTO buildTheMovieDbTvShowSearchDTO(JSONObject jsonObject){
+        return TheMovieDbTvShowSearchDTO.builder()
+                .theMovieDbId(theMovieDb.getValidatedLongJsonObject(jsonObject, "id"))
+                .title(theMovieDb.getValidatedStringJsonObject(jsonObject, "name"))
+                .originalTitle(theMovieDb.getValidatedStringJsonObject(jsonObject, "original_name"))
+                .year(theMovieDb.getYearFromLocalDateObject(jsonObject, "first_air_date"))
+                .originalLanguage(theMovieDb.getValidatedStringJsonObject(jsonObject, "original_language"))
+                .overview(theMovieDb.getValidatedStringJsonObject(jsonObject, "overview"))
+                .rate(theMovieDb.getValidatedDoubleJsonObject(jsonObject, "vote_average"))
+                .poster(theMovieDb.getPosterRootPath() + theMovieDb.getValidatedStringJsonObject(jsonObject, "poster_path"))
+                .build();
     }
 }

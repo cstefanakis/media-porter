@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -15,66 +17,73 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 
 public class TvShowEpisode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Column(name = "the_movie_db_id")
+    private Long theMovieDbId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tv_shows_ids")
-    @JsonBackReference("tv_shows_ids")
     private TvShow tvShow;
 
     @Column(name = "air_dates")
     private LocalDate airDate;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "tv_show_actors",
-            joinColumns = @JoinColumn(name = "tv_show_episodes_ids"),
-            inverseJoinColumns = @JoinColumn(name = "actors_ids")
+            name = "actors",
+            joinColumns = @JoinColumn(name = "tv_show_episode_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
-    @JsonManagedReference("tv_show_actors")
     private List<Contributor> actors;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "tv_show_writers",
-            joinColumns = @JoinColumn(name = "tv_show_episodes_ids"),
-            inverseJoinColumns = @JoinColumn(name = "writers_ids")
+            name = "writers",
+            joinColumns = @JoinColumn(name = "tv_show_episode_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
-    @JsonManagedReference("tv_show_writers")
     private List<Contributor> writers;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "tv_show_directors",
-            joinColumns = @JoinColumn(name = "tv_show_episodes_ids"),
-            inverseJoinColumns = @JoinColumn(name = "directors_ids")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "directors",
+            joinColumns = @JoinColumn(name = "tv_show_episode_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
-    @JsonManagedReference("tv_show_directors")
     private List<Contributor> directors;
 
-    @Column(name = "episode_number")
+    @Column(name = "episode_numbers")
     private Integer episodeNumber;
 
-    @Column (name = "season_number")
+    @Column (name = "season_numbers")
     private Integer seasonNumber;
 
-    @Column (name = "type")
+    @Column (name = "types")
     private String type;
 
-    @Column (name = "episode_mame")
+    @Column (name = "episode_mames")
     private String episodeName;
 
-    @Column (name = "rating")
+    @Column (name = "ratings")
     private Double rating;
 
-    @Column (name = "overview",
+    @Column (name = "overviews",
             columnDefinition = "TEXT")
     private String overview;
 
-    @Column (name = "images_url")
-    private String imageUrl;
+    @Column (name = "posters")
+    private String poster;
 
+    @Column (name = "modification_dates")
+    private LocalDateTime modificationDateTime;
+
+    @OneToMany(mappedBy = "tvShowEpisode",
+            cascade = CascadeType.PERSIST,
+            orphanRemoval = true)
+    private List<VideoFilePath> videoFilePaths;
 }

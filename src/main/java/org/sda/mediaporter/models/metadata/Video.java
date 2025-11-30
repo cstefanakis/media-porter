@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.VideoFilePath;
 
 @Entity
 @Table(name = "videos")
@@ -19,18 +20,17 @@ public class Video {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "resolution_ids")
-    private Resolution resolution;
-
-    @Column(name = "bitrates")
+    @Column(name = "bitrate")
     private Integer bitrate;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "resolution_id")
+    private Resolution resolution;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "codec_id")
     private Codec codec;
 
-    @OneToOne
-    @JoinColumn(name = "movie_ids")
-    @JsonBackReference
-    private Movie movie;
+    @OneToOne(mappedBy = "video")
+    private VideoFilePath videoFilePath;
 }

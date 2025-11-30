@@ -2,7 +2,7 @@ package org.sda.mediaporter.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.sda.mediaporter.models.TvShow;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowSearchDTO;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ class TheMovieDbTvShowSearchTest {
         int year = 2006;
 
         //Act
-        List<TvShow> result = dexter.getTvShows();
+        List<TheMovieDbTvShowSearchDTO> result = dexter.getTvShows();
 
         //Arrest
         assertTrue(result.stream()
@@ -39,9 +39,9 @@ class TheMovieDbTvShowSearchTest {
         assertTrue(result.stream()
                 .anyMatch(y -> y.getYear().equals(year)));
         assertTrue(result.stream()
-                .anyMatch(obj -> obj.getId() == 1405));
+                .anyMatch(obj -> obj.getTheMovieDbId() == 1405));
         assertTrue(result.stream()
-                .filter(tvShow -> tvShow.getId() == null).toList().isEmpty());
+                .filter(tvShow -> tvShow.getTheMovieDbId() == null).toList().isEmpty());
     }
 
     @Test
@@ -52,7 +52,7 @@ class TheMovieDbTvShowSearchTest {
         int year = 2025;
 
         //Act
-        List<TvShow> result = dexterResurrectionCz.getTvShows();
+        List<TheMovieDbTvShowSearchDTO> result = dexterResurrectionCz.getTvShows();
 
         //Arrest
         assertTrue(result.stream()
@@ -62,9 +62,9 @@ class TheMovieDbTvShowSearchTest {
         assertTrue(result.stream()
                 .anyMatch(y -> y.getYear().equals(year)));
         assertTrue(result.stream()
-                .anyMatch(obj -> obj.getId() == 259909));
+                .anyMatch(obj -> obj.getTheMovieDbId() == 259909));
         assertTrue(result.stream()
-                .filter(tvShow -> tvShow.getId() == null).toList().isEmpty());
+                .filter(tvShow -> tvShow.getTheMovieDbId() == null).toList().isEmpty());
     }
 
     @Test
@@ -75,7 +75,7 @@ class TheMovieDbTvShowSearchTest {
         int year = 2025;
 
         //Act
-        List<TvShow> result = dexterResurrectionEn.getTvShows();
+        List<TheMovieDbTvShowSearchDTO> result = dexterResurrectionEn.getTvShows();
 
         //Arrest
         assertTrue(result.stream()
@@ -85,8 +85,8 @@ class TheMovieDbTvShowSearchTest {
         assertTrue(result.stream()
                 .anyMatch(y -> y.getYear().equals(year)));
         assertTrue(result.stream()
-                .anyMatch(obj -> obj.getId() == 259909));
+                .anyMatch(obj -> obj.getTheMovieDbId() == 259909));
         assertTrue(result.stream()
-                .filter(tvShow -> tvShow.getId() == null).toList().isEmpty());
+                .filter(tvShow -> tvShow.getTheMovieDbId() == null).toList().isEmpty());
     }
 }

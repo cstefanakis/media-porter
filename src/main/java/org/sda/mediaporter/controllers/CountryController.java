@@ -1,7 +1,7 @@
 package org.sda.mediaporter.controllers;
 
 import jakarta.validation.Valid;
-import org.sda.mediaporter.Services.CountryService;
+import org.sda.mediaporter.services.CountryService;
 import org.sda.mediaporter.dtos.CountryDto;
 import org.sda.mediaporter.models.Country;
 import org.springframework.http.ResponseEntity;

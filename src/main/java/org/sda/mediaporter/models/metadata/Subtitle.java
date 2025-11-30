@@ -1,12 +1,10 @@
 package org.sda.mediaporter.models.metadata;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.Language;
-import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.VideoFilePath;
 
 @Entity
 @Table(name = "subtitles")
@@ -22,16 +20,14 @@ public class Subtitle {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "language_ids")
-    @JsonManagedReference("subtitleLanguage")
+    @JoinColumn(name = "language_id")
     private Language language;
 
     @ManyToOne
-    @JoinColumn(name = "format_ids")
-    private Codec format;
+    @JoinColumn(name = "codec_id")
+    private Codec codec;
 
     @ManyToOne
-    @JoinColumn (name = "movie_ids")
-    @JsonBackReference
-    private Movie movie;
+    @JoinColumn (name = "video_file_path_id")
+    private VideoFilePath videoFilePath;
 }

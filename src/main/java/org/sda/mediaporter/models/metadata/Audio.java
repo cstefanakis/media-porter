@@ -7,6 +7,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.TvShowEpisode;
+import org.sda.mediaporter.models.VideoFilePath;
+
+import java.util.List;
 
 @Entity
 @Table(name = "audios")
@@ -21,24 +25,24 @@ public class Audio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "bitrates")
+    @Column(name = "bitrate")
     private Integer bitrate;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "audio_channel_ids")
+    @JoinColumn(name = "audio_channel_id")
     private AudioChannel audioChannel;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "codec_ids")
+    @JoinColumn(name = "codec_id")
     private Codec codec;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "language_ids")
+    @JoinColumn(name = "language_id")
     @JsonManagedReference("audioLanguages")
     private Language language;
 
-    @ManyToOne
-    @JoinColumn(name = "movie_ids")
-    @JsonBackReference
-    private Movie movie;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "video_file_path_id")
+    VideoFilePath videoFilePath;
+
 }

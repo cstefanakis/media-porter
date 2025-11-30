@@ -2,7 +2,7 @@ package org.sda.mediaporter.controllers;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.sda.mediaporter.Services.ContributorService;
+import org.sda.mediaporter.services.ContributorService;
 import org.sda.mediaporter.models.Contributor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

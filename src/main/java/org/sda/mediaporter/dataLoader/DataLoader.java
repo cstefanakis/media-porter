@@ -31,9 +31,10 @@ public class DataLoader implements CommandLineRunner {
     private final CountryRepository countryRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final GenderRepository genderRepository;
 
     @Autowired
-    public DataLoader(LanguageRepository languageRepository, GenreRepository genreRepository, ConfigurationRepository configurationRepository, CodecRepository codecRepository, ResolutionRepository resolutionRepository, SourcePathRepository sourcePathRepository, AudioChannelRepository audioChannelsRepository, CountryRepository countryRepository, UserRepository userRepository, RoleRepository roleRepository) {
+    public DataLoader(LanguageRepository languageRepository, GenreRepository genreRepository, ConfigurationRepository configurationRepository, CodecRepository codecRepository, ResolutionRepository resolutionRepository, SourcePathRepository sourcePathRepository, AudioChannelRepository audioChannelsRepository, CountryRepository countryRepository, UserRepository userRepository, RoleRepository roleRepository, GenderRepository genderRepository) {
         this.languageRepository = languageRepository;
         this.genreRepository = genreRepository;
         this.configurationRepository = configurationRepository;
@@ -44,6 +45,7 @@ public class DataLoader implements CommandLineRunner {
         this.countryRepository = countryRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.genderRepository = genderRepository;
     }
 
     @Override
@@ -77,6 +79,17 @@ public class DataLoader implements CommandLineRunner {
                     .roles(Set.of(user))
                     .build());
 
+        }
+
+        //Gender data loader
+        if(genderRepository.count() == 0){
+            genderRepository.save(Gender.builder()
+                            .title("Female")
+                    .build());
+
+            genderRepository.save(Gender.builder()
+                            .title("Male")
+                    .build());
         }
 
         //Codec data loader
@@ -707,6 +720,13 @@ public class DataLoader implements CommandLineRunner {
                     .libraryItem(LibraryItems.MOVIE)
                     .path("Z:\\MultiMedia\\Movies")
                     .title("Movies Main Path")
+                    .pathType(SourcePath.PathType.SOURCE)
+                    .build());
+
+            sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.TV_SHOW)
+                    .path("Z:\\MultiMedia\\Serials")
+                    .title("TvShows Main Path")
                     .pathType(SourcePath.PathType.SOURCE)
                     .build());
         }

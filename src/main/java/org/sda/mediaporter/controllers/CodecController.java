@@ -1,8 +1,6 @@
 package org.sda.mediaporter.controllers;
 
-import jakarta.validation.Valid;
-import org.sda.mediaporter.Services.CodecService;
-import org.sda.mediaporter.dtos.CodecDto;
+import org.sda.mediaporter.services.CodecService;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +32,7 @@ public class CodecController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/by-media-type")
     public ResponseEntity<List<Codec>> getCodecsByMediaType(@RequestParam("mediaType") MediaTypes mediaType){
-        List<Codec> codecs = codecService.getByMediaType(mediaType);
+        List<Codec> codecs = codecService.getCodecsByMediaType(mediaType);
         return ResponseEntity.ok(codecs);
     }
 
@@ -50,27 +48,5 @@ public class CodecController {
     public ResponseEntity<List<Codec>> getAllCodecs(){
         List<Codec> allCodecs = codecService.getAllCodecs();
         return ResponseEntity.ok(allCodecs);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping()
-    public ResponseEntity<Codec> createCodec(@RequestBody @Valid CodecDto codecDto){
-        Codec createdCodec = codecService.createCodec(codecDto);
-        return ResponseEntity.ok(createdCodec);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
-    public ResponseEntity<Void> updateCodec(@PathVariable("id") Long id,
-                                             @RequestBody CodecDto codecDto){
-        codecService.updateCodec(id, codecDto);
-        return ResponseEntity.ok().build();
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCodec(@PathVariable("id") Long id){
-        codecService.deleteCodec(id);
-        return ResponseEntity.noContent().build();
     }
 }

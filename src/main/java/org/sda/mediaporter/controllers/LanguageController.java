@@ -1,7 +1,7 @@
 package org.sda.mediaporter.controllers;
 
 import jakarta.validation.Valid;
-import org.sda.mediaporter.Services.LanguageService;
+import org.sda.mediaporter.services.LanguageService;
 import org.sda.mediaporter.dtos.LanguageDto;
 import org.sda.mediaporter.models.Language;
 import org.springframework.beans.factory.annotation.Autowired;

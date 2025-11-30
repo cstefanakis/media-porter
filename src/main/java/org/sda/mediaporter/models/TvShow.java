@@ -1,7 +1,5 @@
 package org.sda.mediaporter.models;
 
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,12 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Entity
 @Builder
-@Table(name = "tv-shows")
+@Table(name = "tvShows")
 @NoArgsConstructor
 @AllArgsConstructor
 public class TvShow {
@@ -22,7 +21,7 @@ public class TvShow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "tv_show_titles")
+    @Column(name = "title")
     private String title;
 
     @Column(name = "original_titles")
@@ -31,60 +30,61 @@ public class TvShow {
     @Column(name = "years")
     private Integer year;
 
-    @Column(name = "ratings")
-    private Double rating;
+    @Column(name = "rate")
+    private Double rate;
 
-    @Column(name = "release_dates")
-    private LocalDate releaseDate;
+    @Column(name = "first_ait_date")
+    private LocalDate firstAirDate;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @Column(name = "last_Ait_Date")
+    private LocalDate lastAirDate;
+
+    @Column(name = "poster")
+    private String poster;
+
+    @Column(name = "overview",
+            columnDefinition = "TEXT")
+    private String overview;
+
+    @Column(name = "last_modification_date")
+    private LocalDateTime LastModificationDateTime;
+
+    @Column(name = "home_pages")
+    private String homePage;
+
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "TheMovieDB_Id",
+            unique = true)
+    private Long theMoveDBTvShowId;
+
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name= "tv_show_genres",
-            joinColumns = @JoinColumn(name = "tv_show_ids"),
-            inverseJoinColumns = @JoinColumn(name = "genre_ids")
+            name= "tvShow_genres",
+            joinColumns = @JoinColumn(name = "tvShow_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
     private List<Genre> genres;
 
-    @Column(name = "overview", columnDefinition = "TEXT")
-    private String overview;
-
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "tv_show_countries",
-            joinColumns = @JoinColumn(name = "tv_show_ids"),
-            inverseJoinColumns = @JoinColumn(name = "country_ids")
+            name = "tvShow_countries",
+            joinColumns = @JoinColumn(name = "tvShow_id"),
+            inverseJoinColumns = @JoinColumn(name = "country_id")
     )
     private List<Country> countries;
 
-    @Column(name = "posters")
-    private String poster;
-
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "tv_show_languages",
-            joinColumns = @JoinColumn(name = "tv_show_ids"),
-            inverseJoinColumns = @JoinColumn(name = "language_ids")
+            name = "tvShow_languages",
+            joinColumns = @JoinColumn(name = "tvShow_id"),
+            inverseJoinColumns = @JoinColumn(name = "language_id")
     )
-    @JsonManagedReference("tv_show_Languages")
     private List<Language> languages;
 
-    @Column(name = "home_Pages")
-    private String homePage;
-
-    @Column(name = "Statuses")
-    private String status;
-
-    @Column(name = "first_Ait_Dates")
-    private LocalDate firstAirDate;
-
-    @Column(name = "last_Ait_Dates")
-    private LocalDate lastAirDate;
-
-    @OneToMany(mappedBy = "tvShow", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("episodes")
+    @OneToMany(mappedBy = "tvShow",
+            cascade = CascadeType.PERSIST,
+            orphanRemoval = true)
     private List<TvShowEpisode> tvShowEpisodes;
-
-    @Column(name = "Last_Modification_Date")
-    private LocalDate lastModificationDate;
-
 }

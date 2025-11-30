@@ -11,9 +11,11 @@ import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.sda.mediaporter.services.impl.CodecServiceImpl;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,21 +81,76 @@ class CodecServiceTest {
 
     @Test
     void getCodecById() {
+        //Arrest
+        Long id = 1L;
+        when(codecRepository.findById(id))
+                .thenReturn(Optional.of(this.h265));
+        //Act
+        Codec result = codecService.getCodecById(id);
+        //Assert
+        assertNotNull(result);
+        assertEquals("H265", result.getName());
+        verify(codecRepository).findById(id);
     }
 
     @Test
     void getCodecByName() {
+        //Arrest
+        String name = "H264";
+        when(codecRepository.findByName(name))
+                .thenReturn(Optional.of(this.h264));
+        //Act
+        Codec result = codecService.getCodecByName(name);
+        //Assert
+        assertNotNull(result);
+        assertEquals(name, result.getName());
+        verify(codecRepository).findByName(name);
     }
 
     @Test
     void getAllCodecs() {
+        //Arrest
+        List<Codec> codecs = List.of(this.h264, this.h265, this.mp3, this.aac,this.srt,this.sub);
+        when(codecRepository.findAll())
+                .thenReturn(codecs);
+        //Act
+        List<Codec> result = codecService.getAllCodecs();
+        //Assert
+        assertNotNull(result);
+        assertEquals(6 ,result.size());
+        verify(codecRepository).findAll();
     }
 
     @Test
     void getCodecsByMediaType() {
+        //Arrest
+        MediaTypes mediaTypes = MediaTypes.VIDEO;
+        List<Codec> codecs = List.of(this.h264, this.h265);
+        when(codecRepository.findByMediaType(mediaTypes))
+                .thenReturn(codecs);
+        //Act
+        List<Codec> result = codecService.getCodecsByMediaType(mediaTypes);
+        //Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(codecRepository).findByMediaType(mediaTypes);
     }
 
     @Test
     void getOrCreateCodecByCodecNameAndMediaType() {
+        //Arrest
+        MediaTypes mediaType = MediaTypes.VIDEO;
+        String name = "h264";
+        when(codecRepository.findByNameAndMediaType(name, mediaType))
+                .thenReturn(Optional.empty());
+        when(codecRepository.save(any(Codec.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        //Act
+        Codec result = codecService.getOrCreateCodecByCodecNameAndMediaType(name, mediaType);
+        //Assert
+        assertNotNull(result);
+        assertEquals(name, result.getName());
+        verify(codecRepository).findByNameAndMediaType(name, mediaType);
+        verify(codecRepository).save(any(Codec.class));
     }
 }

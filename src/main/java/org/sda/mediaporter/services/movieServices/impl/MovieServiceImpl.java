@@ -1,11 +1,13 @@
 package org.sda.mediaporter.services.movieServices.impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.sda.mediaporter.api.TheMovieDbCreditsForMovieById;
 import org.sda.mediaporter.api.TheMovieDbMovieById;
 import org.sda.mediaporter.api.TheMovieDbMovieSearch;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbMovieDto;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbMovieSearchDTO;
+import org.sda.mediaporter.models.metadata.Character;
 import org.sda.mediaporter.services.*;
 import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.*;
@@ -21,6 +23,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,9 +39,10 @@ public class MovieServiceImpl implements MovieService {
     private final FileService fileService;
     private final CountryService countryService;
     private final ContributorService contributorService;
+    private final CharacterService characterService;
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, VideoFilePathService videoFilePathService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, CountryService countryService, ContributorService contributorService) {
+    public MovieServiceImpl(GenreService genreService, VideoFilePathService videoFilePathService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, CountryService countryService, ContributorService contributorService, CharacterService characterService) {
         this.genreService = genreService;
         this.videoFilePathService = videoFilePathService;
         this.languageService = languageService;
@@ -46,6 +50,7 @@ public class MovieServiceImpl implements MovieService {
         this.fileService = fileService;
         this.countryService = countryService;
         this.contributorService = contributorService;
+        this.characterService = characterService;
     }
 
     @Override
@@ -104,8 +109,9 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public Movie createMovieFromPathFile(Path moviePath) {
-        return null;
+    public Movie getOrCreateMovieFromPathFile(Path moviePath) {
+        String movieFileName = moviePath.getFileName().toString();
+        return getOrCreateMovieFromApi(movieFileName);
     }
 
     @Override
@@ -144,6 +150,13 @@ public class MovieServiceImpl implements MovieService {
         return movieRepository.filterByAudioLanguage(page, aLanguageIds);
     }
 
+    @Override
+    public void updateModificationDateTime(Movie movie, Path filePath) {
+        LocalDateTime modificationDateTime = fileService.getModificationLocalDateTimeOfPath(filePath);
+        movie.setLastModificationDateTime(modificationDateTime);
+        movieRepository.save(movie);
+    }
+
     //try to find movie in api
     private Movie getMovieFromApi(String fileTitle) {
 
@@ -155,7 +168,6 @@ public class MovieServiceImpl implements MovieService {
             Long theMovieDbMovieId = movieAPISearchDTO.getTheMovieDbId();
             TheMovieDbMovieById theMovieDbMovieById = new TheMovieDbMovieById(theMovieDbMovieId);
             TheMovieDbCreditsForMovieById theMovieDbCreditsForMovieById = new TheMovieDbCreditsForMovieById(theMovieDbMovieId);
-
             List<Contributor> writers = contributorService.getCrewsByTheMovieDbCrewsDto(theMovieDbCreditsForMovieById.getWriters());
             List<Contributor> actors = contributorService.getCastsByTheMovieDbCastsDto(theMovieDbCreditsForMovieById.getActors());
             List<Contributor> directors = contributorService.getCrewsByTheMovieDbCrewsDto(theMovieDbCreditsForMovieById.getDirectors());
@@ -167,6 +179,7 @@ public class MovieServiceImpl implements MovieService {
 
         return new Movie();
     }
+
 
     private Movie getOrCreateMovieFromApi(String fileTitle) {
 
@@ -182,23 +195,27 @@ public class MovieServiceImpl implements MovieService {
                 Long theMovieDbMovieId = movieAPISearchDTO.getTheMovieDbId();
                 TheMovieDbMovieById theMovieDbMovieById = new TheMovieDbMovieById(theMovieDbMovieId);
                 TheMovieDbCreditsForMovieById theMovieDbCreditsForMovieById = new TheMovieDbCreditsForMovieById(theMovieDbMovieId);
-
                 List<Contributor> writers = contributorService.getOrCreateCrewsByTheMovieDbCrewsDto(theMovieDbCreditsForMovieById.getWriters());
                 List<Contributor> actors = contributorService.getOrCreateCastsByTheMovieDbCastsDto(theMovieDbCreditsForMovieById.getActors());
                 List<Contributor> directors = contributorService.getOrCreateCrewsByTheMovieDbCrewsDto(theMovieDbCreditsForMovieById.getDirectors());
                 List<Genre> genres = genreService.getOrCreateGenresByTitles(theMovieDbMovieById.getTheMovieDbMovieDto().getGenres());
                 Language originalLanguage = getLanguageByCodeOrNull(theMovieDbMovieById.getTheMovieDbMovieDto().getLanguageCode());
                 List<Country> countries = getCountriesByCodes(theMovieDbMovieById.getTheMovieDbMovieDto().getCountries());
-                return movieRepository.save(toEntity(theMovieDbMovieById.getTheMovieDbMovieDto(), writers, actors, directors, genres, originalLanguage, countries));
+                Movie movie = movieRepository.save(toEntity(theMovieDbMovieById.getTheMovieDbMovieDto(), writers, actors, directors, genres, originalLanguage, countries));
+                List<Character> characters = characterService.createCharactersForMovie(theMovieDbCreditsForMovieById.getActors(), movie);
+                movie.setCharacters(characters);
+                return movie;
             }
         }
 
-        return new Movie();
+        return null;
     }
 
     private List<Country> getCountriesByCodes(List<String> countryCodes){
         return countryCodes.stream()
-                .map(countryService::getCountryByCode).toList();
+                .map(countryService::getCountryByCodeOrNull)
+                .filter(Objects::isNull)
+                .toList();
     }
 
     private Language getLanguageByCodeOrNull(String languageCode){
@@ -234,14 +251,18 @@ public class MovieServiceImpl implements MovieService {
         int splitedFileTitleLength = splitedFileTitle.length;
         for (int i = 0 ; i < splitedFileTitleLength; i++) {
             String[] fileTitleElements = Arrays.copyOf(splitedFileTitle, splitedFileTitleLength-i);
-            String newFileTitle = String.join(" ", fileTitleElements);
+            String newFileTitle = String.join(" ", fileTitleElements).replaceAll(" ", "+");
 
             TheMovieDbMovieSearch theMovieDbMovieSearch = new TheMovieDbMovieSearch(newFileTitle, year);
             List<TheMovieDbMovieSearchDTO> movieAPISearchDTOs = theMovieDbMovieSearch.getMoviesSearchFromApi();
             int movieSearchSize = theMovieDbMovieSearch.getMoviesSearchFromApi().size();
+            System.out.println("movie search size: " + movieSearchSize);
+            System.out.println(newFileTitle);
+            System.out.println(splitedFileTitleLength);
             if(movieSearchSize == 1){
                 return theMovieDbMovieSearch.getMoviesSearchFromApi().getFirst();
-            }else if(movieSearchSize > 1) {
+            }
+            if(movieSearchSize > 1) {
                 int titleWords = fileTitleElements.length;
                 List<TheMovieDbMovieSearchDTO> searchResult = movieAPISearchDTOs.stream()
                         .filter(m -> fileService.getSafeFileName(m.getTitle()).split(" ").length == titleWords).toList();
@@ -273,7 +294,7 @@ public class MovieServiceImpl implements MovieService {
                 return fileTitle;
             }
 
-            return fileTitle.substring(0, lastIndex).trim().replaceAll(" ", "+");
+            return fileTitle.substring(0, lastIndex).trim();
 
         }
         return fileTitle;

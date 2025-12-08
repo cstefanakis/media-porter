@@ -41,7 +41,7 @@ public class Audio {
     @JsonManagedReference("audioLanguages")
     private Language language;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "video_file_path_id")
     VideoFilePath videoFilePath;
 

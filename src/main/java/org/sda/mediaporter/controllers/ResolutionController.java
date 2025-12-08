@@ -1,9 +1,7 @@
 package org.sda.mediaporter.controllers;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import org.sda.mediaporter.services.videoServices.ResolutionService;
-import org.sda.mediaporter.dtos.ResolutionDto;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

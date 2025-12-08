@@ -5,9 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.sda.mediaporter.models.metadata.Character;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -94,5 +96,10 @@ public class Movie {
     private List<Country> countries;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VideoFilePath> videoFilePaths;
+    @Builder.Default
+    private List<VideoFilePath> videoFilePaths = new ArrayList<>();
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Character> characters = new ArrayList<>();
 }

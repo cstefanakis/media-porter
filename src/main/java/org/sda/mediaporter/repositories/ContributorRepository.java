@@ -14,7 +14,7 @@ public interface ContributorRepository extends JpaRepository<Contributor, Long> 
     Optional<Contributor> findByFullName(@Param("fullName") String fullName);
 
     @Query("""
-            SELECT c FROM Contributor
+            SELECT c FROM Contributor c
             WHERE c.theMovieDbId = :theMovieDbId
             """)
     Optional<Contributor> findContributorByTheMovieDb(@Param("theMovieDbId") Long theMovieDbId);

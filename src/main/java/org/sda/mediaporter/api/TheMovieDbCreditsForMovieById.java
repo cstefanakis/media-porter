@@ -16,12 +16,16 @@ public class TheMovieDbCreditsForMovieById {
     private List<TheMovieDbCrewDto> writers;
     @Getter
     private List<TheMovieDbCrewDto> directors;
+    @Getter
+    private List<String> characters;
 
     public TheMovieDbCreditsForMovieById(Long theMovieDbId) {
         JSONObject root = result(theMovieDbId);
         this.actors = theMovieDb.getContributorsFromCast(root, "cast");
         this.writers = theMovieDb.getContributorsFromCrewByDepartment(root, "Editing");
         this.directors = theMovieDb.getContributorsFromCrewByDepartment(root, "Directing");
+        this.characters = actors.stream()
+                .map(TheMovieDbCastDto::getCharacter).toList();
     }
 
     private JSONObject result(Long theMovieDbId){

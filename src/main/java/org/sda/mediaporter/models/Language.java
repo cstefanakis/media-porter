@@ -8,6 +8,7 @@ import lombok.*;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,16 +30,13 @@ public class Language {
     @Column(name = "original_title")
     private String originalTitle;
 
-    @Column(name = "iso_639_1",
-            length = 3)
+    @Column(name = "iso_639_1")
     private String iso6391;
 
-    @Column(name = "iso_639_2b",
-            length = 3)
+    @Column(name = "iso_639_2b")
     private String iso6392B;
 
-    @Column(name = "iso_639_2t",
-            length = 3)
+    @Column(name = "iso_639_2t")
     private String iso6392T;
 
     @OneToMany(mappedBy = "language",

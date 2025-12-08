@@ -20,7 +20,7 @@ public class TheMovieDbMovieSearch {
         this.moviesSearchFromApi = moviesSearchFromApi();
     }
 
-    private JSONObject results(String movieTitle, int movieYear){
+    private JSONObject results(String movieTitle, Integer movieYear){
         String url = String.format("https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s", theMovieDb.getApiKey(), movieTitle, movieYear);
         ApiConnect apiConnect = new ApiConnect(url);
         return apiConnect.getRootJsonObject();

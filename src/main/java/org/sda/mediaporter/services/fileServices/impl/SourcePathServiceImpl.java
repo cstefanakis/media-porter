@@ -42,12 +42,6 @@ public class SourcePathServiceImpl implements SourcePathService {
     }
 
     @Override
-    public SourcePath getSourcePathByPath(Path filePath) {
-        Optional<SourcePath> sourcePathOptional =  sourcePathRepository.findSourcePathByPath(filePath);
-        return sourcePathOptional.orElseThrow(() -> new EntityNotFoundException(String.format("Source path with path: %s not found", filePath)));
-    }
-
-    @Override
     public void deleteById(Long id) {
         sourcePathRepository.delete(getById(id));
     }
@@ -73,6 +67,12 @@ public class SourcePathServiceImpl implements SourcePathService {
                 existException(toEntity(updatedSourcePath, sourcePathDto));
         }
         return sourcePathRepository.save(toEntity(updatedSourcePath, sourcePathDto));
+    }
+
+    @Override
+    public SourcePath getSourcePathFromPath(Path filePath) {
+        return sourcePathRepository.findSourcePathByPath(filePath.toString())
+                .orElseThrow(() -> new EntityNotFoundException("File path does not include sourcePath"));
     }
 
     private SourcePath toEntity(SourcePath updatedSourcePath, SourcePathDto sourcePathDto) {

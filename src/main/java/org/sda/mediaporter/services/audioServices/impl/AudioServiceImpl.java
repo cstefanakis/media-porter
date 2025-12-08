@@ -1,7 +1,9 @@
 package org.sda.mediaporter.services.audioServices.impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.sda.mediaporter.models.Language;
+import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.services.audioServices.AudioChannelService;
 import org.sda.mediaporter.services.audioServices.AudioService;
 import org.sda.mediaporter.services.CodecService;
@@ -32,18 +34,27 @@ public class AudioServiceImpl implements AudioService {
         this.audioChannelService = audioChannelService;
     }
 
-    public List<Audio> getCreatedAudiosFromPathFile(Path filePath){
-        List<Audio> pathFileAudios = getAudiosFromPathFile(filePath);
-        return pathFileAudios.stream()
-                .map(audioRepository::save)
-                .toList();
-    }
-
-    public List<Audio> getAudiosFromPathFile(Path filePath){
-        List<Audio> audios = new ArrayList<>();
+    @Override
+    @Transactional
+    public List<Audio> getCreatedAudiosFromPathFile(Path filePath, VideoFilePath videoFilePath){
         String[] audiosLines = audioInfo(filePath).split("\\R");
+        List<Audio> audios = new ArrayList<>();
         for (String ffMpegProperties : audiosLines) {
             Audio audio = generatedAudiosFromFFMpeg(ffMpegProperties);
+            audio.setVideoFilePath(videoFilePath);
+            audios.add(audioRepository.save(audio));
+        }
+        videoFilePath.setAudios(audios);
+        return audios;
+    }
+
+    @Override
+    public List<Audio> getAudiosFromPathFile(Path filePath, VideoFilePath videoFilePath){
+        String[] audiosLines = audioInfo(filePath).split("\\R");
+        List<Audio> audios = new ArrayList<>();
+        for (String ffMpegProperties : audiosLines) {
+            Audio audio = generatedAudiosFromFFMpeg(ffMpegProperties);
+            audio.setVideoFilePath(videoFilePath);
             audios.add(audio);
         }
         return audios;

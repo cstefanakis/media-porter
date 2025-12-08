@@ -1,5 +1,6 @@
 package org.sda.mediaporter.services.subtitleServices.impl;
 
+import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.services.CodecService;
 import org.sda.mediaporter.services.fileServices.impl.FileServiceImpl;
 import org.sda.mediaporter.models.Language;
@@ -34,22 +35,22 @@ public class SubtitleServiceImpl implements SubtitleService {
     }
 
     @Override
-    public List<Subtitle> createSubtitleListFromFile(Path videoFilePath) {
-        return getSubtitleListFromFile(videoFilePath).stream()
-                .map(subtitleRepository::save)
-                .toList();
+    public void createSubtitleListFromFile(Path filePath, VideoFilePath videoFilePath) {
+        List<Subtitle> subtitles = getSubtitleListFromFile(filePath, videoFilePath);
+        subtitleRepository.saveAll(subtitles);
     }
 
     @Override
-    public List<Subtitle> getSubtitleListFromFile(Path videoFilePath) {
+    public List<Subtitle> getSubtitleListFromFile(Path filePath, VideoFilePath videoFilePath) {
         List<Subtitle> subtitles = new ArrayList<>();
-        if(!subtitleInfo(videoFilePath).isEmpty()) {
-            String[] subtitlesInfo = subtitleInfo(videoFilePath).split("\n");
+        if(!subtitleInfo(filePath).isEmpty()) {
+            String[] subtitlesInfo = subtitleInfo(filePath).split("\n");
 
             for (String subtitle : subtitlesInfo) {
                 subtitles.add(Subtitle.builder()
                         .codec(getSubtitleCodec(subtitlesProperties(subtitle)))
                         .language(getLanguage(subtitlesProperties(subtitle)))
+                        .videoFilePath(videoFilePath)
                         .build());
             }
 

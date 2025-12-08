@@ -10,6 +10,7 @@ import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -31,11 +32,10 @@ public class VideoFilePath {
     @JoinColumn(name = "video_id")
     private Video video;
 
-    @OneToMany(mappedBy = "videoFilePath"
-            ,fetch = FetchType.EAGER
-            ,cascade = CascadeType.ALL
-            ,orphanRemoval = true)
-    @JsonManagedReference
+    @OneToMany(mappedBy = "videoFilePath",
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Audio> audios;
 
     @OneToMany(mappedBy = "videoFilePath"

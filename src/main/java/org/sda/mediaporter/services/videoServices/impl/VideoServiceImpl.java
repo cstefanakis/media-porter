@@ -1,5 +1,7 @@
 package org.sda.mediaporter.services.videoServices.impl;
 
+import jakarta.transaction.Transactional;
+import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.services.CodecService;
 import org.sda.mediaporter.services.fileServices.impl.FileServiceImpl;
 import org.sda.mediaporter.services.videoServices.ResolutionService;
@@ -30,9 +32,12 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public Video createVideoFromPath(Path videoFilePath) {
-        Video video = getVideoFromPath(videoFilePath);
+    @Transactional
+    public Video createVideoFromPath(Path filePath, VideoFilePath videoFilePath) {
+        Video video = getVideoFromPath(filePath, videoFilePath);
         if(video !=null){
+            video.setVideoFilePath(videoFilePath);
+            videoFilePath.setVideo(video);
             return videoRepository.save(video);
         }
         return null;
@@ -44,26 +49,26 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public String getCodecFromFilePathViFFMpeg(Path videoFilePath) {
-        return validatedProperties(videoFilePath, 0);
+    public String getCodecFromFilePathViFFMpeg(Path filePath) {
+        return validatedProperties(filePath, 0);
     }
 
     @Override
-    public String getResolutionFromFilePathViFFMpeg(Path videoFilePath) {
-         Integer height = parseValidatedPropertiesToInteger(videoFilePath, 1);
+    public String getResolutionFromFilePathViFFMpeg(Path filePath) {
+         Integer height = parseValidatedPropertiesToInteger(filePath, 1);
          return generatedResolutionByHeight(height);
     }
 
     @Override
-    public Integer getBitrateFromFilePathViFFMpeg(Path videoFilePath) {
-        Integer bitrate =  parseValidatedPropertiesToInteger(videoFilePath, 2);
+    public Integer getBitrateFromFilePathViFFMpeg(Path filePath) {
+        Integer bitrate =  parseValidatedPropertiesToInteger(filePath, 2);
         return bitrate != null?
                 bitrate / 1000
                 :null;
     }
 
-    private String[] videoProperties(Path videoFilePath){
-        String videoInfo = videoInfo(videoFilePath);
+    private String[] videoProperties(Path filePath){
+        String videoInfo = videoInfo(filePath);
 
         if(videoInfo.isEmpty()) {
             return null;
@@ -82,8 +87,8 @@ public class VideoServiceImpl implements VideoService {
         return videoProperties;
     }
 
-    private String validatedProperties(Path videoFilePath, int length){
-        String [] videoProperties = videoProperties(videoFilePath);
+    private String validatedProperties(Path filePath, int length){
+        String [] videoProperties = videoProperties(filePath);
         if(videoProperties == null || videoProperties[length] == null){
             return null;
         }
@@ -97,18 +102,18 @@ public class VideoServiceImpl implements VideoService {
 
     }
 
-    private Integer parseValidatedPropertiesToInteger(Path videoFilePath, int length){
-        String property = validatedProperties(videoFilePath, length);
+    private Integer parseValidatedPropertiesToInteger(Path filePath, int length){
+        String property = validatedProperties(filePath, length);
         return property == null
                 ? null
                 : Integer.parseInt(property);
     }
 
     @Override
-    public Video getVideoFromPath(Path videoFilePath) {
-        String propertyCodec = getCodecFromFilePathViFFMpeg(videoFilePath);
-        String propertyResolution = getResolutionFromFilePathViFFMpeg(videoFilePath);
-        Integer propertyBitrateKbps = getBitrateFromFilePathViFFMpeg(videoFilePath);
+    public Video getVideoFromPath(Path filePath, VideoFilePath videoFilePath) {
+        String propertyCodec = getCodecFromFilePathViFFMpeg(filePath);
+        String propertyResolution = getResolutionFromFilePathViFFMpeg(filePath);
+        Integer propertyBitrateKbps = getBitrateFromFilePathViFFMpeg(filePath);
 
         Codec codec = codecService.getOrCreateCodecByCodecNameAndMediaType(propertyCodec, MediaTypes.VIDEO);
         Resolution resolution = resolutionService.getResolutionByName(propertyResolution);
@@ -121,6 +126,7 @@ public class VideoServiceImpl implements VideoService {
                     .codec(codec)
                     .resolution(resolution)
                     .bitrate(propertyBitrateKbps)
+                    .videoFilePath(videoFilePath)
                 .build();
     }
 

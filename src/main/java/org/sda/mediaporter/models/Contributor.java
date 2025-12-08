@@ -1,12 +1,11 @@
 package org.sda.mediaporter.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.sda.mediaporter.models.metadata.Character;
 
 import java.util.List;
 
@@ -53,4 +52,7 @@ public class Contributor {
 
     @ManyToMany(mappedBy = "directors")
     private List<Movie> movieDirectors;
+
+    @OneToMany(mappedBy = "contributor")
+    private List<Character> characters;
 }

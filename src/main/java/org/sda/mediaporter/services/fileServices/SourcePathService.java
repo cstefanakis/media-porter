@@ -13,10 +13,11 @@ public interface SourcePathService {
     List<SourcePath> getSourcePaths();
     List<SourcePath> getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType pathType,
                                                             LibraryItems libraryItems);
-    SourcePath getSourcePathByPath(Path filePath);
     void deleteById(Long id);
     String getRootFileFromFile(String filePath);
     SourcePath createSourcePath(@Valid SourcePathDto sourcePathDto);
     SourcePath updateSourcePath(Long id, SourcePathDto sourcePathDto);
+
+    SourcePath getSourcePathFromPath(Path filePath);
 }
 

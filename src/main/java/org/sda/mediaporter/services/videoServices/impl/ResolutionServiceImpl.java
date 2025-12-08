@@ -1,8 +1,6 @@
 package org.sda.mediaporter.services.videoServices.impl;
 
-import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import org.sda.mediaporter.dtos.ResolutionDto;
 import org.sda.mediaporter.models.metadata.Resolution;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.sda.mediaporter.services.videoServices.ResolutionService;

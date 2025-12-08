@@ -1,6 +1,5 @@
 package org.sda.mediaporter.services.tvShowServices.impl;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowDto;
 import org.sda.mediaporter.models.Country;
 import org.sda.mediaporter.models.Genre;
@@ -8,16 +7,12 @@ import org.sda.mediaporter.services.*;
 import org.sda.mediaporter.api.TheMovieDbTvShowSearch;
 import org.sda.mediaporter.api.TheMovieDbTvShowsById;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowSearchDTO;
-import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.TvShow;
 import org.sda.mediaporter.repositories.*;
 import org.sda.mediaporter.services.tvShowServices.TvShowService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,39 +28,6 @@ public class TvShowServiceImpl implements TvShowService {
         this.genreService = genreService;
         this.countryService = countryService;
         this.tvShowRepository = tvShowRepository;
-    }
-
-
-    @Override
-    public Page<TvShow> getTvShows(Pageable pageable) {
-        return tvShowRepository.findAll(pageable);
-    }
-
-    @Override
-    public Page<TvShow> getTvShowsBySourcePath(Pageable pageable, SourcePath sourcePath) {
-        return null;
-    }
-
-    @Override
-    public Page<TvShow> getTvShowsByTitle(Pageable pageable, String title) {
-        return tvShowRepository.findTvShowsByTitle(title, pageable);
-    }
-
-    @Override
-    public TvShow getTvShowById(Long tvShowId) {
-        return tvShowRepository.findById(tvShowId).orElseThrow(
-                ()-> new EntityNotFoundException(String.format("Tv Show not found with id: %s", tvShowId))
-        );
-    }
-
-    @Override
-    public boolean deleteTvShowById(Long tvShowId) {
-        return false;
-    }
-
-    @Override
-    public boolean moveTvShowById(Long tvShowId, Path destinationPath) {
-        return false;
     }
 
     @Override
@@ -150,21 +112,5 @@ public class TvShowServiceImpl implements TvShowService {
                 .trim();
 
         return cleaned.isEmpty() ? 0 : cleaned.split("\\s+").length;
-    }
-
-
-    @Override
-    public void autoMoveTvShowsFromSourcePathToTvShowsPath() {
-
-    }
-
-    @Override
-    public void autoGetAndUpdateTvShowsFromTvShowsPath() {
-
-    }
-
-    @Override
-    public void autoCopyTvShowsFromSourcePathToTvShowsPath() {
-
     }
 }

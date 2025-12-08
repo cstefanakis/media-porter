@@ -86,10 +86,22 @@ public class FileServiceImpl implements FileService {
     public void moveFile(Path fromFullPath, Path toFullPath) {
         if(!Files.exists(toFullPath)){
             try {
+                createDirectoriesForPath(toFullPath);
                 Files.move(fromFullPath, toFullPath);
                 deleteSubDirectories(fromFullPath);
             } catch (IOException e) {
                 throw new RuntimeException(String.format("Failed to move file %s to %s", fromFullPath, toFullPath));
+            }
+        }
+    }
+
+    private void createDirectoriesForPath(Path filePath){
+        Path path = filePath.getParent();
+        if(!Files.exists(path)){
+            try{
+                Files.createDirectories(filePath.getParent());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -122,15 +134,29 @@ public class FileServiceImpl implements FileService {
                 .orElse(null);
     }
 
-    public void deleteSubDirectories(Path filePath) throws IOException {
+    public void deleteSubDirectories(Path filePath) {
         String rootPath  = getRootPathOfPath(filePath).toString();
 
         while (!filePath.toString().equals(rootPath)){
-            if(Files.exists(filePath) && Files.isDirectory(filePath) && Files.size(filePath) == 0
-                || Files.exists(filePath) && Files.isDirectory(filePath)){
-                Files.delete(filePath);
+            try {
+                if(Files.exists(filePath) && Files.isDirectory(filePath) && isDirectoryEmpty(filePath)
+                    || Files.exists(filePath) && Files.isDirectory(filePath)){
+                    try {
+                        Files.delete(filePath);
+                    } catch (IOException e) {
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                break;
             }
             filePath = filePath.getParent();
+        }
+    }
+
+    private boolean isDirectoryEmpty(Path path) throws IOException {
+        try (var entries = Files.list(path)) {
+            return entries.findAny().isEmpty();
         }
     }
 

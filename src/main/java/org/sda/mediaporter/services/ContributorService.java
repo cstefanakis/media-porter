@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.sda.mediaporter.models.Contributor;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ContributorService {
     Contributor getContributorById(Long id);
@@ -17,4 +18,6 @@ public interface ContributorService {
     List<Contributor> getCastsByTheMovieDbCastsDto(List<TheMovieDbCastDto> theMovieDbCastsDto);
     List<Contributor> getOrCreateCrewsByTheMovieDbCrewsDto(List<TheMovieDbCrewDto> theMovieDbCrewsDto);
     List<Contributor> getOrCreateCastsByTheMovieDbCastsDto(List<TheMovieDbCastDto> theMovieDbCastsDto);
+
+    Contributor getContributorByTheMovieDbIdOrNull(Long theMovieDbId);
 }

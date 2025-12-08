@@ -46,7 +46,7 @@ public interface SourcePathRepository extends JpaRepository<SourcePath, Long>  {
 
     @Query("""
             SELECT sp FROM SourcePath sp
-            WHERE sp.path LIKE CONCAT(:filePath, '%')
+            WHERE :filePath LIKE CONCAT(sp.path, '%')
             """)
-    Optional<SourcePath> findSourcePathByPath(@Param("filePath") Path filePath);
+    Optional<SourcePath> findSourcePathByPath(@Param("filePath") String filePath);
 }

@@ -3,6 +3,7 @@ package org.sda.mediaporter.services.movieServices;
 import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.SourcePath;
+import org.sda.mediaporter.models.VideoFilePath;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,10 +21,10 @@ public interface MovieService {
     void deleteMovieById(Long id);
     Page<Movie> getMoviesFromSourcePath(Pageable page, SourcePath sourcePath);
     Page <Movie> getFiveLastAddedMovies(Pageable pageable);
-    Movie createMovieFromPathFile(Path moviePath);
-
+    Movie getOrCreateMovieFromPathFile(Path moviePath);
     Page<Movie> getTopFiveMovies(Pageable pageable);
-
     Page<Movie> filterMovies(Pageable page, MovieFilterDto movieFilterDto);
     Page<Movie> filterByAudioLanguage(Pageable page, List<Long> aLanguageIds);
+
+    void updateModificationDateTime(Movie movie, Path filePath);
 }

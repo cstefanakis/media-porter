@@ -73,6 +73,12 @@ public class LanguageServiceImpl implements LanguageService {
         languageRepository.delete(language);
     }
 
+    @Override
+    public Language getLanguageByCodeOrNull(String languageCode) {
+        Optional<Language> languageOptional = languageRepository.findByCode(languageCode);
+        return languageOptional.orElse(null);
+    }
+
     private Language toEntity(Language language, LanguageDto languageDto){
         language.setEnglishTitle(validatedTitle(language.getEnglishTitle(), languageDto.getEnglishTitle()));
         language.setOriginalTitle(validatedTitle(language.getOriginalTitle(), languageDto.getOriginalTitle()));

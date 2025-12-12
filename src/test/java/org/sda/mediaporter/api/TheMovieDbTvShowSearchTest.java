@@ -13,12 +13,14 @@ class TheMovieDbTvShowSearchTest {
     private TheMovieDbTvShowSearch dexter;
     private TheMovieDbTvShowSearch dexterResurrectionCz;
     private TheMovieDbTvShowSearch dexterResurrectionEn;
+    private TheMovieDbTvShowSearch it;
 
     @BeforeEach
     void setup(){
         dexter = new TheMovieDbTvShowSearch("Dexter");
         dexterResurrectionCz = new TheMovieDbTvShowSearch("Dexter Vzkříšení ");
         dexterResurrectionEn = new TheMovieDbTvShowSearch("Dexter Resurrection ");
+        it = new TheMovieDbTvShowSearch("IT Welcome to Derry");
     }
 
     @Test
@@ -88,5 +90,18 @@ class TheMovieDbTvShowSearchTest {
                 .anyMatch(obj -> obj.getTheMovieDbId() == 259909));
         assertTrue(result.stream()
                 .filter(tvShow -> tvShow.getTheMovieDbId() == null).toList().isEmpty());
+    }
+
+    @Test
+    void getTvShows_testTheMoveDbId() {
+        //Assert
+        Long theMovieId = 200875L;
+
+        //Act
+        List<TheMovieDbTvShowSearchDTO> result = it.getTvShows();
+
+        //Arrest
+        assertTrue(result.stream()
+                .anyMatch(obj -> obj.getTheMovieDbId().equals(theMovieId)));
     }
 }

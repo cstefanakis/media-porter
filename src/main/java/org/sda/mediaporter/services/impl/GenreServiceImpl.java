@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,16 +25,6 @@ public class GenreServiceImpl implements GenreService {
         this.genreRepository = genreRepository;
     }
 
-    public Genre autoCreateGenre(String title) {
-        return title == null
-                ? null
-                : genreRepository.findGenreByTitle(title)
-                .orElseGet(() -> genreRepository.save(
-                        Genre.builder()
-                                .title(capitalizeFirstLetter(title))
-                                .build()));
-    }
-
     @Override
     public List<Genre> getAllGenres() {
         return genreRepository.findAll();
@@ -41,14 +32,24 @@ public class GenreServiceImpl implements GenreService {
 
     @Override
     public List<Genre> getOrCreateGenresByTitles(List<String> genresTitles) {
-        return genresTitles.stream()
-                    .map(this::getOrCreateGenreByTitle).toList();
-
+        List<Genre> genres = new ArrayList<>();
+        for(String genreTitle : genresTitles){
+            Optional<Genre> genreOptional = genreRepository.findGenreByTitle(genreTitle);
+            if(genreOptional.isPresent()){
+                genres.add(genreOptional.get());
+            }else{
+                Genre genre = genreRepository.save(Genre.builder()
+                        .title(genreTitle)
+                        .build());
+                genres.add(genre);
+            }
+        }
+        return genres;
     }
 
     private Genre getOrCreateGenreByTitle(String genreTitle) {
         Optional<Genre> genreOptional = genreRepository.findGenreByTitle(genreTitle);
-        return genreOptional.orElseGet(() -> genreRepository.save(Genre.builder()
+        return genreOptional.orElse(genreRepository.save(Genre.builder()
                 .title(genreTitle)
                 .build()));
     }
@@ -66,22 +67,11 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public Genre createGenre(GenreDto genreDto) {
-        return genreRepository.save(toEntity(new Genre(), genreDto));
-    }
-
-    @Override
     public Genre getOrCreateGenre(String title) {
-        return genreRepository.findGenreByTitle(title)
-                .orElse(genreRepository.save(Genre.builder()
-                                .title(title)
-                        .build()));
-    }
-
-    @Override
-    public Genre getGenreByTitleOrNull(String genreTitle) {
-        return genreRepository.findGenreByTitle(genreTitle)
-                .orElse(null);
+        Optional<Genre> genreOptional = genreRepository.findGenreByTitle(title);
+        return genreOptional.orElseGet(() -> genreRepository.save(Genre.builder()
+                .title(title)
+                .build()));
     }
 
     @Override

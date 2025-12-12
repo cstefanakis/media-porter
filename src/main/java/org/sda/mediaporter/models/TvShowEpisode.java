@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.sda.mediaporter.models.metadata.Character;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -84,7 +85,11 @@ public class TvShowEpisode {
     private LocalDateTime modificationDateTime;
 
     @OneToMany(mappedBy = "tvShowEpisode",
-            cascade = CascadeType.PERSIST,
+            cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<VideoFilePath> videoFilePaths;
+
+    @OneToMany(mappedBy = "tvShowEpisode", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Character> characters = new ArrayList<>();
 }

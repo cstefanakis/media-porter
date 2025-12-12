@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -121,7 +122,8 @@ public class FileServiceImpl implements FileService {
     private Path generatedDestinationPathFromFilePath(Path filePath, String[] subdirectories , String newFileName) {
         Path rootPath = getRootPathOfPath(filePath);
         //Add filePath extension to new file name
-        newFileName = newFileName.trim() + getFileExtensionWithDot(filePath);
+        String fileNameOfPath = filePath.getFileName().toString();
+        newFileName = newFileName.trim() + getFileExtensionWithDot(fileNameOfPath);
         return Path.of(createdDirectories(rootPath, subdirectories) + File.separator + newFileName);
     }
 
@@ -177,12 +179,18 @@ public class FileServiceImpl implements FileService {
         return FileTime.from(zonedDateTime.toInstant());
     }
 
+    @Override
+    public String getStringWithoutDiacritics(String text) {
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "");
+    }
+
 
     @Override
-    public String getFileExtensionWithDot(Path file) {
-        int dotIndex = file.getFileName().toString().lastIndexOf(".");
+    public String getFileExtensionWithDot(String fileTitle) {
+        int dotIndex = fileTitle.lastIndexOf(".");
         if(dotIndex > 0){
-            return file.getFileName().toString().substring(dotIndex);
+            return fileTitle.substring(dotIndex).trim();
         }
         return "";
     }

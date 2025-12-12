@@ -308,101 +308,6 @@ public class DataLoader implements CommandLineRunner {
                     .build());
         }
 
-        //Genres data loader
-        if(genreRepository.count() == 0){
-            genreRepository.save(Genre.builder()
-                    .title("Action")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Adventure")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Animation")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Comedy")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Crime")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Documentary")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Drama")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Family")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Fantasy")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("History")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Horror")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Music")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Mystery")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Romance")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Sci-Fi")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("TV Movie")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Thriller")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("War")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Western")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Sport")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Biography")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Short")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("N/A")
-                    .build());
-        }
-
         //Country data loader
         if(countryRepository.count() == 0) {
             countryRepository.save(Country.builder().iso2Code("AF").iso3Code("AFG").englishName("Afghanistan").nativeName("Afghanistan").build());
@@ -728,6 +633,13 @@ public class DataLoader implements CommandLineRunner {
                     .path("Z:\\MultiMedia\\Serials")
                     .title("TvShows Main Path")
                     .pathType(SourcePath.PathType.SOURCE)
+                    .build());
+
+            sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.TV_SHOW)
+                    .path("Z:\\Downloads\\Serials")
+                    .title("TvShows Download Path")
+                    .pathType(SourcePath.PathType.DOWNLOAD)
                     .build());
         }
     }

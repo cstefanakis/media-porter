@@ -1,7 +1,10 @@
 package org.sda.mediaporter.services.tvShowServices.impl;
 
-import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityExistsException;
 import jakarta.transaction.Transactional;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowEpisodeDto;
+import org.sda.mediaporter.models.SourcePath;
+import org.sda.mediaporter.models.metadata.Character;
 import org.sda.mediaporter.services.*;
 import org.sda.mediaporter.api.TheMovieDbTvShowEpisodes;
 import org.sda.mediaporter.models.Contributor;
@@ -29,13 +32,15 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
     private final FileService fileService;
     private final TvShowService tvShowService;
     private final ContributorService contributorService;
+    private final CharacterService characterService;
 
     @Autowired
-    public TvShowEpisodeServiceImpl(TvShowEpisodeRepository tvShowEpisodeRepository, FileService fileService, TvShowService tvShowService, ContributorService contributorService) {
+    public TvShowEpisodeServiceImpl(TvShowEpisodeRepository tvShowEpisodeRepository, FileService fileService, TvShowService tvShowService, ContributorService contributorService, CharacterService characterService) {
         this.tvShowEpisodeRepository = tvShowEpisodeRepository;
         this.fileService = fileService;
         this.tvShowService = tvShowService;
         this.contributorService = contributorService;
+        this.characterService = characterService;
     }
 
 
@@ -60,32 +65,34 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
     }
 
     @Override
-    public TvShowEpisode createTvShowEpisode(String tvShowTitle, int seasonNumber, int episodeNumber) {
-        return null;
-    }
-
-    @Override
-    public TvShowEpisode createTvShowsFromPath(Path videoFilePath) {
+    public TvShowEpisode createTvShowEpisodeFromPath(Path videoFilePath) {
         String filename = videoFilePath.getFileName().toString();
         LocalDateTime modificationDateTime = fileService.getModificationLocalDateTimeOfPath(videoFilePath);
 
         Integer season = getEpisodeSeasonNumberFromVideoFile(filename, seasonRegexes());
         Integer episode = getEpisodeSeasonNumberFromVideoFile(filename, episodeRegexes());
         String tvShowTitle = getTvShowTitleFromVideoFilename(filename);
-
-        if (season == null || episode == null) {
-            throw new EntityNotFoundException(
-                    String.format("Filename: %s is not recognized as TV show file", filename)
-            );
+        System.out.printf("%s - S%sE%s%n", tvShowTitle, season, episode);
+        TvShow tvShow;
+        if (season != null && episode != null) {
+            tvShow = tvShowService.getOrCreateTvShowByTitle(tvShowTitle);
+            tvShow = tvShowService.updateTvShowModificationDateTime(tvShow, modificationDateTime);
+            TvShowEpisode tvShowEpisode = getOrCreateTvShowEpisode(tvShow, season, episode);
+            if(tvShowEpisode != null){
+                updateTvShowEpisodeModificationDateTime(tvShowEpisode, modificationDateTime);
+                return tvShowEpisodeRepository.save(tvShowEpisode);
+            }else{
+                return null;
+            }
         }
+        return null;
+    }
 
-        TvShow tvShow = tvShowService.getOrCreateTvShowByTitle(tvShowTitle);
-        tvShow = tvShowService.updateTvShowModificationDateTime(tvShow, modificationDateTime);
-
-        TvShowEpisode tvShowEpisode = getOrCreateTvShowEpisode(tvShow, season, episode);
-        updateTvShowEpisodeModificationDateTime(tvShowEpisode, modificationDateTime);
-
-        return tvShowEpisode;
+    @Override
+    public void updateModificationDateTime(TvShowEpisode tvShowEpisode, Path filePath) {
+        LocalDateTime modificationDateTime = fileService.getModificationLocalDateTimeOfPath(filePath);
+        tvShowEpisode.setModificationDateTime(modificationDateTime);
+        tvShowEpisodeRepository.save(tvShowEpisode);
     }
 
     private void updateTvShowEpisodeModificationDateTime(TvShowEpisode tvShowEpisode, LocalDateTime modificationDateTime){
@@ -95,35 +102,53 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
 
     private TvShowEpisode getTvShowEpisode(TvShow tvShow, int seasonNumber, int episodeNumber){
         TheMovieDbTvShowEpisodes tvShowEpisode = new TheMovieDbTvShowEpisodes(tvShow.getTheMoveDBTvShowId(), seasonNumber, episodeNumber);
-        List<Contributor> actors = contributorService.getCastsByTheMovieDbCastsDto(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getActors());
-        List<Contributor> directors = contributorService.getCrewsByTheMovieDbCrewsDto(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getDirectors());
-        List<Contributor> writers = contributorService.getCrewsByTheMovieDbCrewsDto(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getWriters());
-        return toEntity(tvShow, tvShowEpisode,actors, directors, writers);
+        TheMovieDbTvShowEpisodeDto theMovieDbTvShowEpisodeDto = tvShowEpisode.getTheMovieDbTvShowEpisodeDto();
+        List<Contributor> actors = contributorService.getCastsByTheMovieDbCastsDto(theMovieDbTvShowEpisodeDto.getActors());
+        List<Contributor> directors = contributorService.getCrewsByTheMovieDbCrewsDto(theMovieDbTvShowEpisodeDto.getDirectors());
+        List<Contributor> writers = contributorService.getCrewsByTheMovieDbCrewsDto(theMovieDbTvShowEpisodeDto.getWriters());
+        return toEntity(tvShow, theMovieDbTvShowEpisodeDto,actors, directors, writers);
     }
 
     @Transactional
     private TvShowEpisode getOrCreateTvShowEpisode(TvShow tvShow, int seasonNumber, int episodeNumber){
-        TvShowEpisode tvShowEpisode = getTvShowEpisode(tvShow, seasonNumber, episodeNumber);
-        Optional<TvShowEpisode> tvShowEpisodeOptional = tvShowEpisodeRepository.findTvShowEpisodeByTheMovieDbId(tvShowEpisode.getTheMovieDbId());
-        return tvShowEpisodeOptional.orElseGet(() -> tvShowEpisodeRepository.save(tvShowEpisode));
+
+        Long theMovieDbTvShowId = tvShow.getTheMoveDBTvShowId();
+        TheMovieDbTvShowEpisodes theMovieDbTvShowEpisodes = new TheMovieDbTvShowEpisodes(theMovieDbTvShowId, seasonNumber, episodeNumber);
+        TheMovieDbTvShowEpisodeDto theMovieDbTvShowEpisodeDto = theMovieDbTvShowEpisodes.getTheMovieDbTvShowEpisodeDto();
+        if(theMovieDbTvShowEpisodeDto != null){
+            Long theMovieDbTvShowEpisodeId = theMovieDbTvShowEpisodes.getTheMovieDbTvShowEpisodeDto().getTheMovieDbId();
+            Optional<TvShowEpisode> tvShowEpisodeOptional = tvShowEpisodeRepository.findTvShowEpisodeByTheMovieDbId(theMovieDbTvShowEpisodeId);
+            if(tvShowEpisodeOptional.isPresent()){
+                return tvShowEpisodeOptional.get();
+            }else {
+                List<Contributor> writers = contributorService.getOrCreateCrewsByTheMovieDbCrewsDto(theMovieDbTvShowEpisodeDto.getWriters());
+                List<Contributor> actors = contributorService.getOrCreateCastsByTheMovieDbCastsDto(theMovieDbTvShowEpisodeDto.getActors());
+                List<Contributor> directors = contributorService.getOrCreateCrewsByTheMovieDbCrewsDto(theMovieDbTvShowEpisodeDto.getDirectors());
+                TvShowEpisode tvShowEpisode = tvShowEpisodeRepository.save(toEntity(tvShow, theMovieDbTvShowEpisodeDto, actors, directors, writers));
+                List<Character> characters = characterService.createCharactersForTvShowEpisode(theMovieDbTvShowEpisodeDto.getActors(), tvShowEpisode);
+                tvShowEpisode.setCharacters(characters);
+                return tvShowEpisodeRepository.save(tvShowEpisode);
+            }
+        }
+        return null;
     }
 
 
-    private TvShowEpisode toEntity(TvShow tvShow, TheMovieDbTvShowEpisodes tvShowEpisode, List<Contributor> actors, List<Contributor> directors, List<Contributor> writers){
+    private TvShowEpisode toEntity(TvShow tvShow, TheMovieDbTvShowEpisodeDto theMovieDbTvShowEpisodeDto, List<Contributor> actors, List<Contributor> directors, List<Contributor> writers){
         return TvShowEpisode.builder()
                 .tvShow(tvShow)
-                .airDate(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getAirDate())
+                .airDate(theMovieDbTvShowEpisodeDto.getAirDate())
                 .actors(actors)
                 .directors(directors)
                 .writers(writers)
-                .episodeName(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getEpisodeName())
-                .episodeNumber(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getEpisodeNumber())
-                .seasonNumber(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getSeasonNumber())
-                .type(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getEpisodeType())
-                .rating(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getRate())
-                .overview(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getOverview())
-                .poster(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getPoster())
-                .theMovieDbId(tvShowEpisode.getTheMovieDbTvShowEpisodeDto().getTheMovieDbId())
+                .episodeName(theMovieDbTvShowEpisodeDto.getEpisodeName())
+                .episodeNumber(theMovieDbTvShowEpisodeDto.getEpisodeNumber())
+                .seasonNumber(theMovieDbTvShowEpisodeDto.getSeasonNumber())
+                .type(theMovieDbTvShowEpisodeDto.getEpisodeType())
+                .rating(theMovieDbTvShowEpisodeDto.getRate())
+                .overview(theMovieDbTvShowEpisodeDto.getOverview())
+                .poster(theMovieDbTvShowEpisodeDto.getPoster())
+                .theMovieDbId(theMovieDbTvShowEpisodeDto.getTheMovieDbId())
                 .build();
     }
 

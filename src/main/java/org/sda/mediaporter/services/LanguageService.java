@@ -15,4 +15,6 @@ public interface LanguageService {
     Language createLanguage(@Valid LanguageDto languageDto);
     void updateLanguageById(Long id, LanguageDto languageDto);
     void deleteLanguageById(Long id);
+
+    Language getLanguageByCodeOrNull(String languageCode);
 }

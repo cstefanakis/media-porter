@@ -13,4 +13,5 @@ public interface TvShowService {
     TvShow updateTvShowModificationDateTime(TvShow tvShow, LocalDateTime modificationDateTime);
     TvShow getOrCreateTvShowByTitle(String tvShowTitle);
 
+    void updateModificationDateTime(TvShow tvShow, LocalDateTime modificationDateTime);
 }

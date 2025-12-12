@@ -44,13 +44,6 @@ public class GenreController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping()
-    public ResponseEntity<Genre> createGenre(@RequestBody @Valid GenreDto genreDto){
-        Genre genre = genreService.createGenre(genreDto);
-        return ResponseEntity.ok(genre);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateGenreById(@PathVariable ("id") Long id,
                                                 @RequestBody GenreDto genreDto){

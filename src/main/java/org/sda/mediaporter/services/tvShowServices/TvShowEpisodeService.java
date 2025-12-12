@@ -11,6 +11,7 @@ public interface TvShowEpisodeService {
     boolean deleteTvShowEpisodeById(Long id);
     TvShowEpisode updateTvShowEpisodeById(Long id);
     Page<TvShowEpisode> getTvShowEpisodesByTvShowIdAndSeason(Long tvShowId,Integer season, Pageable pageable);
-    TvShowEpisode createTvShowEpisode(String tvShowTitle, int seasonNumber, int episodeNumber);
-    TvShowEpisode createTvShowsFromPath(Path videoFilePath);
+    TvShowEpisode createTvShowEpisodeFromPath(Path videoFilePath);
+
+    void updateModificationDateTime(TvShowEpisode tvShowEpisode, Path newTvShowEpisodePath);
 }

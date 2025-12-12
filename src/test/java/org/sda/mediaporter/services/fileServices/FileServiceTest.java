@@ -57,4 +57,14 @@ class FileServiceTest {
     @Test
     void localDateTimeToFileTime() {
     }
+
+    @Test
+    void getStringWithoutDiacritics() {
+        //Arrest
+        String text = "Tři oříšky pro Popelku";
+        //Act
+        String result = fileService.getStringWithoutDiacritics(text);
+        //Assert
+        assertEquals("Tri orisky pro Popelku", result);
+    }
 }

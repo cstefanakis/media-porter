@@ -18,6 +18,7 @@ public class TheMovieDbTvShowEpisodes {
 
     private JSONObject result(Long tvShowId, int season, int episode){
         String url = String.format("https://api.themoviedb.org/3/tv/%s/season/%s/episode/%s?api_key=%s&language=en-US",tvShowId, season, episode, theMovieDb.getApiKey());
+        System.out.println(url);
         ApiConnect apiConnect = new ApiConnect(url);
         return apiConnect.getRootJsonObject();
     }

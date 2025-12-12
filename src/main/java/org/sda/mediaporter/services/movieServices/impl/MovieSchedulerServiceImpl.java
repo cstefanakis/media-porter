@@ -11,6 +11,7 @@ import org.sda.mediaporter.repositories.VideoFilePathRepository;
 import org.sda.mediaporter.services.fileServices.FileService;
 import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.sda.mediaporter.services.fileServices.VideoFilePathService;
+import org.sda.mediaporter.services.movieServices.MovieSchedulerService;
 import org.sda.mediaporter.services.movieServices.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Service
-public class MovieSchedulerServiceImpl {
+public class MovieSchedulerServiceImpl implements MovieSchedulerService {
 
     private final SourcePathService sourcePathService;
     private final FileService fileService;
@@ -37,9 +38,9 @@ public class MovieSchedulerServiceImpl {
         this.videoFilePathService = videoFilePathService;
     }
 
-
+    @Override
     @Scheduled(cron = "0 */1 * * * *")
-    public void moveMoviesFromDownloadSourceToMovieSource(){
+    public void moveMoviesFromDownloadsRootPathToMovieRootPath(){
         SourcePath downloadsSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.DOWNLOAD, LibraryItems.MOVIE).getFirst();
         SourcePath moviesSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.MOVIE).getFirst();
 
@@ -57,8 +58,8 @@ public class MovieSchedulerServiceImpl {
                 //Add movie to VideoFilePath
                 videoFilePathService.addMovie(movie, videoFilePath);
                 //get extension of a file;
-                String fileExtension = fileService.getFileExtensionWithDot(filePath);
-                System.out.println("file extension: " + fileExtension);
+                String fileNameOfPath = filePath.getFileName().toString();
+                String fileExtension = fileService.getFileExtensionWithDot(fileNameOfPath);
                 //Create a path to move a file
                 Path newMoviePath = newMoviePath(movie, moviesRootPath, fileExtension, videoFilePath);
                 //update videoFilePath with new filePath
@@ -72,66 +73,10 @@ public class MovieSchedulerServiceImpl {
     private Path newMoviePath(Movie movie, Path moviesRootPath, String extension, VideoFilePath videoFilePath){
         String movieTitle = fileService.getSafeFileName(movie.getTitle());
         Integer movieYear = movie.getYear();
-        String movieVideo = videoFileNamePart(videoFilePath.getVideo());
-        String movieAudios = audioFileNamePart(videoFilePath.getAudios());
+        String movieVideo = videoFilePathService.getVideoFileNamePart(videoFilePath.getVideo());
+        String movieAudios = videoFilePathService.getAudioFileNamePart(videoFilePath.getAudios());
         String movieTitleAndYear = String.format("%s (%s)", movieTitle, movieYear);
         String movieFileName = String.format("%s%s%s%s", movieTitleAndYear, movieVideo, movieAudios, extension);
         return Path.of(moviesRootPath + File.separator + movieTitleAndYear + File.separator + movieFileName);
-    }
-
-    private String audioFileNamePart(List<Audio> audios){
-        if(audios == null || audios.isEmpty()){
-            return "";
-        }
-        String audioString = "";
-        for(Audio audio : audios){
-            audioString = audioString + verifiedAudioString(audio) + " ";
-        }
-        return " (" + audioString.trim() + ")";
-    }
-
-    private String verifiedAudioString(Audio audio){
-        String language = verifiedLanguage(audio);
-        String channels = verifiedAudioChannel(audio);
-        if(language.isBlank() && channels.isBlank()){
-            return "";
-        }else{
-            return " [" + (channels + " " + language).trim() + "]";
-        }
-    }
-
-    private String verifiedLanguage(Audio audio){
-        Language language = audio.getLanguage();
-        return language !=null
-                ? language.getIso6392B().toUpperCase(Locale.ROOT)
-                : "";
-    }
-
-    private String verifiedAudioChannel(Audio audio){
-        AudioChannel audioChannel = audio.getAudioChannel();
-        return audioChannel !=null
-                ? audioChannel.getChannels().toString()
-                : "";
-    }
-
-    private String videoFileNamePart(Video video){
-        if(video == null){
-            return "";
-        }
-        return " (" + String.format("%s %s",verifiedVideoResolution(video), verifiedVideoCodec(video)).trim() + ")";
-    }
-
-    private String verifiedVideoResolution(Video video){
-        Resolution resolution = video.getResolution();
-        return resolution != null
-                ? fileService.getSafeFileName(resolution.getName())
-                : "";
-    }
-
-    private String verifiedVideoCodec(Video video){
-        Codec codec = video.getCodec();
-        return codec != null
-                ? fileService.getSafeFileName(codec.getName())
-                : "";
     }
 }

@@ -160,4 +160,13 @@ class TheMovieDbTvShowsByIdTest {
         //Assert
         assertTrue(result > 0);
     }
+
+    @Test
+    void getYear() {
+        //Act
+        Integer result = theWalkingDate.getTheMovieDbTvShowDto().getYear();
+
+        //Assert
+        assertTrue(result > 0);
+    }
 }

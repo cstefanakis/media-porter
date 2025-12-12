@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.sda.mediaporter.models.metadata.Character;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,6 +61,10 @@ public class TvShow {
             unique = true)
     private Long theMoveDBTvShowId;
 
+    @ManyToOne
+    @JoinColumn(name = "original_language_id")
+    private Language originalLanguage;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name= "tvShow_genres",
@@ -88,4 +93,32 @@ public class TvShow {
             cascade = CascadeType.PERSIST,
             orphanRemoval = true)
     private List<TvShowEpisode> tvShowEpisodes;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "tvShow_directors",
+            joinColumns = @JoinColumn(name = "tvShow_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
+    )
+    private List<Contributor> directors;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "tvShow_writers",
+            joinColumns = @JoinColumn(name = "tvShow_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
+    )
+    private List<Contributor> writers;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "tvShow_actors",
+            joinColumns = @JoinColumn(name = "tvShow_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
+    )
+    private List<Contributor> actors;
+
+    @OneToMany(mappedBy = "tvShow", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Character> characters = new ArrayList<>();
 }

@@ -3,9 +3,8 @@ package org.sda.mediaporter.services.fileServices.impl;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.sda.mediaporter.models.Movie;
-import org.sda.mediaporter.models.SourcePath;
-import org.sda.mediaporter.models.VideoFilePath;
+import org.sda.mediaporter.models.*;
+import org.sda.mediaporter.models.metadata.*;
 import org.sda.mediaporter.repositories.VideoFilePathRepository;
 import org.sda.mediaporter.services.audioServices.AudioService;
 import org.sda.mediaporter.services.fileServices.FileService;
@@ -20,6 +19,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -79,7 +79,7 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
             videoService.createVideoFromPath(filePath, videoFilePath);
             audioService.getCreatedAudiosFromPathFile(filePath, videoFilePath);
             subtitleService.createSubtitleListFromFile(filePath, videoFilePath);
-            return videoFilePath;
+            return videoFilePathRepository.save(videoFilePath);
         }
     }
 
@@ -119,6 +119,71 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
     public void addMovie(Movie movie, VideoFilePath videoFilePath) {
         videoFilePath.setMovie(movie);
         videoFilePathRepository.save(videoFilePath);
+    }
+
+    @Override
+    @Transactional
+    public void addTvShowEpisode(TvShowEpisode tvShowEpisode, VideoFilePath videoFilePath) {
+        videoFilePath.setTvShowEpisode(tvShowEpisode);
+        videoFilePathRepository.save(videoFilePath);
+    }
+
+    @Override
+    public String getVideoFileNamePart(Video video) {
+        if(video == null){
+            return "";
+        }
+        return " (" + String.format("%s %s",verifiedVideoResolution(video), verifiedVideoCodec(video)).trim() + ")";
+    }
+
+    @Override
+    public String getAudioFileNamePart(List<Audio> audios) {
+        if(audios == null || audios.isEmpty()){
+            return "";
+        }
+        String audioString = "";
+        for(Audio audio : audios){
+            audioString = audioString + verifiedAudioString(audio) + " ";
+        }
+        return " (" + audioString.trim() + ")";
+    }
+
+    private String verifiedAudioString(Audio audio){
+        String language = verifiedLanguage(audio);
+        String channels = verifiedAudioChannel(audio);
+        if(language.isBlank() && channels.isBlank()){
+            return "";
+        }else{
+            return " [" + (channels + " " + language).trim() + "]";
+        }
+    }
+
+    private String verifiedLanguage(Audio audio){
+        Language language = audio.getLanguage();
+        return language !=null
+                ? language.getIso6392B().toUpperCase(Locale.ROOT)
+                : "";
+    }
+
+    private String verifiedAudioChannel(Audio audio){
+        AudioChannel audioChannel = audio.getAudioChannel();
+        return audioChannel !=null
+                ? audioChannel.getChannels().toString()
+                : "";
+    }
+
+    private String verifiedVideoResolution(Video video){
+        Resolution resolution = video.getResolution();
+        return resolution != null
+                ? fileService.getSafeFileName(resolution.getName())
+                : "";
+    }
+
+    private String verifiedVideoCodec(Video video){
+        Codec codec = video.getCodec();
+        return codec != null
+                ? fileService.getSafeFileName(codec.getName())
+                : "";
     }
 
     private VideoFilePath toEntity(Path filePath, SourcePath sourcePath){

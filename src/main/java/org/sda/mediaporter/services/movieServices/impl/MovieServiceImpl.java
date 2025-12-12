@@ -163,7 +163,7 @@ public class MovieServiceImpl implements MovieService {
         String filteredFileTitle = fileService.getSafeFileName(fileTitle); //remove all chars for creating a path
         Integer yearOfFileTitle = findLastYearFromTitle(filteredFileTitle);
 
-        TheMovieDbMovieSearchDTO movieAPISearchDTO = movieAPISearchDTO(filteredFileTitle, yearOfFileTitle);
+        TheMovieDbMovieSearchDTO movieAPISearchDTO = getMovieAPISearchDTO(filteredFileTitle, yearOfFileTitle);
         if(movieAPISearchDTO != null){
             Long theMovieDbMovieId = movieAPISearchDTO.getTheMovieDbId();
             TheMovieDbMovieById theMovieDbMovieById = new TheMovieDbMovieById(theMovieDbMovieId);
@@ -172,7 +172,7 @@ public class MovieServiceImpl implements MovieService {
             List<Contributor> actors = contributorService.getCastsByTheMovieDbCastsDto(theMovieDbCreditsForMovieById.getActors());
             List<Contributor> directors = contributorService.getCrewsByTheMovieDbCrewsDto(theMovieDbCreditsForMovieById.getDirectors());
             List<Genre> genres = genreService.getGenresByTitles(theMovieDbMovieById.getTheMovieDbMovieDto().getGenres());
-            Language originalLanguage = getLanguageByCodeOrNull(theMovieDbMovieById.getTheMovieDbMovieDto().getLanguageCode());
+            Language originalLanguage = languageService.getLanguageByCodeOrNull(theMovieDbMovieById.getTheMovieDbMovieDto().getLanguageCode());
             List<Country> countries = getCountriesByCodes(theMovieDbMovieById.getTheMovieDbMovieDto().getCountries());
             return toEntity(theMovieDbMovieById.getTheMovieDbMovieDto(), writers, actors, directors, genres, originalLanguage, countries);
         }
@@ -182,24 +182,26 @@ public class MovieServiceImpl implements MovieService {
 
 
     private Movie getOrCreateMovieFromApi(String fileTitle) {
-
-        String filteredFileTitle = fileService.getSafeFileName(fileTitle); //remove all chars for creating a path
+        String filteredFileTitle = fileTitle.replace(fileService.getFileExtensionWithDot(fileTitle), "");
+        filteredFileTitle = fileService.getSafeFileName(filteredFileTitle); //remove all chars for creating a path
         Integer yearOfFileTitle = findLastYearFromTitle(filteredFileTitle);
+        filteredFileTitle = getTitleBeforeLastYearInTitle(filteredFileTitle, yearOfFileTitle);
 
-        TheMovieDbMovieSearchDTO movieAPISearchDTO = movieAPISearchDTO(filteredFileTitle, yearOfFileTitle);
+
+        TheMovieDbMovieSearchDTO movieAPISearchDTO = getMovieAPISearchDTO(filteredFileTitle, yearOfFileTitle);
         if(movieAPISearchDTO != null){
-            Optional<Movie> movieOptional = movieRepository.findMovieByTheMovieDbId(movieAPISearchDTO.getTheMovieDbId());
+            Long theMovieDbMovieId = movieAPISearchDTO.getTheMovieDbId();
+            Optional<Movie> movieOptional = movieRepository.findMovieByTheMovieDbId(theMovieDbMovieId);
             if(movieOptional.isPresent()){
                 return movieOptional.get();
             }else {
-                Long theMovieDbMovieId = movieAPISearchDTO.getTheMovieDbId();
                 TheMovieDbMovieById theMovieDbMovieById = new TheMovieDbMovieById(theMovieDbMovieId);
                 TheMovieDbCreditsForMovieById theMovieDbCreditsForMovieById = new TheMovieDbCreditsForMovieById(theMovieDbMovieId);
                 List<Contributor> writers = contributorService.getOrCreateCrewsByTheMovieDbCrewsDto(theMovieDbCreditsForMovieById.getWriters());
                 List<Contributor> actors = contributorService.getOrCreateCastsByTheMovieDbCastsDto(theMovieDbCreditsForMovieById.getActors());
                 List<Contributor> directors = contributorService.getOrCreateCrewsByTheMovieDbCrewsDto(theMovieDbCreditsForMovieById.getDirectors());
                 List<Genre> genres = genreService.getOrCreateGenresByTitles(theMovieDbMovieById.getTheMovieDbMovieDto().getGenres());
-                Language originalLanguage = getLanguageByCodeOrNull(theMovieDbMovieById.getTheMovieDbMovieDto().getLanguageCode());
+                Language originalLanguage = languageService.getLanguageByCodeOrNull(theMovieDbMovieById.getTheMovieDbMovieDto().getLanguageCode());
                 List<Country> countries = getCountriesByCodes(theMovieDbMovieById.getTheMovieDbMovieDto().getCountries());
                 Movie movie = movieRepository.save(toEntity(theMovieDbMovieById.getTheMovieDbMovieDto(), writers, actors, directors, genres, originalLanguage, countries));
                 List<Character> characters = characterService.createCharactersForMovie(theMovieDbCreditsForMovieById.getActors(), movie);
@@ -216,14 +218,6 @@ public class MovieServiceImpl implements MovieService {
                 .map(countryService::getCountryByCodeOrNull)
                 .filter(Objects::isNull)
                 .toList();
-    }
-
-    private Language getLanguageByCodeOrNull(String languageCode){
-        try{
-            return languageService.getLanguageByCode(languageCode);
-        }catch (EntityNotFoundException e){
-            return null;
-        }
     }
 
     private Movie toEntity(TheMovieDbMovieDto theMovieDbMovieDto, List<Contributor> writers, List<Contributor> actors, List<Contributor> directors, List<Genre> genres, Language originalLanguage, List<Country> countries){
@@ -245,34 +239,58 @@ public class MovieServiceImpl implements MovieService {
                 .build();
     }
 
-    private TheMovieDbMovieSearchDTO movieAPISearchDTO(String fileTitle, Integer year){
-        String filteredFileTitle = removeAllCharsWithLastYearAndAfter(fileTitle, year);
-        String[] splitedFileTitle = filteredFileTitle.split(" ");
-        int splitedFileTitleLength = splitedFileTitle.length;
-        for (int i = 0 ; i < splitedFileTitleLength; i++) {
-            String[] fileTitleElements = Arrays.copyOf(splitedFileTitle, splitedFileTitleLength-i);
-            String newFileTitle = String.join(" ", fileTitleElements).replaceAll(" ", "+");
+    private TheMovieDbMovieSearchDTO getMovieAPISearchDTO(String searchTitle, Integer year){
 
-            TheMovieDbMovieSearch theMovieDbMovieSearch = new TheMovieDbMovieSearch(newFileTitle, year);
+        String[] searchTitleWords = searchTitle.split(" ");
+        int fileTitleWordsLength = searchTitleWords.length;
+        for (int i = 0 ; i < fileTitleWordsLength; i++) {
+            String[] fileTitleWordsWithoutLastWord = Arrays.copyOf(searchTitleWords, fileTitleWordsLength-i);
+            String newSearchTitle = String.join(" ", fileTitleWordsWithoutLastWord).replaceAll(" ", "+");
+
+            TheMovieDbMovieSearch theMovieDbMovieSearch = new TheMovieDbMovieSearch(newSearchTitle, year);
             List<TheMovieDbMovieSearchDTO> movieAPISearchDTOs = theMovieDbMovieSearch.getMoviesSearchFromApi();
-            int movieSearchSize = theMovieDbMovieSearch.getMoviesSearchFromApi().size();
-            System.out.println("movie search size: " + movieSearchSize);
-            System.out.println(newFileTitle);
-            System.out.println(splitedFileTitleLength);
+
+            int movieSearchSize = movieAPISearchDTOs.size();
+
             if(movieSearchSize == 1){
-                return theMovieDbMovieSearch.getMoviesSearchFromApi().getFirst();
+                return movieAPISearchDTOs.getFirst();
             }
             if(movieSearchSize > 1) {
-                int titleWords = fileTitleElements.length;
-                List<TheMovieDbMovieSearchDTO> searchResult = movieAPISearchDTOs.stream()
-                        .filter(m -> fileService.getSafeFileName(m.getTitle()).split(" ").length == titleWords).toList();
-                if (searchResult.size() == 1) {
-                    return searchResult.getFirst();
+                TheMovieDbMovieSearchDTO filteredMovieDto = filteredMovieDto(newSearchTitle, movieAPISearchDTOs);
+                if(filteredMovieDto != null){
+                    return filteredMovieDto;
                 }
             }
         }return null;
     }
-    
+
+    private TheMovieDbMovieSearchDTO filteredMovieDto(String searchTitle, List<TheMovieDbMovieSearchDTO> listOfMovies){
+        for(TheMovieDbMovieSearchDTO theMovieDbMovieDto : listOfMovies){
+            String searchTitleWithoutSymbols = fileService.getSafeFileName(searchTitle).toLowerCase();
+            String originalTitleWithoutSymbols = fileService.getStringWithoutDiacritics(theMovieDbMovieDto.getOriginalTitle());
+            originalTitleWithoutSymbols = fileService.getSafeFileName(originalTitleWithoutSymbols).toLowerCase();
+            String titleWithoutSymbols = fileService.getStringWithoutDiacritics(theMovieDbMovieDto.getTitle());
+            titleWithoutSymbols = fileService.getSafeFileName(titleWithoutSymbols).toLowerCase();
+            if(isTheSameSearchTitleWithOriginalTitleOrTitle(searchTitleWithoutSymbols, originalTitleWithoutSymbols, titleWithoutSymbols)){
+                return theMovieDbMovieDto;
+            }
+            if(isTheSearchTitleLengthSameWithLengthOfTitle(searchTitleWithoutSymbols, originalTitleWithoutSymbols, titleWithoutSymbols)){
+                return theMovieDbMovieDto;
+            }
+        }
+        return null;
+    }
+
+    private boolean isTheSameSearchTitleWithOriginalTitleOrTitle(String searchTitle, String originalTitle, String title){
+        return searchTitle.equals(originalTitle) || searchTitle.equals(title);
+    }
+
+    private boolean isTheSearchTitleLengthSameWithLengthOfTitle(String searchTitle, String originalTitle, String title){
+        int searchTitleWords = searchTitle.split(" ").length;
+        int originalTitleWords = originalTitle.split(" ").length;
+        int titleWords = title.split(" ").length;
+        return searchTitleWords == originalTitleWords || searchTitleWords == titleWords;
+    }
 
     private Integer findLastYearFromTitle(String fileTitle){
         Pattern pattern = Pattern.compile("\\b(\\d{4})\\b");
@@ -286,7 +304,7 @@ public class MovieServiceImpl implements MovieService {
                 : Integer.parseInt(lastYear);
     }
 
-    private String removeAllCharsWithLastYearAndAfter(String fileTitle, Integer year) {
+    private String getTitleBeforeLastYearInTitle(String fileTitle, Integer year) {
         if(year != null){
             String yearStr = String.valueOf(year);
             int lastIndex = fileTitle.lastIndexOf(yearStr);

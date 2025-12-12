@@ -22,8 +22,11 @@ public class Genre{
     @Column(name = "title", nullable = false)
     private String title;
 
+    // Many-to-Many mapping to genres using the tv_show_genres join table
     @ManyToMany(mappedBy = "genres")
-    @JsonBackReference("genres")
-    private List<Configuration> genresConfiguration;
+    private List<TvShow> tvShowsGenres;
 
+    // Many-to-Many mapping to genres using the movie_genres join table
+    @ManyToMany(mappedBy = "genres")
+    private List<Movie> movieGenres;
 }

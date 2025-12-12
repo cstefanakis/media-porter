@@ -22,19 +22,20 @@ public class Codec {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "names")
+    @Column(name = "name")
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "media_types")
+    @Column(name = "media_type")
     private MediaTypes mediaType;
 
-    @ManyToMany(mappedBy = "videoCodecs")
-    @JsonBackReference("videoCodecs")
-    private List<Configuration> videoCodecsConfiguration;
+    @OneToMany(mappedBy = "codec")
+    private List<Audio> audios;
 
-    @ManyToMany(mappedBy = "audioCodecs")
-    @JsonBackReference("audioCodecs")
-    private List<Configuration> audioCodecsConfiguration;
+    @OneToMany(mappedBy = "codec")
+    private List<Video> videos;
+
+    @OneToMany(mappedBy = "codec")
+    private List<Subtitle> subtitles;
 
 }

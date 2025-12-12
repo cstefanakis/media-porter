@@ -1,7 +1,7 @@
 package org.sda.mediaporter.controllers;
 
 import jakarta.validation.Valid;
-import org.sda.mediaporter.Services.SourcePathService;
+import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.sda.mediaporter.dtos.SourcePathDto;
 import org.sda.mediaporter.models.SourcePath;
 import org.springframework.beans.factory.annotation.Autowired;

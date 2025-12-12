@@ -1,21 +1,16 @@
 package org.sda.mediaporter.models;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.sda.mediaporter.models.metadata.Character;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.sda.mediaporter.models.metadata.Audio;
-import org.sda.mediaporter.models.metadata.Subtitle;
-import org.sda.mediaporter.models.metadata.Video;
 
 @Data
 @Entity
@@ -28,21 +23,38 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "movie_titles")
+    @Column(name = "movie_title")
     private String title;
 
-    @Column(name = "original_titles")
+    @Column(name = "original_title")
     private String originalTitle;
 
-    @Column(name = "years")
+    @Column(name = "year")
     private Integer year;
 
-    @Column(name = "ratings")
-    private Double rating;
+    @Column(name = "rate")
+    private Double rate;
 
-    @Column(name = "release_dates")
+    @Column(name = "release_date")
     private LocalDate releaseDate;
 
+    @Column(name = "poster")
+    private String poster;
+
+    @Column(name = "overview", columnDefinition = "TEXT")
+    private String overview;
+
+    @Column(name = "last_modification_date")
+    private LocalDateTime lastModificationDateTime;
+
+    @Column(name = "theMovieDb_id")
+    private Long theMovieDbId;
+
+    @ManyToOne
+    @JoinColumn(name = "original_language_id")
+    private Language originalLanguage;
+
+    // Many-to-Many relationship between Movie and Genre.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name= "movie_genres",
@@ -54,74 +66,40 @@ public class Movie {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_directors",
-            joinColumns = @JoinColumn(name = "movie_ids"),
-            inverseJoinColumns = @JoinColumn(name = "director_ids")
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
     private List<Contributor> directors;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_writers",
-            joinColumns = @JoinColumn(name = "movie_ids"),
-            inverseJoinColumns = @JoinColumn(name = "writer_ids")
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
     private List<Contributor> writers;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_actors",
-            joinColumns = @JoinColumn(name = "movie_ids"),
-            inverseJoinColumns = @JoinColumn(name = "actor_ids")
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
     private List<Contributor> actors;
-
-    @Column(name = "plots", columnDefinition = "TEXT")
-    private String plot;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "movie_countries",
             joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "Country_id")
+            inverseJoinColumns = @JoinColumn(name = "country_id")
     )
     private List<Country> countries;
 
-    @Column(name = "posters")
-    private String poster;
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<VideoFilePath> videoFilePaths = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "movie_languages",
-            joinColumns = @JoinColumn(name = "movie_ids"),
-            inverseJoinColumns = @JoinColumn(name = "language_ids")
-    )
-    @JsonManagedReference("movieLanguages")
-    private List<Language> languages;
-
-    @OneToOne(mappedBy = "movie"
-            ,fetch = FetchType.EAGER
-            ,cascade = CascadeType.ALL
-            ,orphanRemoval = true)
-    @JsonManagedReference
-    private Video video;
-
-    @OneToMany(mappedBy = "movie"
-            ,fetch = FetchType.EAGER
-            ,cascade = CascadeType.ALL
-            ,orphanRemoval = true)
-    @JsonManagedReference
-    private List<Audio> audios;
-
-    @OneToMany(mappedBy = "movie"
-            ,fetch = FetchType.EAGER
-            ,cascade = CascadeType.ALL
-            ,orphanRemoval = true)
-    @JsonManagedReference
-    private List<Subtitle> subtitles;
-
-    @Column(name = "paths")
-    private String path;
-
-    @Column(name = "modification_dates")
-    private LocalDateTime modificationDate;
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Character> characters = new ArrayList<>();
 }

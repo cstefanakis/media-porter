@@ -31,9 +31,10 @@ public class DataLoader implements CommandLineRunner {
     private final CountryRepository countryRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final GenderRepository genderRepository;
 
     @Autowired
-    public DataLoader(LanguageRepository languageRepository, GenreRepository genreRepository, ConfigurationRepository configurationRepository, CodecRepository codecRepository, ResolutionRepository resolutionRepository, SourcePathRepository sourcePathRepository, AudioChannelRepository audioChannelsRepository, CountryRepository countryRepository, UserRepository userRepository, RoleRepository roleRepository) {
+    public DataLoader(LanguageRepository languageRepository, GenreRepository genreRepository, ConfigurationRepository configurationRepository, CodecRepository codecRepository, ResolutionRepository resolutionRepository, SourcePathRepository sourcePathRepository, AudioChannelRepository audioChannelsRepository, CountryRepository countryRepository, UserRepository userRepository, RoleRepository roleRepository, GenderRepository genderRepository) {
         this.languageRepository = languageRepository;
         this.genreRepository = genreRepository;
         this.configurationRepository = configurationRepository;
@@ -44,6 +45,7 @@ public class DataLoader implements CommandLineRunner {
         this.countryRepository = countryRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.genderRepository = genderRepository;
     }
 
     @Override
@@ -77,6 +79,17 @@ public class DataLoader implements CommandLineRunner {
                     .roles(Set.of(user))
                     .build());
 
+        }
+
+        //Gender data loader
+        if(genderRepository.count() == 0){
+            genderRepository.save(Gender.builder()
+                            .title("Female")
+                    .build());
+
+            genderRepository.save(Gender.builder()
+                            .title("Male")
+                    .build());
         }
 
         //Codec data loader
@@ -292,101 +305,6 @@ public class DataLoader implements CommandLineRunner {
                     .title("22.2 NHK Super Hi-Vision")
                     .channels(24)
                     .description("High-fidelity 22.2 surround format")
-                    .build());
-        }
-
-        //Genres data loader
-        if(genreRepository.count() == 0){
-            genreRepository.save(Genre.builder()
-                    .title("Action")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Adventure")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Animation")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Comedy")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Crime")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Documentary")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Drama")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Family")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Fantasy")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("History")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Horror")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Music")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Mystery")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Romance")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Sci-Fi")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("TV Movie")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Thriller")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("War")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Western")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Sport")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Biography")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("Short")
-                    .build());
-
-            genreRepository.save(Genre.builder()
-                    .title("N/A")
                     .build());
         }
 
@@ -708,6 +626,20 @@ public class DataLoader implements CommandLineRunner {
                     .path("Z:\\MultiMedia\\Movies")
                     .title("Movies Main Path")
                     .pathType(SourcePath.PathType.SOURCE)
+                    .build());
+
+            sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.TV_SHOW)
+                    .path("Z:\\MultiMedia\\Serials")
+                    .title("TvShows Main Path")
+                    .pathType(SourcePath.PathType.SOURCE)
+                    .build());
+
+            sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.TV_SHOW)
+                    .path("Z:\\Downloads\\Serials")
+                    .title("TvShows Download Path")
+                    .pathType(SourcePath.PathType.DOWNLOAD)
                     .build());
         }
     }

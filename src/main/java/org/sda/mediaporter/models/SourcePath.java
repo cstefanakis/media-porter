@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
 
+import java.util.List;
+
 @Entity
 @Table(name = "source_paths")
 @Getter
@@ -35,4 +37,7 @@ public class SourcePath {
     public enum PathType {
         DOWNLOAD, SOURCE, EXTERNAL
     }
+
+    @OneToMany(mappedBy = "sourcePath")
+    private List<VideoFilePath> videoFilePaths;
 }

@@ -8,6 +8,7 @@ import lombok.*;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,7 +27,7 @@ public class Language {
     @Column(name = "english_title", nullable = false)
     private String englishTitle;
 
-    @Column(name = "original_titles")
+    @Column(name = "original_title")
     private String originalTitle;
 
     @Column(name = "iso_639_1")
@@ -38,19 +39,20 @@ public class Language {
     @Column(name = "iso_639_2t")
     private String iso6392T;
 
-    @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference("audioLanguages")
+    @OneToMany(mappedBy = "language",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Audio> audios;
 
-    @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference("subtitleLanguages")
+    @OneToMany(mappedBy = "language",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Subtitle> subtitles;
 
-    @ManyToMany(mappedBy = "languages", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JsonBackReference("movieLanguages")
+    @OneToMany(mappedBy = "originalLanguage",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Movie> movies;
 
-    @ManyToMany(mappedBy = "audioLanguages")
-    @JsonBackReference("configurationAudioLanguages")
-    private List<Configuration> audioLanguagesConfiguration;
+    @ManyToMany(mappedBy = "languages")
+    private List<TvShow> tvShows;
 }

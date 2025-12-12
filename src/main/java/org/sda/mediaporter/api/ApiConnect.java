@@ -14,10 +14,13 @@ public class ApiConnect {
     private final String url;
     @Getter
     private String jsonString;
+    @Getter
+    private JSONObject rootJsonObject;
 
     public ApiConnect(String url) {
         this.url = url;
         this.jsonString = jsonString();
+        this.rootJsonObject = new JSONObject(this.jsonString);
     }
 
     private String jsonString() {
@@ -31,9 +34,5 @@ public class ApiConnect {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public JSONObject getRootObject(ApiConnect api){
-        return new JSONObject(api.getJsonString());
     }
 }

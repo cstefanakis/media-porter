@@ -1,7 +1,7 @@
 package org.sda.mediaporter.controllers;
 
 import jakarta.validation.Valid;
-import org.sda.mediaporter.Services.GenreService;
+import org.sda.mediaporter.services.GenreService;
 import org.sda.mediaporter.dtos.GenreDto;
 import org.sda.mediaporter.models.Genre;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,13 +40,6 @@ public class GenreController {
     @GetMapping("/by-title")
     public ResponseEntity<Genre> getGenreByTitle(@RequestParam ("title") String title){
         Genre genre = genreService.getGenreByTitle(title);
-        return ResponseEntity.ok(genre);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping()
-    public ResponseEntity<Genre> createGenre(@RequestBody @Valid GenreDto genreDto){
-        Genre genre = genreService.createGenre(genreDto);
         return ResponseEntity.ok(genre);
     }
 

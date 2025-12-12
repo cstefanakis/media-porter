@@ -1,7 +1,7 @@
 package org.sda.mediaporter.controllers;
 
 
-import org.sda.mediaporter.Services.ConfigurationService;
+import org.sda.mediaporter.services.ConfigurationService;
 import org.sda.mediaporter.dtos.ConfigurationDto;
 import org.sda.mediaporter.models.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
 package org.sda.mediaporter.controllers;
 
-import org.sda.mediaporter.Services.FileService;
+import org.sda.mediaporter.services.fileServices.FileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

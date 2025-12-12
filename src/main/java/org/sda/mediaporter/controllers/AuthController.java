@@ -1,7 +1,7 @@
 package org.sda.mediaporter.controllers;
 
 import lombok.AllArgsConstructor;
-import org.sda.mediaporter.Services.AuthService;
+import org.sda.mediaporter.services.AuthService;
 import org.sda.mediaporter.dtos.JwtAuthResponseDto;
 import org.sda.mediaporter.dtos.LoginDto;
 import org.springframework.http.HttpStatus;

@@ -12,4 +12,10 @@ import java.util.Optional;
 public interface ContributorRepository extends JpaRepository<Contributor, Long> {
     @Query("select c from Contributor c where c.fullName = :fullName")
     Optional<Contributor> findByFullName(@Param("fullName") String fullName);
+
+    @Query("""
+            SELECT c FROM Contributor c
+            WHERE c.theMovieDbId = :theMovieDbId
+            """)
+    Optional<Contributor> findContributorByTheMovieDb(@Param("theMovieDbId") Long theMovieDbId);
 }

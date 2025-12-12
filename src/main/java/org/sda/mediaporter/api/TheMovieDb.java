@@ -1,237 +1,158 @@
 package org.sda.mediaporter.api;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbCastDto;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbCrewDto;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
+@NoArgsConstructor
 public class TheMovieDb {
-    private final ApiConnect theMovieDb;
     @Getter
-    private ApiConnect movie;
     private final String apiKey = "7c97b163195d9428522398e8f1c32f63";
-    private String search;
-    private int resultsObjectIndex;
+    @Getter
+    private final String posterRootPath = "https://image.tmdb.org/t/p/w500";
 
-    public TheMovieDb(String search, Integer year) {
-        String url = String.format("https://api.themoviedb.org/3/search/movie?api_key=%s&query=%s&year=%s", apiKey, search(search), year);
-        theMovieDb = new ApiConnect(url);
-        this.resultsObjectIndex = fileIndex(year);
-        this.movie = new ApiConnect(String.format("https://api.themoviedb.org/3/movie/%s?api_key=%s", getMovieId(), apiKey));
+    public boolean isValidatedObject(JSONObject jsonObject, String key){
+        return jsonObject.has(key) && !jsonObject.isNull(key) && !jsonObject.isEmpty();
     }
 
-    private String search(String search){
-        this.search = search;
-        return search.replace(" ", "+")
-                .replace(".", "+");
+    public String getValidatedStringJsonObject(JSONObject jsonObject, String key){
+        return isValidatedObject(jsonObject, key)
+                ? jsonObject.getString(key)
+                : null;
     }
 
-    public String getImdbId(){
-        JSONObject jsonObject = new JSONObject(this.movie.getJsonString());
-        System.out.println(jsonObject);
-        String key = "imdb_id";
-        return jsonObject.getString(key);
+    public Long getValidatedLongJsonObject(JSONObject jsonObject, String key){
+        return isValidatedObject(jsonObject, key)
+                ? jsonObject.getLong(key)
+                : null;
     }
 
-    private JSONObject rootObject(){
-        return new JSONObject(this.theMovieDb.getJsonString());
+    public Double getValidatedDoubleJsonObject(JSONObject jsonObject, String key){
+        return isValidatedObject(jsonObject, key)
+                ? jsonObject.getDouble(key)
+                : null;
     }
 
-    private JSONArray results(){
-        String key = "results";
-        return rootObject().getJSONArray(key);
+    public Integer getValidatedIntegerJsonObject(JSONObject jsonObject, String key){
+        return isValidatedObject(jsonObject, key)
+                ? jsonObject.getInt(key)
+                : null;
     }
 
-    private int fileIndex(Integer year){
-        if(year == null){
-            return 0;
+    public Integer getYearValidatedLocalDateJsonObject(JSONObject jsonObject, String key){
+        return isValidatedObject(jsonObject, key)
+                ? LocalDate.parse(jsonObject.getString(key)).getYear()
+                : null;
+    }
+
+    public LocalDate getValidatedLocalDateJsonObject(JSONObject jsonObject, String key) {
+        return isValidatedObject(jsonObject, key)
+                ? LocalDate.parse(jsonObject.getString(key))
+                : null;
+    }
+
+    public Integer getYearFromLocalDateObject(JSONObject object, String key){
+        if (!isValidatedObject(object, key)){
+            return null;
         }
-        for(int i = 0; i < results().length(); i++){
-            if(checkYear(i) !=null && !checkYear(i).isEmpty()) {
-                if (year == LocalDate.parse(checkYear(i), theMovieDBFormatter()).getYear()) {
-                    return i;
-                }
+        try {
+            return LocalDate.parse(object.getString(key)).getYear();
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    public List<String> getListOfStringsOfJsonArrayFromObject(JSONObject object, String arrayKey, String objectKey) {
+        List<String> stringsList = new ArrayList<>();
+        if(isValidatedObject(object, arrayKey)){
+            JSONArray objects = object.getJSONArray(arrayKey);
+            for (int i = 0; i < objects.length(); i++) {
+                String string = objects.getJSONObject(i).getString(objectKey);
+                stringsList.add(string);
             }
-        }return 0;
+        }
+        return stringsList;
     }
 
-    public int getMovieId(){
-        String key = "id";
-        return results().getJSONObject(this.resultsObjectIndex).getInt(key);
-    }
-
-    public String getOriginalTitle(){
-        String key = "original_title";
-        try {
-            if (results().isEmpty()) {
-                return this.search;
+    public List<String> getListOfStringsOfArray(JSONObject object, String arrayKey){
+        List<String> stringList = new ArrayList<>();
+        if(isValidatedObject(object, arrayKey)){
+            JSONArray strings = object.getJSONArray(arrayKey);
+            for (int i = 0; i < strings.length(); i++) {
+                String string = strings.getString(i);
+                stringList.add(string);
             }
-            return jsonStringObjectResult(key);
-        }catch (JSONException e){
-            return null;
-        }
+        }return stringList;
     }
 
-    public String getOverview(){
-        String key = "overview";
-        try {
-            return results()
-                    .getJSONObject(this.resultsObjectIndex)
-                    .getString(key);
-        }catch (JSONException e){
-            return null;
-        }
+    public JSONArray getObjectArray(JSONObject jsonObject, String jsonArrayKey){
+        if(jsonObject != null){
+            return jsonObject.getJSONArray(jsonArrayKey);
+        } throw new EntityNotFoundException(String.format("results for %s not found",jsonArrayKey));
     }
 
-    private String checkYear(int index){
-        String key = "release_date";
-        try {
-            return results()
-                    .getJSONObject(index)
-                    .optString(key);
-        }catch (JSONException e){
-            return null;
-        }
+    public List<TheMovieDbCrewDto> getContributorsFromCrewByDepartment(JSONObject jsonObject, String departmentName){
+        List<TheMovieDbCrewDto> contributors = new ArrayList<>();
+        JSONArray jsonArray = getObjectArray(jsonObject,"crew");
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject castObjectIndex = jsonArray.getJSONObject(i);
+            String jobOfObject = getValidatedStringJsonObject(castObjectIndex, "department");
+            if(jobOfObject != null && jobOfObject.equals(departmentName)){
+                contributors.add(buildTheMovieDbCrewDto(castObjectIndex));
+            }
+        }return contributors;
     }
 
-    private String realiseDate(){
-        String key = "release_date";
-        try {
-            return results()
-                    .getJSONObject(this.resultsObjectIndex)
-                    .getString(key);
-        }catch (JSONException e){
-            return null;
-        }
+    public List<TheMovieDbCastDto> getContributorsFromCast(JSONObject jsonObject, String arrayKey){
+        List<TheMovieDbCastDto> contributors = new ArrayList<>();
+        JSONArray jsonArray = getObjectArray(jsonObject,arrayKey);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject castObjectIndex = jsonArray.getJSONObject(i);
+                contributors.add(buildTheMovieDbCastDto(castObjectIndex));
+        }return contributors;
     }
 
-    public LocalDate getReleaseDate(){
-        if(realiseDate() == null || realiseDate().isEmpty()) {
-            return null;
-        }
-        return LocalDate.parse(realiseDate(), theMovieDBFormatter());
+    private TheMovieDbCastDto buildTheMovieDbCastDto(JSONObject jsonObject){
+        return TheMovieDbCastDto.builder()
+                .gender(getGender(jsonObject))
+                .theMovieDbId(getValidatedLongJsonObject(jsonObject,"id"))
+                .fullName(getValidatedStringJsonObject(jsonObject, "name"))
+                .poster(getValidatedStringJsonObject(jsonObject, "profile_path") == null
+                        ? null
+                        : getPosterRootPath() + getValidatedStringJsonObject(jsonObject, "profile_path"))
+                .character(getValidatedStringJsonObject(jsonObject, "character"))
+                .order(getValidatedIntegerJsonObject(jsonObject, "order"))
+                .build();
     }
 
-    public Integer getYear(){
-        if(getReleaseDate() == null){
-            return null;
-        }
-        return getReleaseDate().getYear();
+    private TheMovieDbCrewDto buildTheMovieDbCrewDto(JSONObject jsonObject){
+        return TheMovieDbCrewDto.builder()
+                .fullName(getValidatedStringJsonObject(jsonObject, "name"))
+                .theMovieDbId(getValidatedLongJsonObject(jsonObject, "id"))
+                .poster(getValidatedStringJsonObject(jsonObject, "profile_path") == null
+                        ? null
+                        : getPosterRootPath() + getValidatedStringJsonObject(jsonObject, "profile_path"))
+                .gender(getGender(jsonObject))
+                .department(getValidatedStringJsonObject(jsonObject, "department"))
+                .job(getValidatedStringJsonObject(jsonObject, "job"))
+                .build();
     }
 
-    public String getTitle(){
-        String key = "title";
-        try {
-            return jsonStringObjectResult(key);
-        }catch (JSONException e){
-            return null;
-        }
+    private String getGender(JSONObject jsonObject){
+        Integer genderId = getValidatedIntegerJsonObject(jsonObject, "gender");
+        return switch (genderId) {
+            case 1 -> "female";
+            case 2 -> "male";
+            default -> null;
+        };
     }
-
-    public List<String> getLanguages(){
-        String key = "original_language";
-        try {
-            String[] languages = jsonStringObjectResult(key)
-                    .replace(" ", "")
-                    .split(",");
-            return Arrays.stream(languages).collect(Collectors.toList());
-        }catch (JSONException e){
-            return null;
-        }
-    }
-
-    public Double getRating(){
-        String key = "vote_average";
-        try {
-            return jsonDoubleObjectResult(key);
-        }catch (JSONException e){
-            return null;
-        }
-    }
-
-    private DateTimeFormatter theMovieDBFormatter(){
-        return DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    }
-
-    public String getPoster(){
-        String key = "poster_path";
-            String poster = jsonStringObjectResult(key);
-            return "https://image.tmdb.org/t/p/w500"+poster;
-    }
-
-    public List<String> getGenres(){
-        return genreIds()
-                .toList() // convert JSONArray to List<Object>
-                .stream()
-                .map(id -> genreIdsMap()
-                        .getOrDefault((Integer) id, "Unknown"))
-                .collect(Collectors.toList());
-    }
-    
-    private JSONArray genreIds(){
-        String key = "genre_ids";
-        try {
-            JSONObject movie = results().getJSONObject(resultsObjectIndex);
-            return movie
-                    .getJSONArray(key);
-        }catch (JSONException e){
-            return null;
-        }
-    }
-
-    private Map<Integer, String> genreIdsMap(){
-        return Map.ofEntries(
-                Map.entry(28, "Action"),
-                Map.entry(12, "Adventure"),
-                Map.entry(16, "Animation"),
-                Map.entry(35, "Comedy"),
-                Map.entry(80, "Crime"),
-                Map.entry(99, "Documentary"),
-                Map.entry(18, "Drama"),
-                Map.entry(10751, "Family"),
-                Map.entry(14, "Fantasy"),
-                Map.entry(36, "History"),
-                Map.entry(27, "Horror"),
-                Map.entry(10402, "Music"),
-                Map.entry(9648, "Mystery"),
-                Map.entry(10749, "Romance"),
-                Map.entry(878, "Science Fiction"),
-                Map.entry(10770, "TV Movie"),
-                Map.entry(53, "Thriller"),
-                Map.entry(10752, "War"),
-                Map.entry(37, "Western")  
-        );
-    }
-
-    private Integer jsonIntegerObjectResult(String key){
-        return  resultsObjectIndexJsonObject()
-                .getInt(key);
-    }
-
-    private String jsonStringObjectResult(String key){
-       return  resultsObjectIndexJsonObject()
-                .getString(key);
-    }
-
-    private Double jsonDoubleObjectResult(String key){
-        return  resultsObjectIndexJsonObject()
-                .getDouble(key);
-    }
-
-    private boolean checkJsonObjectExists(String key){
-        return (resultsObjectIndexJsonObject().has(key) && !resultsObjectIndexJsonObject().isNull(key));
-    }
-
-    private JSONObject resultsObjectIndexJsonObject(){
-        return results()
-                .getJSONObject(this.resultsObjectIndex);
-    }
-
 }

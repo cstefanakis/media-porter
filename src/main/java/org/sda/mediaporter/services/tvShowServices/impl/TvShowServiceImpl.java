@@ -1,5 +1,7 @@
 package org.sda.mediaporter.services.tvShowServices.impl;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.sda.mediaporter.api.TheMovieDbCreditsForTvShowById;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowDto;
 import org.sda.mediaporter.models.*;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -47,12 +50,11 @@ public class TvShowServiceImpl implements TvShowService {
     }
 
     @Override
+    @Transactional
     public TvShow getOrCreateTvShowByTitle(String fileTitle) {
         String filteredFileTitle = fileTitle.replace(fileService.getFileExtensionWithDot(fileTitle), "");
         filteredFileTitle = fileService.getSafeFileName(filteredFileTitle);
-
         TheMovieDbTvShowSearchDTO tvShowFromSearchDTO = getTvShowAPISearchDTO(filteredFileTitle);
-
         if(tvShowFromSearchDTO != null){
             Long theMovieDbTvShowId = tvShowFromSearchDTO.getTheMovieDbId();
             Optional<TvShow> tvShowOptional = tvShowRepository.findTvShowByTheMovieDBId(theMovieDbTvShowId);
@@ -67,10 +69,11 @@ public class TvShowServiceImpl implements TvShowService {
                 List<Genre> genres = genreService.getOrCreateGenresByTitles(theMovieDbTvShowsById.getTheMovieDbTvShowDto().getGenres());
                 Language originalLanguage = languageService.getLanguageByCodeOrNull(theMovieDbTvShowsById.getTheMovieDbTvShowDto().getLanguageCode());
                 List<Country> countries = countryService.getCountriesByCodes(theMovieDbTvShowsById.getTheMovieDbTvShowDto().getCountriesCodes());
-                TvShow tvShow =  tvShowRepository.save(toEntity(theMovieDbTvShowsById.getTheMovieDbTvShowDto(), writers, actors, directors, genres, originalLanguage, countries, theMovieDbTvShowId));
+                TvShow tvShow = toEntity(theMovieDbTvShowsById.getTheMovieDbTvShowDto(), writers, actors, directors, genres, originalLanguage, countries, theMovieDbTvShowId);
+                tvShowRepository.save(tvShow);
                 List<Character> characters = characterService.createCharactersForTvShow(theMovieDbCreditsForTvShowById.getActors(), tvShow);
                 tvShow.setCharacters(characters);
-                return tvShowRepository.save(tvShow);
+                return tvShow;
             }
         }
         return null;
@@ -82,8 +85,13 @@ public class TvShowServiceImpl implements TvShowService {
         tvShowRepository.save(tvShow);
     }
 
+    @Override
+    public TvShow getTvShowById(Long id) {
+        Optional<TvShow> tvShowOptional = tvShowRepository.findById(id);
+        return tvShowOptional.orElseThrow(() -> new EntityNotFoundException(String.format("Tv Show with id %s not fount",id)));
+    }
+
     private TvShow toEntity(TheMovieDbTvShowDto theMovieDbTvShowDto,List<Contributor> writers, List<Contributor> actors, List<Contributor> directors, List<Genre> genres, Language originalLanguage, List<Country> countries, Long theMovieDbTvShowId){
-        System.out.println(theMovieDbTvShowDto.getTheMovieDbId());
         return TvShow.builder()
                 .title(theMovieDbTvShowDto.getTitle())
                 .originalTitle(theMovieDbTvShowDto.getOriginalTitle())

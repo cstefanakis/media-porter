@@ -18,4 +18,6 @@ public interface FileService {
     FileTime localDateTimeToFileTime(LocalDateTime localDateTime);
 
     String getStringWithoutDiacritics(String searchTitle);
+
+    boolean isFilePathExist(String filePath);
 }

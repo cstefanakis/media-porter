@@ -185,6 +185,12 @@ public class FileServiceImpl implements FileService {
         return normalized.replaceAll("\\p{M}", "");
     }
 
+    @Override
+    public boolean isFilePathExist(String filePathString) {
+        Path filePath = Path.of(filePathString);
+        return Files.exists(filePath);
+    }
+
 
     @Override
     public String getFileExtensionWithDot(String fileTitle) {

@@ -2,6 +2,7 @@ package org.sda.mediaporter.services.tvShowServices.impl;
 
 import jakarta.transaction.Transactional;
 import org.sda.mediaporter.models.SourcePath;
+import org.sda.mediaporter.models.TvShow;
 import org.sda.mediaporter.models.TvShowEpisode;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.models.enums.LibraryItems;
@@ -38,8 +39,7 @@ public class TvShowEpisodeSchedulerServiceImpl implements TvShowEpisodeScheduler
     }
 
     @Override
-    @Scheduled(fixedRate = 1000)
-    @Transactional
+    @Scheduled(fixedRate = 20000)
     public void moveTvShowEpisodeFromDownloadsRootPathToMovieRootPath() {
         SourcePath downloadsSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.DOWNLOAD, LibraryItems.TV_SHOW).getFirst();
         SourcePath tvShowEpisodeSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.TV_SHOW).getFirst();
@@ -52,7 +52,9 @@ public class TvShowEpisodeSchedulerServiceImpl implements TvShowEpisodeScheduler
         for(Path filePath : videoPaths){
             //Create a tvShowEpisode with TvShow
             TvShowEpisode tvShowEpisode = tvShowEpisodeService.createTvShowEpisodeFromPath(filePath);
+
             if(tvShowEpisode != null){
+                TvShow tvShow = tvShowService.getTvShowById(tvShowEpisode.getTvShow().getId());
                 //create VideoFilePath
                 VideoFilePath videoFilePath = videoFilePathService.createVideoFilePath(filePath);
                 //Add tvShowEpisode to VideoFilePath
@@ -61,21 +63,21 @@ public class TvShowEpisodeSchedulerServiceImpl implements TvShowEpisodeScheduler
                 String fileNameOfPath = filePath.getFileName().toString();
                 String fileExtension = fileService.getFileExtensionWithDot(fileNameOfPath);
                 //Create a path to move a file
-                Path newTvShowEpisodePath = newTvShowPath(tvShowEpisode, tvShowEpisodeRootPath, fileExtension, videoFilePath);
+                Path newTvShowEpisodePath = newTvShowPath(tvShowEpisode, tvShow, tvShowEpisodeRootPath, fileExtension, videoFilePath);
                 //update videoFilePath with new filePath
-                videoFilePathService.updateSourcePathFileAndPath(videoFilePath, newTvShowEpisodePath);
+                videoFilePathService.updateSourcePathFileAndPath(videoFilePath,null, tvShowEpisode, newTvShowEpisodePath);
                 tvShowEpisodeService.updateModificationDateTime(tvShowEpisode, newTvShowEpisodePath);
-                tvShowService.updateModificationDateTime(tvShowEpisode.getTvShow(), tvShowEpisode.getModificationDateTime());
+                tvShowService.updateModificationDateTime(tvShow, tvShowEpisode.getModificationDateTime());
             }
         }
     }
 
-    private Path newTvShowPath(TvShowEpisode tvShowEpisode, Path tvShowEpisodeRootPath, String fileExtension, VideoFilePath videoFilePath) {
+    private Path newTvShowPath(TvShowEpisode tvShowEpisode, TvShow tvShow,  Path tvShowEpisodeRootPath, String fileExtension, VideoFilePath videoFilePath) {
         String tvShowEpisodeTitle = fileService.getSafeFileName(tvShowEpisode.getEpisodeName());
         String tvShowEpisodeSeason = String.format("%02d", tvShowEpisode.getSeasonNumber());
         String tvShowEpisodeEpisode = String.format("%02d", tvShowEpisode.getEpisodeNumber());
-        String tvShowTitle = fileService.getSafeFileName(tvShowEpisode.getTvShow().getTitle());
-        Integer tvShowYear = tvShowEpisode.getTvShow().getYear();
+        String tvShowTitle = fileService.getSafeFileName(tvShow.getTitle());
+        Integer tvShowYear = tvShow.getYear();
         String tvShowEpisodeVideo = videoFilePathService.getVideoFileNamePart(videoFilePath.getVideo());
         String tvShowEpisodeAudios = videoFilePathService.getAudioFileNamePart(videoFilePath.getAudios());
         String tvShowTitleAndYear = String.format("%s (%s)", tvShowTitle, tvShowYear);

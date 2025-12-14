@@ -3,6 +3,7 @@ package org.sda.mediaporter.services.fileServices.impl;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.metadata.*;
 import org.sda.mediaporter.repositories.VideoFilePathRepository;
@@ -10,18 +11,20 @@ import org.sda.mediaporter.services.audioServices.AudioService;
 import org.sda.mediaporter.services.fileServices.FileService;
 import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.sda.mediaporter.services.fileServices.VideoFilePathService;
+import org.sda.mediaporter.services.movieServices.MovieService;
 import org.sda.mediaporter.services.subtitleServices.SubtitleService;
+import org.sda.mediaporter.services.tvShowServices.TvShowEpisodeService;
 import org.sda.mediaporter.services.videoServices.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class VideoFilePathServiceImpl implements VideoFilePathService {
 
@@ -79,29 +82,48 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
             videoService.createVideoFromPath(filePath, videoFilePath);
             audioService.getCreatedAudiosFromPathFile(filePath, videoFilePath);
             subtitleService.createSubtitleListFromFile(filePath, videoFilePath);
-            return videoFilePathRepository.save(videoFilePath);
+            return videoFilePath;
         }
     }
 
     @Override
-    public VideoFilePath updateSourcePathFileAndPath(VideoFilePath videoFilePath, Path newFilePath){
-        Path originalFilePath = getFullPathOfVideoFilePath(videoFilePath);
+    public void updateSourcePathFileAndPath(VideoFilePath videoFilePath, Movie movie, TvShowEpisode tvShowEpisode, Path newFilePath){
+
+        SourcePath sourcePath = sourcePathService.getSourcePathFromPath(newFilePath);
+        String filePathWithoutSourcePath = getPathWithoutSourcePath(newFilePath, sourcePath);
         String newFilePathString = newFilePath.toString();
-        fileService.moveFile(originalFilePath, newFilePath);
-        if (!isVideoFilePathWithPathExist(newFilePathString)){
-            SourcePath sourcePath = sourcePathService.getSourcePathFromPath(newFilePath);
-            String filePathWithoutSourcePath = getPathWithoutSourcePath(newFilePath, sourcePath);
+        Optional<VideoFilePath> videoFilePathOptional = videoFilePathRepository.findVideoFilePathByPathAndSourcePath(filePathWithoutSourcePath, sourcePath);
+
+        if(videoFilePathOptional.isPresent() && !isVideoFilePathWithPathExist(newFilePathString)) {
+            System.out.println("strat delete video file path");
+            deleteVideoFilePath(videoFilePathOptional.get(), movie, tvShowEpisode);
+
+        }
+
+        if (!isVideoFilePathWithPathExist(newFilePathString)) {
+            Path originalFilePath = getFullPathOfVideoFilePath(videoFilePath);
+            fileService.moveFile(originalFilePath, newFilePath);
             videoFilePath.setSourcePath(sourcePath);
             videoFilePath.setFilePath(filePathWithoutSourcePath);
-            return videoFilePathRepository.save(videoFilePath);
-        } else {
-            throw new EntityExistsException(String.format("File path %s already exist", newFilePath));
+            videoFilePathRepository.save(videoFilePath);
         }
     }
 
     @Override
-    public void deleteVideoFilePath(VideoFilePath videoFilePath) {
+    @Transactional
+    public void deleteVideoFilePath(VideoFilePath videoFilePath, Movie movie, TvShowEpisode tvShowEpisode) {
+
+        removeVideoFilePAthFromTvShowEpisode(videoFilePath, tvShowEpisode);
+        System.out.println("removedFromTvShowEpisode");
         videoFilePathRepository.delete(videoFilePath);
+        System.out.println("delele");
+    }
+
+    private void removeVideoFilePAthFromTvShowEpisode(VideoFilePath videoFilePath, TvShowEpisode tvShowEpisode){
+        if(tvShowEpisode != null){
+            tvShowEpisode.getVideoFilePaths().remove(videoFilePath);
+            videoFilePath.setTvShowEpisode(null);
+        }
     }
 
     @Override

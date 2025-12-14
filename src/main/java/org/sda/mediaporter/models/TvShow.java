@@ -1,18 +1,15 @@
 package org.sda.mediaporter.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.sda.mediaporter.models.metadata.Character;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Builder
 @Table(name = "tvShows")
@@ -119,6 +116,5 @@ public class TvShow {
     private List<Contributor> actors;
 
     @OneToMany(mappedBy = "tvShow", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Character> characters = new ArrayList<>();
+    private List<Character> characters;
 }

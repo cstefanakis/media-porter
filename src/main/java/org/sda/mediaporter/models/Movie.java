@@ -56,44 +56,49 @@ public class Movie {
 
     // Many-to-Many relationship between Movie and Genre.
     @ManyToMany(fetch = FetchType.EAGER)
+    @Builder.Default
     @JoinTable(
             name= "movie_genres",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
-    private List<Genre> genres;
+    private List<Genre> genres = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @Builder.Default
     @JoinTable(
             name = "movie_directors",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
-    private List<Contributor> directors;
+    private List<Contributor> directors = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @Builder.Default
     @JoinTable(
             name = "movie_writers",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
-    private List<Contributor> writers;
+    private List<Contributor> writers = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @Builder.Default
     @JoinTable(
             name = "movie_actors",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
-    private List<Contributor> actors;
+    private List<Contributor> actors = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @Builder.Default
     @JoinTable(
             name = "movie_countries",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "country_id")
     )
-    private List<Country> countries;
+    private List<Country> countries = new ArrayList<>();
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

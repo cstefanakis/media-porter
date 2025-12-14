@@ -89,7 +89,9 @@ public class TvShowEpisode {
             orphanRemoval = true)
     private List<VideoFilePath> videoFilePaths;
 
-    @OneToMany(mappedBy = "tvShowEpisode", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "tvShowEpisode",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     @Builder.Default
     private List<Character> characters = new ArrayList<>();
 }

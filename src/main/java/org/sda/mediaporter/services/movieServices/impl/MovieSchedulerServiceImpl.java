@@ -63,7 +63,8 @@ public class MovieSchedulerServiceImpl implements MovieSchedulerService {
                 //Create a path to move a file
                 Path newMoviePath = newMoviePath(movie, moviesRootPath, fileExtension, videoFilePath);
                 //update videoFilePath with new filePath
-                videoFilePathService.updateSourcePathFileAndPath(videoFilePath, newMoviePath);
+
+                videoFilePathService.updateSourcePathFileAndPath(videoFilePath, movie, null, newMoviePath);
                 movieService.updateModificationDateTime(movie, newMoviePath);
             }
 

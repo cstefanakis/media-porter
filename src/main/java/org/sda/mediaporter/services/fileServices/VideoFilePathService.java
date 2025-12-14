@@ -16,8 +16,8 @@ public interface VideoFilePathService {
     VideoFilePath getVideoFilePathById(Long videoPathFileId);
     VideoFilePath getVideoFilePath(Path videoFilePathFile);
     VideoFilePath createVideoFilePath(Path videoFilePathFile);
-    VideoFilePath updateSourcePathFileAndPath(VideoFilePath videoFilePath, Path filePath);
-    void deleteVideoFilePath(VideoFilePath videoFilePath);
+    void updateSourcePathFileAndPath(VideoFilePath videoFilePath, Movie movie, TvShowEpisode tvShowEpisode, Path newFilePath);
+    void deleteVideoFilePath(VideoFilePath videoFilePath, Movie movie, TvShowEpisode tvShowEpisode);
     List<VideoFilePath> getAllVideoFilePaths();
     boolean isVideoFilePathWithPathExist(String filePath);
     void addMovie(Movie movie, VideoFilePath videoFilePath);

@@ -53,7 +53,8 @@ public class CharacterServiceImpl  implements CharacterService {
     @Override
     public List<Character> createCharactersForTvShowEpisode(List<TheMovieDbCastDto> actors, TvShowEpisode tvShowEpisode) {
         return actors.stream()
-                .map(a -> createCharacter(a.getTheMovieDbId(), a.getCharacter(), null, null, tvShowEpisode)).toList();
+                .map(a -> createCharacter(a.getTheMovieDbId(), a.getCharacter(), null, null, tvShowEpisode))
+                .toList();
     }
 
     private Character createCharacter(Long theMovieDbId, String characterName, Movie movie, TvShow tvShow, TvShowEpisode tvShowEpisode) {

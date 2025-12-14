@@ -1,6 +1,7 @@
 package org.sda.mediaporter.services.tvShowServices.impl;
 
 import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowEpisodeDto;
 import org.sda.mediaporter.models.SourcePath;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -72,20 +74,19 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
         Integer season = getEpisodeSeasonNumberFromVideoFile(filename, seasonRegexes());
         Integer episode = getEpisodeSeasonNumberFromVideoFile(filename, episodeRegexes());
         String tvShowTitle = getTvShowTitleFromVideoFilename(filename);
-        System.out.printf("%s - S%sE%s%n", tvShowTitle, season, episode);
-        TvShow tvShow;
-        if (season != null && episode != null) {
-            tvShow = tvShowService.getOrCreateTvShowByTitle(tvShowTitle);
-            tvShow = tvShowService.updateTvShowModificationDateTime(tvShow, modificationDateTime);
-            TvShowEpisode tvShowEpisode = getOrCreateTvShowEpisode(tvShow, season, episode);
-            if(tvShowEpisode != null){
-                updateTvShowEpisodeModificationDateTime(tvShowEpisode, modificationDateTime);
-                return tvShowEpisodeRepository.save(tvShowEpisode);
-            }else{
-                return null;
-            }
+
+        if (season == null && episode == null) {
+            throw new EntityNotFoundException("TvShow not found");
         }
-        return null;
+        TvShow tvShow = tvShowService.getOrCreateTvShowByTitle(tvShowTitle);
+//        tvShow = tvShowService.updateTvShowModificationDateTime(tvShow, modificationDateTime);
+        TvShowEpisode tvShowEpisode = getOrCreateTvShowEpisode(tvShow, season, episode);
+        if(tvShowEpisode != null){
+            updateTvShowEpisodeModificationDateTime(tvShowEpisode, modificationDateTime);
+            return tvShowEpisodeRepository.save(tvShowEpisode);
+        }else{
+            throw new EntityNotFoundException("TvShow not found");
+        }
     }
 
     @Override
@@ -155,7 +156,7 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
     private String getTvShowTitleFromVideoFilename(String filename){
         Matcher macher = macher(filename, "S\\d{1,2}");
         return macher.find()
-                ? filename.substring(0, macher.start()).trim().replaceAll("[._-]", " ")
+                ? filename.substring(0, macher.start()).trim().replaceAll("[._-]", " ").trim()
                 : null;
     }
 

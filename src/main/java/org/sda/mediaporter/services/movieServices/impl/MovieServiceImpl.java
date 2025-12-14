@@ -65,10 +65,13 @@ public class MovieServiceImpl implements MovieService {
 
     private void deleteMovieFromDbWithoutFile(){
         List<VideoFilePath> videoFilePaths = videoFilePathService.getAllVideoFilePaths();
-        List<VideoFilePath> videoFilePathsWithInvalidPaths = videoFilePaths.stream()
-                .filter(vfp -> !Files.exists(Path.of(vfp.getFilePath())))
-                .toList();
-        videoFilePathsWithInvalidPaths.forEach(videoFilePathService::deleteVideoFilePath);
+        for(VideoFilePath videoFilePath : videoFilePaths){
+            String filePath = videoFilePath.getFilePath();
+            Movie movie = getMovieById(videoFilePath.getMovie().getId());
+            if(!fileService.isFilePathExist(filePath)){
+                videoFilePathService.deleteVideoFilePath(videoFilePath, movie, null);
+            }
+        }
         movieRepository.deleteMoviesWithoutVideoFilePaths();
     }
 

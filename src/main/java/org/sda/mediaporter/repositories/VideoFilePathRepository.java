@@ -1,9 +1,7 @@
 package org.sda.mediaporter.repositories;
 
-import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.VideoFilePath;
-import org.sda.mediaporter.models.metadata.Video;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

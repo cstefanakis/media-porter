@@ -46,6 +46,7 @@ public class VideoFilePath {
 
     @ManyToOne
     @JoinColumn(name = "source_path")
+    @JsonManagedReference
     private SourcePath sourcePath;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,5 +1,6 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -39,5 +40,6 @@ public class SourcePath {
     }
 
     @OneToMany(mappedBy = "sourcePath")
+    @JsonBackReference
     private List<VideoFilePath> videoFilePaths;
 }

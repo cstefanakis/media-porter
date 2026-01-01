@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
-import org.sda.mediaporter.models.Configuration;
 import org.sda.mediaporter.models.enums.MediaTypes;
 
 import java.util.List;
@@ -30,12 +29,15 @@ public class Codec {
     private MediaTypes mediaType;
 
     @OneToMany(mappedBy = "codec")
+    @JsonBackReference
     private List<Audio> audios;
 
     @OneToMany(mappedBy = "codec")
+    @JsonBackReference
     private List<Video> videos;
 
     @OneToMany(mappedBy = "codec")
+    @JsonBackReference
     private List<Subtitle> subtitles;
 
 }

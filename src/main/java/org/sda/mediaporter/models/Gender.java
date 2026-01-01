@@ -1,5 +1,6 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,5 +23,6 @@ public class Gender {
     private String title;
 
     @OneToMany(mappedBy = "gender")
+    @JsonBackReference
     private List<Contributor> contributors;
 }

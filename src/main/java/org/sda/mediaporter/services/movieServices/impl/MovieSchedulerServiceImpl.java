@@ -1,13 +1,10 @@
 package org.sda.mediaporter.services.movieServices.impl;
 
-import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.models.enums.LibraryItems;
 import org.sda.mediaporter.models.metadata.*;
-import org.sda.mediaporter.repositories.MovieRepository;
-import org.sda.mediaporter.repositories.VideoFilePathRepository;
 import org.sda.mediaporter.services.fileServices.FileService;
 import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.sda.mediaporter.services.fileServices.VideoFilePathService;
@@ -20,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 
 @Service
 public class MovieSchedulerServiceImpl implements MovieSchedulerService {
@@ -30,19 +26,23 @@ public class MovieSchedulerServiceImpl implements MovieSchedulerService {
     private final MovieService movieService;
     private final VideoFilePathService videoFilePathService;
 
+    private final SourcePath downloadsSourcePath;
+    private final SourcePath moviesSourcePath;
+
     @Autowired
     public MovieSchedulerServiceImpl(SourcePathService sourcePathService, FileService fileService, MovieService movieService, VideoFilePathService videoFilePathService) {
         this.sourcePathService = sourcePathService;
         this.fileService = fileService;
         this.movieService = movieService;
         this.videoFilePathService = videoFilePathService;
+
+        this.downloadsSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.DOWNLOAD, LibraryItems.MOVIE).getFirst();
+        this.moviesSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.MOVIE).getFirst();
     }
 
     @Override
     @Scheduled(cron = "0 */1 * * * *")
     public void moveMoviesFromDownloadsRootPathToMovieRootPath(){
-        SourcePath downloadsSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.DOWNLOAD, LibraryItems.MOVIE).getFirst();
-        SourcePath moviesSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.MOVIE).getFirst();
 
         Path downloadsRootPath = Path.of(downloadsSourcePath.getPath());
         Path moviesRootPath = Path.of(moviesSourcePath.getPath());
@@ -68,6 +68,25 @@ public class MovieSchedulerServiceImpl implements MovieSchedulerService {
                 movieService.updateModificationDateTime(movie, newMoviePath);
             }
 
+        }
+    }
+
+    @Override
+    @Scheduled(cron = "0 0 */12 * * *")
+    public void scanMovieSourcePath() {
+        Path moviesRootPath = Path.of(moviesSourcePath.getPath());
+
+        List<Path> videoPaths = fileService.getVideoFiles(moviesRootPath);
+        for(Path filePath : videoPaths){
+            String filePathWithoutMovieSourcePath = videoFilePathService.getFilePathWithoutSourcePath(filePath, moviesSourcePath);
+            if(movieService.getMovieByPath(filePathWithoutMovieSourcePath)== null){
+                //Create a Movie
+                Movie movie = movieService.getOrCreateMovieFromPathFile(filePath);
+                //create VideoFilePath
+                VideoFilePath videoFilePath = videoFilePathService.createVideoFilePath(filePath);
+                //Add movie to VideoFilePath
+                videoFilePathService.addMovie(movie, videoFilePath);
+            }
         }
     }
 

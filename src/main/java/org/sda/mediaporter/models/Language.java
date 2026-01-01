@@ -3,12 +3,10 @@ package org.sda.mediaporter.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -42,17 +40,21 @@ public class Language {
     @OneToMany(mappedBy = "language",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @JsonBackReference
     private List<Audio> audios;
 
     @OneToMany(mappedBy = "language",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @JsonBackReference
     private List<Subtitle> subtitles;
 
     @OneToMany(mappedBy = "originalLanguage",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JsonBackReference
     private List<Movie> movies;
 
     @ManyToMany(mappedBy = "languages")
+    @JsonBackReference
     private List<TvShow> tvShows;
 }

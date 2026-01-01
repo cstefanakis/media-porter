@@ -6,11 +6,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.Language;
-import org.sda.mediaporter.models.Movie;
-import org.sda.mediaporter.models.TvShowEpisode;
 import org.sda.mediaporter.models.VideoFilePath;
-
-import java.util.List;
 
 @Entity
 @Table(name = "audios")
@@ -30,10 +26,12 @@ public class Audio {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "audio_channel_id")
+    @JsonManagedReference
     private AudioChannel audioChannel;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "codec_id")
+    @JsonManagedReference
     private Codec codec;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -43,6 +41,7 @@ public class Audio {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "video_file_path_id")
-    VideoFilePath videoFilePath;
+    @JsonBackReference
+    private VideoFilePath videoFilePath;
 
 }

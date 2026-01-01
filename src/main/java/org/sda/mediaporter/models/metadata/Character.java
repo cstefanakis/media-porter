@@ -1,5 +1,7 @@
 package org.sda.mediaporter.models.metadata;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.Contributor;
@@ -25,16 +27,21 @@ public class Character {
 
     @ManyToOne
     @JoinColumn(name = "contributor_id")
+    @JsonManagedReference
     private Contributor contributor;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
     @ManyToOne
     @JoinColumn(name = "tvShow_id")
+    @JsonBackReference
     private TvShow tvShow;
+
     @ManyToOne
     @JoinColumn(name = "tvShowEpisode_id")
+    @JsonBackReference
     private TvShowEpisode tvShowEpisode;
 }

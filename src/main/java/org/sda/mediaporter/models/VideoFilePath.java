@@ -1,5 +1,6 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,7 +11,6 @@ import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -36,12 +36,14 @@ public class VideoFilePath {
             fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @JsonManagedReference
     private List<Audio> audios;
 
     @OneToMany(mappedBy = "videoFilePath"
             ,fetch = FetchType.EAGER
             ,cascade = CascadeType.ALL
             ,orphanRemoval = true)
+    @JsonManagedReference
     private List<Subtitle> subtitles;
 
     @ManyToOne
@@ -51,9 +53,11 @@ public class VideoFilePath {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tv_show_episode_id")
+    @JsonBackReference
     private TvShowEpisode tvShowEpisode;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "movie_id")
     private Movie movie;
 }

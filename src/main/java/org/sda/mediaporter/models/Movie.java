@@ -1,5 +1,7 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,11 +53,13 @@ public class Movie {
     private Long theMovieDbId;
 
     @ManyToOne
+    @JsonManagedReference
     @JoinColumn(name = "original_language_id")
     private Language originalLanguage;
 
     // Many-to-Many relationship between Movie and Genre.
     @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference
     @Builder.Default
     @JoinTable(
             name= "movie_genres",
@@ -65,6 +69,7 @@ public class Movie {
     private List<Genre> genres = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference
     @Builder.Default
     @JoinTable(
             name = "movie_directors",
@@ -74,6 +79,7 @@ public class Movie {
     private List<Contributor> directors = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference
     @Builder.Default
     @JoinTable(
             name = "movie_writers",
@@ -83,6 +89,7 @@ public class Movie {
     private List<Contributor> writers = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @JsonBackReference
     @Builder.Default
     @JoinTable(
             name = "movie_actors",
@@ -92,6 +99,7 @@ public class Movie {
     private List<Contributor> actors = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @JsonManagedReference
     @Builder.Default
     @JoinTable(
             name = "movie_countries",
@@ -101,10 +109,12 @@ public class Movie {
     private List<Country> countries = new ArrayList<>();
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     @Builder.Default
     private List<VideoFilePath> videoFilePaths = new ArrayList<>();
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     @Builder.Default
     private List<Character> characters = new ArrayList<>();
 }

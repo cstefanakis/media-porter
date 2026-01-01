@@ -2,12 +2,9 @@ package org.sda.mediaporter.models.metadata;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.sda.mediaporter.models.Configuration;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -35,5 +32,6 @@ public class AudioChannel {
     @OneToMany(mappedBy = "audioChannel",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @JsonBackReference
     private List<Audio> audios;
 }

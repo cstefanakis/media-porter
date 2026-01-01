@@ -1,5 +1,6 @@
 package org.sda.mediaporter.models.metadata;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,5 +22,6 @@ public class Resolution {
     private String name;
 
     @OneToMany(mappedBy ="resolution")
+    @JsonBackReference
     private List<Video> videos;
 }

@@ -11,6 +11,7 @@ public interface FileService {
     void deleteFile(Path path);
     void moveFile(Path fromFullPath, Path toFullPath);
     Path renameFile(Path filePath, String newFileName, String[] newSubdirectories);
+    void deleteSubDirectories(Path filePath);
     String getFileExtensionWithDot(String fileTitle);
     String getSafeFileName(String text);
     Path createdDirectories(Path sourcePath, String[] directories);

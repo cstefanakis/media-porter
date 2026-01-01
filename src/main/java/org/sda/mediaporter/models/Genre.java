@@ -24,9 +24,11 @@ public class Genre{
 
     // Many-to-Many mapping to genres using the tv_show_genres join table
     @ManyToMany(mappedBy = "genres")
+    @JsonBackReference
     private List<TvShow> tvShowsGenres;
 
     // Many-to-Many mapping to genres using the movie_genres join table
     @ManyToMany(mappedBy = "genres")
+    @JsonBackReference
     private List<Movie> movieGenres;
 }

@@ -1,6 +1,6 @@
 package org.sda.mediaporter.services.fileServices.impl;
 
-import jakarta.persistence.EntityExistsException;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +11,7 @@ import org.sda.mediaporter.services.audioServices.AudioService;
 import org.sda.mediaporter.services.fileServices.FileService;
 import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.sda.mediaporter.services.fileServices.VideoFilePathService;
-import org.sda.mediaporter.services.movieServices.MovieService;
 import org.sda.mediaporter.services.subtitleServices.SubtitleService;
-import org.sda.mediaporter.services.tvShowServices.TvShowEpisodeService;
 import org.sda.mediaporter.services.videoServices.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -144,6 +142,11 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
     }
 
     @Override
+    public Path getFullPathFromVideoFilePath(VideoFilePath videoFilePath) {
+        return Path.of(videoFilePath.getSourcePath().getPath() + videoFilePath.getFilePath());
+    }
+
+    @Override
     @Transactional
     public void addTvShowEpisode(TvShowEpisode tvShowEpisode, VideoFilePath videoFilePath) {
         videoFilePath.setTvShowEpisode(tvShowEpisode);
@@ -168,6 +171,13 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
             audioString = audioString + verifiedAudioString(audio) + " ";
         }
         return " (" + audioString.trim() + ")";
+    }
+
+    @Override
+    public String getFilePathWithoutSourcePath(Path filePath, SourcePath sourcePath) {
+        String filePathToString = filePath.toString();
+        String sourcePathPathToString = sourcePath.getPath();
+        return filePathToString.replace(sourcePathPathToString, "");
     }
 
     private String verifiedAudioString(Audio audio){

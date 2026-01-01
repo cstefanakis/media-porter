@@ -37,10 +37,11 @@ public class Country {
     private String nativeName;
 
     @ManyToMany(mappedBy = "countries")
-    @JsonBackReference("tv_show_countries")
+    @JsonBackReference
     private List<TvShow> tvShows;
 
     @ManyToMany(mappedBy = "countries")
+    @JsonBackReference
     private List<Movie> movies;
 
 }

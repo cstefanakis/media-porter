@@ -1,7 +1,6 @@
 package org.sda.mediaporter.services.movieServices.impl;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import org.sda.mediaporter.api.TheMovieDbCreditsForMovieById;
 import org.sda.mediaporter.api.TheMovieDbMovieById;
 import org.sda.mediaporter.api.TheMovieDbMovieSearch;
@@ -21,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -89,7 +87,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Movie getMovieByPath(String moviePath) {
         return movieRepository.findByPath(moviePath)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Movie with path %s not found", moviePath)));
+                .orElse(null);
     }
 
     @Override
@@ -102,7 +100,12 @@ public class MovieServiceImpl implements MovieService {
     public void deleteMovieById(Long id) {
         Movie movie = getMovieById(id);
         movie.getVideoFilePaths()
-                .forEach(videoFilePath -> fileService.deleteFile(Path.of(videoFilePath.getFilePath())));
+                .forEach(videoFilePath ->
+                {
+                    Path fullPath = videoFilePathService.getFullPathFromVideoFilePath(videoFilePath);
+                    fileService.deleteFile(fullPath);
+                    fileService.deleteSubDirectories(fullPath);
+                });
         movieRepository.delete(movie);
     }
 

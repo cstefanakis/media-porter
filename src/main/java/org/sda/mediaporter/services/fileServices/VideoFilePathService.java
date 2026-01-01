@@ -1,6 +1,7 @@
 package org.sda.mediaporter.services.fileServices;
 
 import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.TvShowEpisode;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.models.metadata.Audio;
@@ -21,10 +22,12 @@ public interface VideoFilePathService {
     List<VideoFilePath> getAllVideoFilePaths();
     boolean isVideoFilePathWithPathExist(String filePath);
     void addMovie(Movie movie, VideoFilePath videoFilePath);
-
+    Path getFullPathFromVideoFilePath(VideoFilePath videoFilePath);
     void addTvShowEpisode(TvShowEpisode tvShowEpisode, VideoFilePath videoFilePath);
 
     String getVideoFileNamePart(Video video);
 
     String getAudioFileNamePart(List<Audio> audios);
+
+    String getFilePathWithoutSourcePath(Path filePath, SourcePath sourcePath);
 }

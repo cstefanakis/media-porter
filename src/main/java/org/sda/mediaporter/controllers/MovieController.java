@@ -48,13 +48,6 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.OK).body(movie);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    @GetMapping("/get-by-path")
-    public ResponseEntity<Movie> getMovieByPath(@RequestParam(name = "path") String path) {
-        Movie movie = movieService.getMovieByPath(path);
-        return ResponseEntity.status(HttpStatus.OK).body(movie);
-    }
-
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMovieById(@PathVariable("id") Long id) {

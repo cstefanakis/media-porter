@@ -15,4 +15,11 @@ public interface TvShowEpisodeRepository extends JpaRepository<TvShowEpisode, Lo
        WHERE te.theMovieDbId = :theMovieDbId
        """)
     Optional<TvShowEpisode> findTvShowEpisodeByTheMovieDbId(@Param("theMovieDbId") Long theMovieDbId);
+
+    @Query("""
+            SELECT te FROM TvShowEpisode te
+            JOIN te.videoFilePaths vfp
+            WHERE vfp.filePath = :filePath
+            """)
+    Optional<TvShowEpisode> findTvShowEpisodeByPath(@Param("filePath") String filePath);
 }

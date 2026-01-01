@@ -1,6 +1,5 @@
 package org.sda.mediaporter.repositories;
 
-import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.TvShow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

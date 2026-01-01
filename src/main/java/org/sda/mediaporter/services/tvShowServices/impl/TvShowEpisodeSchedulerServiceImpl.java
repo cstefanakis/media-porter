@@ -29,6 +29,8 @@ public class TvShowEpisodeSchedulerServiceImpl implements TvShowEpisodeScheduler
     private final VideoFilePathService videoFilePathService;
     private final TvShowService tvShowService;
 
+    private final SourcePath tvShowEpisodeSourcePath;
+
     @Autowired
     public TvShowEpisodeSchedulerServiceImpl(SourcePathService sourcePathService, FileService fileService, TvShowEpisodeService tvShowEpisodeService, VideoFilePathService videoFilePathService, TvShowService tvShowService) {
         this.sourcePathService = sourcePathService;
@@ -36,13 +38,14 @@ public class TvShowEpisodeSchedulerServiceImpl implements TvShowEpisodeScheduler
         this.tvShowEpisodeService = tvShowEpisodeService;
         this.videoFilePathService = videoFilePathService;
         this.tvShowService = tvShowService;
+
+        this.tvShowEpisodeSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.TV_SHOW).getFirst();
     }
 
     @Override
     @Scheduled(fixedRate = 20000)
     public void moveTvShowEpisodeFromDownloadsRootPathToMovieRootPath() {
         SourcePath downloadsSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.DOWNLOAD, LibraryItems.TV_SHOW).getFirst();
-        SourcePath tvShowEpisodeSourcePath = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.TV_SHOW).getFirst();
 
         Path downloadsRootPath = Path.of(downloadsSourcePath.getPath());
         Path tvShowEpisodeRootPath = Path.of(tvShowEpisodeSourcePath.getPath());
@@ -68,6 +71,29 @@ public class TvShowEpisodeSchedulerServiceImpl implements TvShowEpisodeScheduler
                 videoFilePathService.updateSourcePathFileAndPath(videoFilePath,null, tvShowEpisode, newTvShowEpisodePath);
                 tvShowEpisodeService.updateModificationDateTime(tvShowEpisode, newTvShowEpisodePath);
                 tvShowService.updateModificationDateTime(tvShow, tvShowEpisode.getModificationDateTime());
+            }
+        }
+    }
+
+    @Override
+    @Scheduled(fixedRate = 20000)
+    public void scanTvShowSourcePath() {
+        Path tvShowRootPath = Path.of(tvShowEpisodeSourcePath.getPath());
+
+        List<Path> videoPaths = fileService.getVideoFiles(tvShowRootPath);
+
+        for(Path filePath : videoPaths) {
+            String filePathWithoutTvShowSourcePath = videoFilePathService.getFilePathWithoutSourcePath(filePath, tvShowEpisodeSourcePath);
+            if (tvShowEpisodeService.getTvShowEpisodeByPathOrNull(filePathWithoutTvShowSourcePath) == null) {
+                //Create a tvShowEpisode with TvShow
+                TvShowEpisode tvShowEpisode = tvShowEpisodeService.createTvShowEpisodeFromPath(filePath);
+
+                if (tvShowEpisode != null) {
+                    //create VideoFilePath
+                    VideoFilePath videoFilePath = videoFilePathService.createVideoFilePath(filePath);
+                    //Add tvShowEpisode to VideoFilePath
+                    videoFilePathService.addTvShowEpisode(tvShowEpisode, videoFilePath);
+                }
             }
         }
     }

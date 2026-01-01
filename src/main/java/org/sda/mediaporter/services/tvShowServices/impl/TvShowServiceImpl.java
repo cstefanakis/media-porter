@@ -2,6 +2,8 @@ package org.sda.mediaporter.services.tvShowServices.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.sda.mediaporter.api.TheMovieDbCreditsForTvShowById;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowDto;
 import org.sda.mediaporter.models.*;
@@ -16,8 +18,8 @@ import org.sda.mediaporter.services.tvShowServices.TvShowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -89,6 +91,11 @@ public class TvShowServiceImpl implements TvShowService {
     public TvShow getTvShowById(Long id) {
         Optional<TvShow> tvShowOptional = tvShowRepository.findById(id);
         return tvShowOptional.orElseThrow(() -> new EntityNotFoundException(String.format("Tv Show with id %s not fount",id)));
+    }
+
+    @Override
+    public Page<TvShow> getTvShows(Pageable pageable) {
+        return tvShowRepository.findAll(pageable);
     }
 
     private TvShow toEntity(TheMovieDbTvShowDto theMovieDbTvShowDto,List<Contributor> writers, List<Contributor> actors, List<Contributor> directors, List<Genre> genres, Language originalLanguage, List<Country> countries, Long theMovieDbTvShowId){

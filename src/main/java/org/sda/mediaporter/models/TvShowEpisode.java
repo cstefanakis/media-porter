@@ -31,6 +31,7 @@ public class TvShowEpisode {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tv_shows_ids")
+    @JsonBackReference
     private TvShow tvShow;
 
     @Column(name = "air_dates")
@@ -42,6 +43,7 @@ public class TvShowEpisode {
             joinColumns = @JoinColumn(name = "tv_show_episode_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
+    @JsonManagedReference
     private List<Contributor> actors;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -50,6 +52,7 @@ public class TvShowEpisode {
             joinColumns = @JoinColumn(name = "tv_show_episode_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
+    @JsonManagedReference
     private List<Contributor> writers;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -57,6 +60,7 @@ public class TvShowEpisode {
             joinColumns = @JoinColumn(name = "tv_show_episode_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
+    @JsonManagedReference
     private List<Contributor> directors;
 
     @Column(name = "episode_numbers")
@@ -87,11 +91,13 @@ public class TvShowEpisode {
     @OneToMany(mappedBy = "tvShowEpisode",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @JsonManagedReference
     private List<VideoFilePath> videoFilePaths;
 
     @OneToMany(mappedBy = "tvShowEpisode",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     @Builder.Default
+    @JsonManagedReference
     private List<Character> characters = new ArrayList<>();
 }

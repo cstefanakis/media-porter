@@ -1,6 +1,8 @@
 package org.sda.mediaporter.models.metadata;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.Language;
@@ -21,13 +23,16 @@ public class Subtitle {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "language_id")
+    @JsonManagedReference
     private Language language;
 
     @ManyToOne
     @JoinColumn(name = "codec_id")
+    @JsonManagedReference
     private Codec codec;
 
     @ManyToOne
     @JoinColumn (name = "video_file_path_id")
+    @JsonBackReference
     private VideoFilePath videoFilePath;
 }

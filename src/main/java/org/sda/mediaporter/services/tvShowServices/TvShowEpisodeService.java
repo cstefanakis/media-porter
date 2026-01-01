@@ -14,4 +14,6 @@ public interface TvShowEpisodeService {
     TvShowEpisode createTvShowEpisodeFromPath(Path videoFilePath);
 
     void updateModificationDateTime(TvShowEpisode tvShowEpisode, Path newTvShowEpisodePath);
+
+    TvShowEpisode getTvShowEpisodeByPathOrNull(String filePathWithoutTvShowSourcePath);
 }

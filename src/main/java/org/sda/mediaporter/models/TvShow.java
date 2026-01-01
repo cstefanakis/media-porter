@@ -1,5 +1,7 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.sda.mediaporter.models.metadata.Character;
@@ -60,6 +62,7 @@ public class TvShow {
 
     @ManyToOne
     @JoinColumn(name = "original_language_id")
+    @JsonManagedReference
     private Language originalLanguage;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -68,6 +71,7 @@ public class TvShow {
             joinColumns = @JoinColumn(name = "tvShow_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
+    @JsonManagedReference
     private List<Genre> genres;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -76,6 +80,7 @@ public class TvShow {
             joinColumns = @JoinColumn(name = "tvShow_id"),
             inverseJoinColumns = @JoinColumn(name = "country_id")
     )
+    @JsonManagedReference
     private List<Country> countries;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -84,11 +89,13 @@ public class TvShow {
             joinColumns = @JoinColumn(name = "tvShow_id"),
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
+    @JsonManagedReference
     private List<Language> languages;
 
     @OneToMany(mappedBy = "tvShow",
             cascade = CascadeType.PERSIST,
             orphanRemoval = true)
+    @JsonManagedReference
     private List<TvShowEpisode> tvShowEpisodes;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -97,6 +104,7 @@ public class TvShow {
             joinColumns = @JoinColumn(name = "tvShow_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
+    @JsonManagedReference
     private List<Contributor> directors;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -105,6 +113,7 @@ public class TvShow {
             joinColumns = @JoinColumn(name = "tvShow_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
+    @JsonManagedReference
     private List<Contributor> writers;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -113,8 +122,10 @@ public class TvShow {
             joinColumns = @JoinColumn(name = "tvShow_id"),
             inverseJoinColumns = @JoinColumn(name = "contributor_id")
     )
+    @JsonBackReference
     private List<Contributor> actors;
 
     @OneToMany(mappedBy = "tvShow", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Character> characters;
 }

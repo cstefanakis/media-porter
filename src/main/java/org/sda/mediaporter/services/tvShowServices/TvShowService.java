@@ -1,11 +1,10 @@
 package org.sda.mediaporter.services.tvShowServices;
 
-import org.sda.mediaporter.models.SourcePath;
-import org.sda.mediaporter.models.TvShow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.sda.mediaporter.models.TvShow;
 
-import java.nio.file.Path;
+
 import java.time.LocalDateTime;
 
 public interface TvShowService {
@@ -16,4 +15,6 @@ public interface TvShowService {
     void updateModificationDateTime(TvShow tvShow, LocalDateTime modificationDateTime);
 
     TvShow getTvShowById(Long id);
+
+    Page<TvShow> getTvShows(Pageable pageable);
 }

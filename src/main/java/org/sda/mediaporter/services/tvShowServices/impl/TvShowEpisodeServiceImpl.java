@@ -96,6 +96,12 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
         tvShowEpisodeRepository.save(tvShowEpisode);
     }
 
+    @Override
+    public TvShowEpisode getTvShowEpisodeByPathOrNull(String filePathWithoutTvShowSourcePath) {
+        Optional<TvShowEpisode> tvShowEpisodeOptional = tvShowEpisodeRepository.findTvShowEpisodeByPath(filePathWithoutTvShowSourcePath);
+        return tvShowEpisodeOptional.orElse(null);
+    }
+
     private void updateTvShowEpisodeModificationDateTime(TvShowEpisode tvShowEpisode, LocalDateTime modificationDateTime){
         tvShowEpisode.setModificationDateTime(modificationDateTime);
         tvShowEpisodeRepository.save(tvShowEpisode);

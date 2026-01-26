@@ -71,18 +71,15 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
         Integer episode = getEpisodeSeasonNumberFromVideoFile(filename, episodeRegexes());
         String tvShowTitle = getTvShowTitleFromVideoFilename(filename);
 
-        if (season == null && episode == null) {
-            throw new EntityNotFoundException("TvShow not found");
-        }
-        TvShow tvShow = tvShowService.getOrCreateTvShowByTitle(tvShowTitle);
-//        tvShow = tvShowService.updateTvShowModificationDateTime(tvShow, modificationDateTime);
-        TvShowEpisode tvShowEpisode = getOrCreateTvShowEpisode(tvShow, season, episode);
-        if(tvShowEpisode != null){
-            updateTvShowEpisodeModificationDateTime(tvShowEpisode, modificationDateTime);
-            return tvShowEpisodeRepository.save(tvShowEpisode);
-        }else{
-            throw new EntityNotFoundException("TvShow not found");
-        }
+        if (season != null && episode != null) {
+            TvShow tvShow = tvShowService.getOrCreateTvShowByTitle(tvShowTitle);
+            tvShow = tvShowService.updateTvShowModificationDateTime(tvShow, modificationDateTime);
+            TvShowEpisode tvShowEpisode = getOrCreateTvShowEpisode(tvShow, season, episode);
+            if(tvShowEpisode != null){
+                updateTvShowEpisodeModificationDateTime(tvShowEpisode, modificationDateTime);
+                return tvShowEpisodeRepository.save(tvShowEpisode);
+            }
+        } return null;
     }
 
     @Override
@@ -194,10 +191,13 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
     }
 
     private String getTvShowTitleFromVideoFilename(String filename){
-        Matcher macher = macher(filename, "S\\d{1,2}");
-        return macher.find()
-                ? filename.substring(0, macher.start()).trim().replaceAll("[._-]", " ").trim()
-                : null;
+        for(String regex : episodeRegexes()){
+            Matcher macher = macher(filename, regex);
+            if(macher.find()){
+                return filename.substring(0, macher.start()).trim().replaceAll("[._-]", " ").trim();
+            }
+        }
+        return null;
     }
 
     private Matcher macher(String filename, String regex){

@@ -57,6 +57,11 @@ public class CharacterServiceImpl  implements CharacterService {
                 .toList();
     }
 
+    @Override
+    public void deleteMovieCharactersIds(Movie movie) {
+        characterRepository.deleteMovieCharactersIds(movie);
+    }
+
     private Character createCharacter(Long theMovieDbId, String characterName, Movie movie, TvShow tvShow, TvShowEpisode tvShowEpisode) {
         Contributor contributor = contributorService.getContributorByTheMovieDbIdOrNull(theMovieDbId);
         if(contributor != null && characterName != null && !characterName.isBlank() ){

@@ -1,6 +1,9 @@
 package org.sda.mediaporter.services.impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.sda.mediaporter.dtos.AudioDto;
+import org.sda.mediaporter.dtos.VideoDto;
+import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.services.ConfigurationService;
 import org.sda.mediaporter.dtos.ConfigurationDto;
 import org.sda.mediaporter.models.Configuration;
@@ -16,10 +19,13 @@ import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.metadata.AudioChannelRepository;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
+import org.sda.mediaporter.services.fileServices.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -50,8 +56,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public Configuration getConfiguration() {
-        return  configurationRepository.findById(1L).orElseThrow(() -> new EntityNotFoundException("Configuration with id: 1 not exist"));
+    public Configuration getConfigurationById(Long configurationId) {
+        return configurationRepository.findById(configurationId).orElseThrow(() -> new EntityNotFoundException(String.format("Configuration with id: %s not exist", configurationId)));
     }
 
     @Override
@@ -85,34 +91,125 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    public void updateConfiguration(ConfigurationDto configurationDto) {
-        Configuration configuration = toEntity(configurationDto);
-        configurationRepository.save(configuration);
+    public void updateConfiguration(Long configurationId, ConfigurationDto configurationDto) {
+        Configuration configuration = getConfigurationById(configurationId);
+        configurationRepository.save(toEntity(configuration, configurationDto));
+    }
+
+    @Override
+    public boolean isFileSupportSourceResolution(String videoResolution, SourcePath sourcePath) {
+        return configurationRepository.isFileSupportSourceResolution(videoResolution, sourcePath);
+    }
+
+    @Override
+    public boolean isFileAudioCodecSupport(String audioCodec, SourcePath sourcePath) {
+        return configurationRepository.isFileAudioCodecSupport(audioCodec, sourcePath);
+    }
+
+    @Override
+    public boolean isFileSupportVideoCodec(String videoCodec, SourcePath sourcePath) {
+        return configurationRepository.isFileSupportVideoCodec(videoCodec, sourcePath);
+    }
+
+    @Override
+    public boolean isFileVideoBitrateInRange(Integer videoBitrate, SourcePath sourcePath) {
+        return configurationRepository.isFileVideoBitrateInRange(videoBitrate, sourcePath);
+    }
+
+    @Override
+    public boolean isFileAudioChannelsSupport(Integer audioChannel, SourcePath sourcePath) {
+        return configurationRepository.isFileAudioChannelsSupport(audioChannel, sourcePath);
+    }
+
+    @Override
+    public boolean isFileAudioLanguageSupport(String audioLanguage, SourcePath sourcePath) {
+        return configurationRepository.isFileAudioLanguageSupport(audioLanguage, sourcePath);
+    }
+
+    @Override
+    public boolean isFileAudioBitrateInRange(Integer audioBitrate, SourcePath sourcePath) {
+        return configurationRepository.isFileAudioBitrateInRange(audioBitrate, sourcePath);
+    }
+
+    @Override
+    public boolean isFileSupportGenres(List<Genre> genres, SourcePath sourcePath) {
+        for (Genre genre : genres){
+            boolean result = configurationRepository.isFileSupportGenres(genre, sourcePath);
+            if(!result){
+                return false;
+            }
+        }return true;
+    }
+
+    @Override
+    public boolean isFileSupportFileSize(double fileSize, SourcePath sourcePath) {
+        Configuration configuration = sourcePath.getConfiguration();
+        Double firstFileSizeLimit = configuration.getFirstVideoSizeRange();
+        Double secondFileSizeLimit = configuration.getSecondVideoSizeRange();
+        return (firstFileSizeLimit == null && secondFileSizeLimit == null)
+                || (firstFileSizeLimit == null && fileSize <= secondFileSizeLimit)
+                || (fileSize >= firstFileSizeLimit && secondFileSizeLimit == null)
+                || (fileSize >= firstFileSizeLimit && fileSize <= secondFileSizeLimit);
+    }
+
+    @Override
+    public boolean isFileModificationDateValid(LocalDateTime fileModificationDateTime, Integer validDatesBeforeNow) {
+        long datesBeforeNow = ChronoUnit.DAYS.between(
+                fileModificationDateTime,
+                LocalDateTime.now()
+        );
+        return validDatesBeforeNow == null || datesBeforeNow <= validDatesBeforeNow;
+
+    }
+
+    @Override
+    public boolean isFileForCopy(VideoDto videoDto, List<AudioDto> audiosDto, List<Genre> genres, SourcePath sourcePath, double fileSize, LocalDateTime fileModificationDateTime) {
+            boolean result = true;
+            Configuration configuration = sourcePath.getConfiguration();
+            Integer validDatesBeforeNow = configuration.getMaxDatesSaveFile();
+
+            for (AudioDto audioDto : audiosDto) {
+                boolean audioCodecSupport = isFileAudioCodecSupport(audioDto.getAudioCodec(), sourcePath);
+                boolean audioChannelsSupport = isFileAudioChannelsSupport(audioDto.getAudioChannel(), sourcePath);
+                boolean languageSupport = isFileAudioLanguageSupport(audioDto.getAudioLanguage(), sourcePath);
+                boolean audioBitrateSupport = isFileAudioBitrateInRange(audioDto.getAudioBitrate(), sourcePath);
+                if(!audioBitrateSupport || !audioCodecSupport || !audioChannelsSupport || !languageSupport){
+                    result = false;
+                }
+            }
+            boolean resolutionSupport = isFileSupportSourceResolution(videoDto.getVideoResolution(), sourcePath);
+            boolean videoCodec = isFileSupportVideoCodec(videoDto.getVideoCodec(), sourcePath);
+            boolean videoBitrate = isFileVideoBitrateInRange(videoDto.getVideoBitrate(), sourcePath);
+            boolean genre = isFileSupportGenres(genres, sourcePath);
+            boolean fileSizeSupport = isFileSupportFileSize(fileSize, sourcePath);
+            boolean validModificationDate = isFileModificationDateValid(fileModificationDateTime, validDatesBeforeNow);
+            if(!resolutionSupport || !videoCodec || !videoBitrate || !genre || !fileSizeSupport || !validModificationDate) {result = false;}
+            return result;
     }
 
 
-    private Configuration toEntity(ConfigurationDto configurationDto) {
-        Configuration config = getConfiguration();
+    private Configuration toEntity(Configuration configuration, ConfigurationDto configurationDto) {
         return Configuration.builder()
-                .id(config.getId())
+                .id(configuration.getId())
                 .maxDatesSaveFile(configurationDto.getMaxDatesSaveFile() == null
                         ? this.maxDaysToPast
                         : configurationDto.getMaxDatesSaveFile())
                 .maxDatesControlFilesFromExternalSource(configurationDto.getMaxDatesControlFilesFromExternalSource() == null
                         ? 0
                         : configurationDto.getMaxDatesControlFilesFromExternalSource())
-                .videoResolutions(validatedResolutions(configurationDto, config))
-                .firstVideoBitrateValueRange(validatedFirstVideoBitrateValueRange(configurationDto, config))
-                .secondVideoBitrateValueRange(validatedSecondVideoBitrateValueRange(configurationDto, config))
-                .videoCodecs(validatedCodecs(configurationDto.getVideoCodecIds(), MediaTypes.VIDEO, config.getVideoCodecs()))
-                .firstAudioBitrateValueRange(validatedFirstAudioBitrateValueRange(configurationDto, config))
-                .secondAudioBitrateValueRange(validatedSecondAudioBitrateValueRange(configurationDto, config))
-                .audioChannels(validatedAudioChannels(configurationDto, config))
-                .audioCodecs(validatedCodecs(configurationDto.getAudioCodecIds(), MediaTypes.AUDIO, config.getAudioCodecs()))
-                .genres(validatedGenres(configurationDto, config))
-                .audioLanguages(validatedLanguages(configurationDto, config))
-                .firstVideoSizeRange(validatedFirstVideoSizeRangeRange(configurationDto, config))
-                .secondVideoSizeRange(validatedSecondVideoSizeRangeRange(configurationDto, config))
+                .videoResolutions(validatedResolutions(configurationDto, configuration))
+                .firstVideoBitrateValueRange(validatedFirstVideoBitrateValueRange(configurationDto, configuration))
+                .secondVideoBitrateValueRange(validatedSecondVideoBitrateValueRange(configurationDto, configuration))
+                .videoCodecs(validatedCodecs(configurationDto.getVideoCodecIds(), MediaTypes.VIDEO, configuration.getVideoCodecs()))
+                .firstAudioBitrateValueRange(validatedFirstAudioBitrateValueRange(configurationDto, configuration))
+                .secondAudioBitrateValueRange(validatedSecondAudioBitrateValueRange(configurationDto, configuration))
+                .audioChannels(validatedAudioChannels(configurationDto, configuration))
+                .audioCodecs(validatedCodecs(configurationDto.getAudioCodecIds(), MediaTypes.AUDIO, configuration.getAudioCodecs()))
+                .genres(validatedGenres(configurationDto, configuration))
+                .audioLanguages(validatedLanguages(configurationDto, configuration))
+                .firstVideoSizeRange(validatedFirstVideoSizeRangeRange(configurationDto, configuration))
+                .secondVideoSizeRange(validatedSecondVideoSizeRangeRange(configurationDto, configuration))
+                .sourcePath(configuration.getSourcePath())
                 .build();
     }
 

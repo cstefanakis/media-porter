@@ -3,10 +3,7 @@ package org.sda.mediaporter.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.sda.mediaporter.models.metadata.Character;
 
 import java.time.LocalDate;
@@ -16,7 +13,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "tv_shows_episodes")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

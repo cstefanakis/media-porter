@@ -31,8 +31,8 @@ public class Subtitle {
     @JsonManagedReference
     private Codec codec;
 
-    @ManyToOne
-    @JoinColumn (name = "video_file_path_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn (name = "video_file_path_id", nullable = false)
     @JsonBackReference
     private VideoFilePath videoFilePath;
 }

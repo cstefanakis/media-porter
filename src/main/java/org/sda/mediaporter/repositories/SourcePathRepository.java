@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,4 +48,10 @@ public interface SourcePathRepository extends JpaRepository<SourcePath, Long>  {
             WHERE :filePath LIKE CONCAT(sp.path, '%')
             """)
     Optional<SourcePath> findSourcePathByPath(@Param("filePath") String filePath);
+
+    @Query("""
+            SELECT sp FROM SourcePath sp
+            WHERE sp.libraryItem = :libraryItems
+            """)
+    List<SourcePath> findSourcePathsByLibraryItem(@Param("libraryItems") LibraryItems libraryItems);
 }

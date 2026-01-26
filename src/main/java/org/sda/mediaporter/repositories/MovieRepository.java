@@ -111,4 +111,43 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
             WHERE m.theMovieDbId = :theMovieDbId
             """)
     Optional<Movie> findMovieByTheMovieDbId(@Param("theMovieDbId") Long theMovieDbId);
+
+    @Query("""
+           SELECT m.id FROM Movie m
+           WHERE m.lastModificationDateTime <= :date
+           """)
+    List<Long> findMoviesOlderThanXDays(@Param("date") LocalDateTime date);
+
+    @Query("""
+            SELECT SIZE(m.videoFilePaths)
+            FROM Movie m
+            WHERE m.id = :movieId
+            """)
+    int findMovieVideoFilePathsSizeByMovieId(@Param("movieId") Long movieId);
+
+    @Transactional
+    @Modifying
+    @Query("""
+        DELETE FROM Character c
+        WHERE c.movie.id IN (
+            SELECT m.id FROM Movie m
+            WHERE m.videoFilePaths IS EMPTY
+        )
+    """)
+    void deleteCharactersOfMoviesWithoutVideoFilePaths();
+
+    @Query("""
+            SELECT COUNT(m) > 0
+            FROM Movie m
+            WHERE m.theMovieDbId = :theMovieDbId
+            """)
+    boolean isMovieByTheMovieDbIdExist(@Param("theMovieDbId") Long theMovieDbId);
+
+    @Transactional
+    @Modifying
+    @Query("""
+            DELETE FROM Movie m
+            WHERE m.videoFilePaths IS EMPTY
+            """)
+    void deleteMovieWithoutVideoFilePathsByMovieId(Long movieId);
 }

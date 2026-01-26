@@ -1,5 +1,6 @@
 package org.sda.mediaporter.services.subtitleServices.impl;
 
+import jakarta.transaction.Transactional;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.services.CodecService;
 import org.sda.mediaporter.services.fileServices.impl.FileServiceImpl;
@@ -55,6 +56,12 @@ public class SubtitleServiceImpl implements SubtitleService {
             }
 
         }return subtitles;
+    }
+
+    @Override
+    @Transactional
+    public void deleteSubtitleById(Long subtitleId) {
+        subtitleRepository.deleteById(subtitleId);
     }
 
     private String[] subtitlesProperties(String subtitle){

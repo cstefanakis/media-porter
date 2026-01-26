@@ -2,6 +2,8 @@ package org.sda.mediaporter.services.tvShowServices.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.sda.mediaporter.models.enums.LibraryItems;
+import org.sda.mediaporter.services.fileServices.VideoFilePathService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.sda.mediaporter.api.TheMovieDbCreditsForTvShowById;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -33,9 +36,10 @@ public class TvShowServiceImpl implements TvShowService {
     private final ContributorService contributorService;
     private final LanguageService languageService;
     private final CharacterService characterService;
+    private final VideoFilePathService videoFilePathService;
 
     @Autowired
-    public TvShowServiceImpl(GenreService genreService, CountryService countryService, TvShowRepository tvShowRepository, FileService fileService, ContributorService contributorService, LanguageService languageService, CharacterService characterService) {
+    public TvShowServiceImpl(GenreService genreService, CountryService countryService, TvShowRepository tvShowRepository, FileService fileService, ContributorService contributorService, LanguageService languageService, CharacterService characterService, VideoFilePathService videoFilePathService) {
         this.genreService = genreService;
         this.countryService = countryService;
         this.tvShowRepository = tvShowRepository;
@@ -43,6 +47,7 @@ public class TvShowServiceImpl implements TvShowService {
         this.contributorService = contributorService;
         this.languageService = languageService;
         this.characterService = characterService;
+        this.videoFilePathService = videoFilePathService;
     }
 
     @Override
@@ -98,6 +103,43 @@ public class TvShowServiceImpl implements TvShowService {
         return tvShowRepository.findAll(pageable);
     }
 
+    @Override
+    public List<TvShowEpisode> getTvShowEpisodesOlderThanXDays(int days) {
+        return List.of();
+    }
+
+    @Override
+    public List<Long> getTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath(Integer days, SourcePath sourcePath) {
+        LocalDateTime localDateTimeBeforeDays = LocalDateTime.now().minusDays(days);
+        return tvShowRepository.findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath(localDateTimeBeforeDays, sourcePath);
+    }
+
+    @Override
+    public Long getTvShowIdByVideoFilePathId(Long videoFilePathId) {
+        return tvShowRepository.findTvShowIdByVideoFilePathId(videoFilePathId);
+    }
+
+    @Override
+    public void deleteTvShowWithoutTvShowEpisodes(Long tvShowId) {
+        tvShowRepository.deleteTvShowWithoutTvShowEpisodes(tvShowId);
+    }
+
+    @Override
+    public void deleteVideoFilePathsFromTvShowsWithUnveiledPath() {
+        List<Long> tvShowVideoFilePathsIss = videoFilePathService.getTvShowsVideoFilePathIdsByLibraryItems(LibraryItems.TV_SHOW);
+        for(Long videoFilePathId : tvShowVideoFilePathsIss){
+            Path fullFilePath = videoFilePathService.getFullPathFromVideoFilePathId(videoFilePathId);
+            if(!fileService.isFilePathExist(fullFilePath)){
+                videoFilePathService.deleteVideoFilePathById(videoFilePathId);
+            }
+        }
+    }
+
+    @Override
+    public void deleteTvShowsWithoutTvShowEpisodes() {
+        tvShowRepository.deleteTvShowsWithoutTvShowEpisodes();
+    }
+
     private TvShow toEntity(TheMovieDbTvShowDto theMovieDbTvShowDto,List<Contributor> writers, List<Contributor> actors, List<Contributor> directors, List<Genre> genres, Language originalLanguage, List<Country> countries, Long theMovieDbTvShowId){
         return TvShow.builder()
                 .title(theMovieDbTvShowDto.getTitle())
@@ -120,7 +162,8 @@ public class TvShowServiceImpl implements TvShowService {
                 .build();
     }
 
-    private TheMovieDbTvShowSearchDTO getTvShowAPISearchDTO(String searchTitle) {
+    @Override
+    public TheMovieDbTvShowSearchDTO getTvShowAPISearchDTO(String searchTitle) {
         String[] searchTitleWords = searchTitle.split(" ");
         int fileTitleWordsLength = searchTitleWords.length;
         for (int i = 0; i < fileTitleWordsLength; i++) {

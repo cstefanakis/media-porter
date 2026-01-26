@@ -48,7 +48,7 @@ public class TvShow {
     private String overview;
 
     @Column(name = "last_modification_date")
-    private LocalDateTime LastModificationDateTime;
+    private LocalDateTime lastModificationDateTime;
 
     @Column(name = "home_pages")
     private String homePage;

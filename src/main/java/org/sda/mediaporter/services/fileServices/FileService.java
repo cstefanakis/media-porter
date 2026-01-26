@@ -1,5 +1,6 @@
 package org.sda.mediaporter.services.fileServices;
 
+
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
@@ -20,5 +21,20 @@ public interface FileService {
 
     String getStringWithoutDiacritics(String searchTitle);
 
-    boolean isFilePathExist(String filePath);
+    boolean isFilePathExist(Path filePath);
+
+    void deleteAllFilesInDirectory(Path directory);
+
+    boolean isDirectoryEmpty(Path path);
+
+    List <Path> getAllEmptyDirectories(Path directory);
+
+    void deleteAllEmptyDirectories(Path directory);
+
+    void deleteAllDirectoriesWithoutVideFiles(Path rootDirectory);
+
+
+    List<Path> getVideoFilesUntil(Path directory, LocalDateTime maxDateCopyFiles);
+
+    double getFileSizeInMB(Path filePath);
 }

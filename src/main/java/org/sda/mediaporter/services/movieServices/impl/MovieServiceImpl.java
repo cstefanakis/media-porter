@@ -1,17 +1,20 @@
 package org.sda.mediaporter.services.movieServices.impl;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.sda.mediaporter.api.TheMovieDbCreditsForMovieById;
 import org.sda.mediaporter.api.TheMovieDbMovieById;
 import org.sda.mediaporter.api.TheMovieDbMovieSearch;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbMovieDto;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbMovieSearchDTO;
+import org.sda.mediaporter.models.enums.LibraryItems;
 import org.sda.mediaporter.models.metadata.Character;
 import org.sda.mediaporter.services.*;
 import org.sda.mediaporter.dtos.MovieFilterDto;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.repositories.MovieRepository;
 import org.sda.mediaporter.services.fileServices.FileService;
+import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.sda.mediaporter.services.fileServices.VideoFilePathService;
 import org.sda.mediaporter.services.movieServices.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +41,11 @@ public class MovieServiceImpl implements MovieService {
     private final CountryService countryService;
     private final ContributorService contributorService;
     private final CharacterService characterService;
+    private final SourcePathService sourcePathService;
+
 
     @Autowired
-    public MovieServiceImpl(GenreService genreService, VideoFilePathService videoFilePathService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, CountryService countryService, ContributorService contributorService, CharacterService characterService) {
+    public MovieServiceImpl(GenreService genreService, VideoFilePathService videoFilePathService, LanguageService languageService, MovieRepository movieRepository, FileService fileService, CountryService countryService, ContributorService contributorService, CharacterService characterService, SourcePathService sourcePathService) {
         this.genreService = genreService;
         this.videoFilePathService = videoFilePathService;
         this.languageService = languageService;
@@ -49,6 +54,8 @@ public class MovieServiceImpl implements MovieService {
         this.countryService = countryService;
         this.contributorService = contributorService;
         this.characterService = characterService;
+        this.sourcePathService = sourcePathService;
+
     }
 
     @Override
@@ -64,7 +71,7 @@ public class MovieServiceImpl implements MovieService {
     private void deleteMovieFromDbWithoutFile(){
         List<VideoFilePath> videoFilePaths = videoFilePathService.getAllVideoFilePaths();
         for(VideoFilePath videoFilePath : videoFilePaths){
-            String filePath = videoFilePath.getFilePath();
+            Path filePath = Path.of(videoFilePath.getFilePath());
             Movie movie = getMovieById(videoFilePath.getMovie().getId());
             if(!fileService.isFilePathExist(filePath)){
                 videoFilePathService.deleteVideoFilePath(videoFilePath, movie, null);
@@ -97,6 +104,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Transactional
     public void deleteMovieById(Long id) {
         Movie movie = getMovieById(id);
         movie.getVideoFilePaths()
@@ -117,7 +125,11 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Movie getOrCreateMovieFromPathFile(Path moviePath) {
         String movieFileName = moviePath.getFileName().toString();
-        return getOrCreateMovieFromApi(movieFileName);
+        Movie movie = getOrCreateMovieFromApi(movieFileName);
+        if(movie != null) {
+            updateModificationDateTime(movie, moviePath);
+        }
+        return movie;
     }
 
     @Override
@@ -163,13 +175,43 @@ public class MovieServiceImpl implements MovieService {
         movieRepository.save(movie);
     }
 
+    @Override
+    public List<Long> getMoviesIdsOlderThanXDays(int days) {
+        LocalDateTime date = LocalDateTime.now().minusDays(days);
+        return movieRepository.findMoviesOlderThanXDays(date);
+    }
+
+    @Override
+    public void deleteMoviesWithoutVideoFilePaths() {
+        movieRepository.deleteCharactersOfMoviesWithoutVideoFilePaths();
+        movieRepository.deleteMoviesWithoutVideoFilePaths();
+    }
+
+    @Override
+    public void deleteVideoFilePathFromMovieWithUnveiledPath() {
+        List<Long> tvShowVideoFilePathsIss = videoFilePathService.getTvShowsVideoFilePathIdsByLibraryItems(LibraryItems.MOVIE);
+        for(Long videoFilePathId : tvShowVideoFilePathsIss){
+            Path fullFilePath = videoFilePathService.getFullPathFromVideoFilePathId(videoFilePathId);
+            if(!fileService.isFilePathExist(fullFilePath)){
+                videoFilePathService.deleteVideoFilePathById(videoFilePathId);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteMovieVideoFilePath(VideoFilePath videoFilePath) {
+        Path fullPath  = videoFilePathService.getFullPathFromVideoFilePath(videoFilePath);
+        Long videoFilePathId = videoFilePath.getId();
+        if(!fileService.isFilePathExist(fullPath)){
+            videoFilePathService.deleteVideoFilePathAndFileByVideoFilePathId(videoFilePathId);
+        }
+    }
+
+
     //try to find movie in api
     private Movie getMovieFromApi(String fileTitle) {
-
-        String filteredFileTitle = fileService.getSafeFileName(fileTitle); //remove all chars for creating a path
-        Integer yearOfFileTitle = findLastYearFromTitle(filteredFileTitle);
-
-        TheMovieDbMovieSearchDTO movieAPISearchDTO = getMovieAPISearchDTO(filteredFileTitle, yearOfFileTitle);
+        TheMovieDbMovieSearchDTO movieAPISearchDTO = getMovieAPISearchDTO(fileTitle);
         if(movieAPISearchDTO != null){
             Long theMovieDbMovieId = movieAPISearchDTO.getTheMovieDbId();
             TheMovieDbMovieById theMovieDbMovieById = new TheMovieDbMovieById(theMovieDbMovieId);
@@ -188,13 +230,7 @@ public class MovieServiceImpl implements MovieService {
 
 
     private Movie getOrCreateMovieFromApi(String fileTitle) {
-        String filteredFileTitle = fileTitle.replace(fileService.getFileExtensionWithDot(fileTitle), "");
-        filteredFileTitle = fileService.getSafeFileName(filteredFileTitle); //remove all chars for creating a path
-        Integer yearOfFileTitle = findLastYearFromTitle(filteredFileTitle);
-        filteredFileTitle = getTitleBeforeLastYearInTitle(filteredFileTitle, yearOfFileTitle);
-
-
-        TheMovieDbMovieSearchDTO movieAPISearchDTO = getMovieAPISearchDTO(filteredFileTitle, yearOfFileTitle);
+        TheMovieDbMovieSearchDTO movieAPISearchDTO = getMovieAPISearchDTO(fileTitle);
         if(movieAPISearchDTO != null){
             Long theMovieDbMovieId = movieAPISearchDTO.getTheMovieDbId();
             Optional<Movie> movieOptional = movieRepository.findMovieByTheMovieDbId(theMovieDbMovieId);
@@ -245,15 +281,21 @@ public class MovieServiceImpl implements MovieService {
                 .build();
     }
 
-    private TheMovieDbMovieSearchDTO getMovieAPISearchDTO(String searchTitle, Integer year){
+    @Override
+    public TheMovieDbMovieSearchDTO getMovieAPISearchDTO(String fileTitle){
 
-        String[] searchTitleWords = searchTitle.split(" ");
+        String filteredFileTitle = fileTitle.replace(fileService.getFileExtensionWithDot(fileTitle), "");
+        filteredFileTitle = fileService.getSafeFileName(filteredFileTitle); //remove all chars for creating a path
+        Integer yearOfFileTitle = findLastYearFromTitle(filteredFileTitle);
+        filteredFileTitle = getTitleBeforeLastYearInTitle(filteredFileTitle, yearOfFileTitle);
+
+        String[] searchTitleWords = filteredFileTitle.split(" ");
         int fileTitleWordsLength = searchTitleWords.length;
         for (int i = 0 ; i < fileTitleWordsLength; i++) {
             String[] fileTitleWordsWithoutLastWord = Arrays.copyOf(searchTitleWords, fileTitleWordsLength-i);
             String newSearchTitle = String.join(" ", fileTitleWordsWithoutLastWord).replaceAll(" ", "+");
 
-            TheMovieDbMovieSearch theMovieDbMovieSearch = new TheMovieDbMovieSearch(newSearchTitle, year);
+            TheMovieDbMovieSearch theMovieDbMovieSearch = new TheMovieDbMovieSearch(newSearchTitle, yearOfFileTitle);
             List<TheMovieDbMovieSearchDTO> movieAPISearchDTOs = theMovieDbMovieSearch.getMoviesSearchFromApi();
 
             int movieSearchSize = movieAPISearchDTOs.size();
@@ -268,6 +310,21 @@ public class MovieServiceImpl implements MovieService {
                 }
             }
         }return null;
+    }
+
+    @Override
+    public void deleteCharactersWithoutVideoFilePaths(Movie movie) {
+        characterService.deleteMovieCharactersIds(movie);
+    }
+
+    @Override
+    public boolean isMovieByTheMovieDbIdExist(Long theMovieDbId) {
+        return movieRepository.isMovieByTheMovieDbIdExist(theMovieDbId);
+    }
+
+    @Override
+    public void deleteMovieWithoutVideoFilePathsByMovieId(Long movieId) {
+        movieRepository.deleteMovieWithoutVideoFilePathsByMovieId(movieId);
     }
 
     private TheMovieDbMovieSearchDTO filteredMovieDto(String searchTitle, List<TheMovieDbMovieSearchDTO> listOfMovies){

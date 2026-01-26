@@ -3,18 +3,19 @@ package org.sda.mediaporter.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +27,11 @@ public class VideoFilePath {
     private Long id;
 
     @Column(name = "file_path")
+    @NotEmpty
     private String filePath;
+
+    @Column(name = "modification_date_time")
+    private LocalDateTime modificationDateTime;
 
     @OneToOne
     @JoinColumn(name = "video_id")
@@ -49,6 +54,7 @@ public class VideoFilePath {
     @ManyToOne
     @JoinColumn(name = "source_path")
     @JsonManagedReference
+    @NotNull
     private SourcePath sourcePath;
 
     @ManyToOne(fetch = FetchType.LAZY)

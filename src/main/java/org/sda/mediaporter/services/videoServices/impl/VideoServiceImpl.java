@@ -1,6 +1,7 @@
 package org.sda.mediaporter.services.videoServices.impl;
 
 import jakarta.transaction.Transactional;
+import org.sda.mediaporter.dtos.VideoDto;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.services.CodecService;
 import org.sda.mediaporter.services.fileServices.impl.FileServiceImpl;
@@ -48,20 +49,17 @@ public class VideoServiceImpl implements VideoService {
         return null;
     }
 
-    @Override
-    public String getCodecFromFilePathViFFMpeg(Path filePath) {
-        return validatedProperties(filePath, 0);
+    private String getCodecFromFilePathViFFMpeg(String [] videoProperties) {
+        return validatedProperties(videoProperties, 0);
     }
 
-    @Override
-    public String getResolutionFromFilePathViFFMpeg(Path filePath) {
-         Integer height = parseValidatedPropertiesToInteger(filePath, 1);
+    private String getResolutionFromFilePathViFFMpeg(String [] videoProperties) {
+         Integer height = parseValidatedPropertiesToInteger(videoProperties, 1);
          return generatedResolutionByHeight(height);
     }
 
-    @Override
-    public Integer getBitrateFromFilePathViFFMpeg(Path filePath) {
-        Integer bitrate =  parseValidatedPropertiesToInteger(filePath, 2);
+    private Integer getBitrateFromFilePathViFFMpeg(String [] videoProperties) {
+        Integer bitrate =  parseValidatedPropertiesToInteger(videoProperties, 2);
         return bitrate != null?
                 bitrate / 1000
                 :null;
@@ -69,7 +67,7 @@ public class VideoServiceImpl implements VideoService {
 
     private String[] videoProperties(Path filePath){
         String videoInfo = videoInfo(filePath);
-
+        System.out.println(videoInfo);
         if(videoInfo.isEmpty()) {
             return null;
         }
@@ -87,8 +85,7 @@ public class VideoServiceImpl implements VideoService {
         return videoProperties;
     }
 
-    private String validatedProperties(Path filePath, int length){
-        String [] videoProperties = videoProperties(filePath);
+    private String validatedProperties(String [] videoProperties, int length){
         if(videoProperties == null || videoProperties[length] == null){
             return null;
         }
@@ -102,8 +99,8 @@ public class VideoServiceImpl implements VideoService {
 
     }
 
-    private Integer parseValidatedPropertiesToInteger(Path filePath, int length){
-        String property = validatedProperties(filePath, length);
+    private Integer parseValidatedPropertiesToInteger(String [] videoProperties, int length){
+        String property = validatedProperties(videoProperties, length);
         return property == null
                 ? null
                 : Integer.parseInt(property);
@@ -111,22 +108,44 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public Video getVideoFromPath(Path filePath, VideoFilePath videoFilePath) {
-        String propertyCodec = getCodecFromFilePathViFFMpeg(filePath);
-        String propertyResolution = getResolutionFromFilePathViFFMpeg(filePath);
-        Integer propertyBitrateKbps = getBitrateFromFilePathViFFMpeg(filePath);
 
-        Codec codec = codecService.getOrCreateCodecByCodecNameAndMediaType(propertyCodec, MediaTypes.VIDEO);
-        Resolution resolution = resolutionService.getResolutionByName(propertyResolution);
+        VideoDto videoDto = getVideoDetails(filePath);
 
-        return propertyCodec == null
-                && propertyResolution == null
-                && propertyBitrateKbps == null
+        String videoCodec = videoDto.getVideoCodec();
+        String videoResolution = videoDto.getVideoResolution();
+        Integer videoBitrate = videoDto.getVideoBitrate();
+
+        Codec codec = codecService.getOrCreateCodecByCodecNameAndMediaType(videoCodec, MediaTypes.VIDEO);
+        Resolution resolution = resolutionService.getResolutionByName(videoResolution);
+
+        return videoCodec == null
+                && videoResolution == null
+                && videoBitrate == null
                 ? null
                 : Video.builder()
                     .codec(codec)
                     .resolution(resolution)
-                    .bitrate(propertyBitrateKbps)
+                    .bitrate(videoBitrate)
                     .videoFilePath(videoFilePath)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteVideoById(Long videoId) {
+        videoRepository.deleteById(videoId);
+    }
+
+    @Override
+    public VideoDto getVideoDetails(Path file) {
+        String [] videoProperties = videoProperties(file);
+        String videoCodec = getCodecFromFilePathViFFMpeg(videoProperties);
+        String videoResolution = getResolutionFromFilePathViFFMpeg(videoProperties);
+        Integer videoBitrate = getBitrateFromFilePathViFFMpeg(videoProperties);
+        return VideoDto.builder()
+                .videoBitrate(videoBitrate)
+                .videoCodec(videoCodec)
+                .videoResolution(videoResolution)
                 .build();
     }
 

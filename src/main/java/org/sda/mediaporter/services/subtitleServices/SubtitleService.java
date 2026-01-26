@@ -9,4 +9,6 @@ import java.util.List;
 public interface SubtitleService {
     void createSubtitleListFromFile(Path filePath, VideoFilePath videoFilePath);
     List<Subtitle> getSubtitleListFromFile(Path filePath, VideoFilePath videoFilePath);
+
+    void deleteSubtitleById(Long subtitleId);
 }

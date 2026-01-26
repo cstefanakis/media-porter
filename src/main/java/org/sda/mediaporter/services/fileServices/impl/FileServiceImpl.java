@@ -4,11 +4,13 @@ import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.enums.*;
 import org.sda.mediaporter.repositories.SourcePathRepository;
 import org.sda.mediaporter.services.fileServices.FileService;
+import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -77,7 +79,9 @@ public class FileServiceImpl implements FileService {
     @Override
     public void deleteFile(Path path) {
         try {
-            delete(path);
+            if(Files.exists(path)){
+                delete(path);
+            }
         }catch (IOException e){
             throw new RuntimeException(String.format("Failed to delete %s", path));
         }
@@ -140,25 +144,89 @@ public class FileServiceImpl implements FileService {
         String rootPath  = getRootPathOfPath(filePath).toString();
 
         while (!filePath.toString().equals(rootPath)){
-            try {
-                if(Files.exists(filePath) && Files.isDirectory(filePath) && isDirectoryEmpty(filePath)
-                    || Files.exists(filePath) && Files.isDirectory(filePath)){
-                    try {
-                        Files.delete(filePath);
-                    } catch (IOException e) {
-                        break;
-                    }
+            if(Files.exists(filePath) && Files.isDirectory(filePath) && isDirectoryEmpty(filePath)
+                || Files.exists(filePath) && Files.isDirectory(filePath)){
+                try {
+                    Files.delete(filePath);
+                } catch (IOException e) {
+                    break;
                 }
-            } catch (IOException e) {
-                break;
             }
             filePath = filePath.getParent();
         }
     }
 
-    private boolean isDirectoryEmpty(Path path) throws IOException {
+    @Override
+    public boolean isDirectoryEmpty(Path path) {
         try (var entries = Files.list(path)) {
             return entries.findAny().isEmpty();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Path> getAllEmptyDirectories(Path directory) {
+        try {
+            return Files.walk(directory)
+                    .filter(Files::isDirectory)
+                    .filter(this::isDirectoryEmpty)
+                    .filter(p -> p != directory)
+                    .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteAllEmptyDirectories(Path directory) {
+        List<Path> emptyDirectories = getAllEmptyDirectories(directory);
+        emptyDirectories.forEach(p -> {
+            try {
+                Files.delete(p);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Override
+    public void deleteAllDirectoriesWithoutVideFiles(Path rootDirectory) {
+        List<Path> directories = new ArrayList<>();
+        try {
+            directories = Files.walk(rootDirectory)
+                    .filter(Files::isDirectory)
+                    .filter(p -> p != rootDirectory)
+                    .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        directories.forEach(p -> {
+            if(getVideoFiles(p).isEmpty()){
+                deleteAllFilesInDirectory(p);
+                try {
+                    Files.delete(p);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
+    @Override
+    public List<Path> getVideoFilesUntil(Path directory, LocalDateTime localDateTime) {
+        return getVideoFiles(directory).stream()
+                .filter(f -> !getModificationLocalDateTimeOfPath(f).isBefore(localDateTime))
+                .toList();
+    }
+
+    @Override
+    public double getFileSizeInMB(Path filePath) {
+        try {
+            double bytes = Files.size(filePath);
+            return bytes / (1024.0 * 1024.0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -186,9 +254,21 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public boolean isFilePathExist(String filePathString) {
-        Path filePath = Path.of(filePathString);
+    public boolean isFilePathExist(Path filePath) {
         return Files.exists(filePath);
+    }
+
+    @Override
+    public void deleteAllFilesInDirectory(Path directory) {
+        try {
+            List<Path> files = Files.walk(directory)
+                    .filter(Files::isRegularFile).toList();
+            for (Path file : files) {
+                Files.delete(file);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

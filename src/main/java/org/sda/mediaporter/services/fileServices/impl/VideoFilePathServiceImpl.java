@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.sda.mediaporter.models.*;
+import org.sda.mediaporter.models.enums.LibraryItems;
 import org.sda.mediaporter.models.metadata.*;
 import org.sda.mediaporter.repositories.VideoFilePathRepository;
 import org.sda.mediaporter.services.audioServices.AudioService;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -93,7 +95,7 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
         Optional<VideoFilePath> videoFilePathOptional = videoFilePathRepository.findVideoFilePathByPathAndSourcePath(filePathWithoutSourcePath, sourcePath);
 
         if(videoFilePathOptional.isPresent() && !isVideoFilePathWithPathExist(newFilePathString)) {
-            System.out.println("strat delete video file path");
+            System.out.println("start delete video file path");
             deleteVideoFilePath(videoFilePathOptional.get(), movie, tvShowEpisode);
 
         }
@@ -114,7 +116,7 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
         removeVideoFilePAthFromTvShowEpisode(videoFilePath, tvShowEpisode);
         System.out.println("removedFromTvShowEpisode");
         videoFilePathRepository.delete(videoFilePath);
-        System.out.println("delele");
+        System.out.println("delete");
     }
 
     private void removeVideoFilePAthFromTvShowEpisode(VideoFilePath videoFilePath, TvShowEpisode tvShowEpisode){
@@ -180,6 +182,92 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
         return filePathToString.replace(sourcePathPathToString, "");
     }
 
+    @Override
+    public List<Long> getMoviesVideoFilesPathsOlderThanXDays(Integer days, SourcePath sourcePath) {
+        LocalDateTime dateTimeDaysBeforeFromNow = LocalDateTime.now().minusDays(days);
+        return videoFilePathRepository.findMoviesVideoFilePathsOlderThan(dateTimeDaysBeforeFromNow, sourcePath);
+    }
+
+    @Override
+    public Long getMovieIdByVideoFilePathId(Long videoFilePathId) {
+        return videoFilePathRepository.findMovieIdByVideoFilePathId(videoFilePathId);
+    }
+
+    @Override
+    public void deleteVideoFilePathAndFileByVideoFilePathId(Long videoFilePathId) {
+        Optional<VideoFilePath> videoFilePathOptional = videoFilePathRepository.findById(videoFilePathId);
+        if(videoFilePathOptional.isPresent()){
+            VideoFilePath videoFilePath = videoFilePathOptional.get();
+                Path filePath = getFullPathFromVideoFilePath(videoFilePath);
+                if(fileService.isFilePathExist(filePath)){
+                    fileService.deleteFile(filePath);
+                    deleteAllFilesIfNotExistVideoFile(filePath);
+                    fileService.deleteSubDirectories(filePath);
+                }
+            deleteAllDataFromVideoFilePath(videoFilePath);
+            videoFilePathRepository.deleteById(videoFilePathId);
+        }
+    }
+
+    public void deleteAllDataFromVideoFilePath(VideoFilePath videoFilePath){
+        deleteVideo(videoFilePath);
+        videoFilePathRepository.deleteAudiosFromVideoFilePath(videoFilePath);
+        videoFilePathRepository.deleteSubtitlesFromVideoFilePath(videoFilePath);
+    }
+
+    @Override
+    public Path getFullPathFromVideoFilePathId(Long videoFilePathId) {
+        String stringFullPath = videoFilePathRepository.findStringFullPathFromVideoFilePathId(videoFilePathId);
+        return Path.of(stringFullPath).normalize();
+    }
+
+    @Override
+    public List<Long> getTvShowsVideoFilePathIdsByLibraryItems(LibraryItems libraryItems) {
+        return videoFilePathRepository.findTvShowsVideoFilePathIdsByLibraryItems(libraryItems);
+    }
+
+    @Override
+    public void deleteVideoFilePathById(Long videoFilePathId) {
+        Optional <VideoFilePath> videoFilePathOptional = videoFilePathRepository.findById(videoFilePathId);
+        videoFilePathOptional.ifPresent(this::deleteAllDataFromVideoFilePath);
+        videoFilePathRepository.deleteById(videoFilePathId);
+    }
+
+    private void deleteAllFilesIfNotExistVideoFile(Path fullPath){
+        Path directory = fullPath.getParent();
+        List<Path> videoFiles = fileService.getVideoFiles(directory);
+        if(videoFiles.isEmpty()){
+            fileService.deleteAllFilesInDirectory(directory);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteVideoFilePathsWithNullFilePath() {
+        videoFilePathRepository.deleteVideoFilePathsWithNullFilePath();
+    }
+
+    @Override
+    public List<VideoFilePath> getMovieVideoFilePathsBySourcePathId(long sourcePathId) {
+        return videoFilePathRepository.findMovieVideoFilePathsBySourcePathId(sourcePathId);
+    }
+
+    @Override
+    public void setVideoFilePathMovieNull(VideoFilePath videoFilePath) {
+        videoFilePath.setMovie(null);
+        videoFilePathRepository.save(videoFilePath);
+    }
+
+    private void deleteVideo(VideoFilePath videoFilePath) {
+        if(videoFilePath.getVideo() != null) {
+            Long videoId = videoFilePath.getVideo().getId();
+            videoFilePath.setVideo(null);
+            videoFilePathRepository.save(videoFilePath);
+            videoService.deleteVideoById(videoId);
+        }
+    }
+
+
     private String verifiedAudioString(Audio audio){
         String language = verifiedLanguage(audio);
         String channels = verifiedAudioChannel(audio);
@@ -219,9 +307,11 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
     }
 
     private VideoFilePath toEntity(Path filePath, SourcePath sourcePath){
+        LocalDateTime fileModificationDateTime = fileService.getModificationLocalDateTimeOfPath(filePath);
         return VideoFilePath.builder()
                 .filePath(getPathWithoutSourcePath(filePath, sourcePath))
                 .sourcePath(sourcePath)
+                .modificationDateTime(fileModificationDateTime)
                 .build();
     }
 

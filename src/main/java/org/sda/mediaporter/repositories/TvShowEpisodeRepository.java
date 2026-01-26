@@ -1,7 +1,9 @@
 package org.sda.mediaporter.repositories;
 
+import jakarta.transaction.Transactional;
 import org.sda.mediaporter.models.TvShowEpisode;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,4 +24,36 @@ public interface TvShowEpisodeRepository extends JpaRepository<TvShowEpisode, Lo
             WHERE vfp.filePath = :filePath
             """)
     Optional<TvShowEpisode> findTvShowEpisodeByPath(@Param("filePath") String filePath);
+
+    @Query("""
+            SELECT tse.id
+            FROM TvShowEpisode tse
+            JOIN tse.videoFilePaths vfp
+            WHERE vfp.id = :videoFilePathId
+            """)
+    Long findTvShowEpisodeIdByVideoFilePathId(@Param("videoFilePathId") Long videoFilePathId);
+
+    @Transactional
+    @Modifying
+    @Query("""
+            DELETE FROM TvShowEpisode tse
+            WHERE tse.id = :tvShowEpisodeId
+            AND tse.videoFilePaths IS EMPTY
+            """)
+    void deleteTvShowEpisodeWithoutVideoFilePaths(@Param("tvShowEpisodeId") Long tvShowEpisodeId);
+
+    @Transactional
+    @Modifying
+    @Query("""
+            DELETE FROM TvShowEpisode tse
+            WHERE tse.videoFilePaths IS EMPTY
+            """)
+    void deleteTvShowEpisodesWithoutVideoFilePaths();
+
+    @Query("""
+            SELECT COUNT(tse) > 0
+            FROM TvShowEpisode tse
+            WHERE tse.theMovieDbId = :tvShowEpisodeTheMovieDbId
+            """)
+    boolean isExistTvShowEpisodeWithTheMovieDbId(@Param("tvShowEpisodeTheMovieDbId") Long tvShowEpisodeTheMovieDbId);
 }

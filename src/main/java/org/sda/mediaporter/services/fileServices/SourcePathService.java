@@ -19,5 +19,11 @@ public interface SourcePathService {
     SourcePath updateSourcePath(Long id, SourcePathDto sourcePathDto);
 
     SourcePath getSourcePathFromPath(Path filePath);
+
+    List<SourcePath> getSourcePathsByLibraryItem(LibraryItems libraryItems);
+
+    Path replaceRootOfFilePathWithOtherRoot(Path filePath, Path filePathRoot, Path newPathRoot);
+
+    List<SourcePath> getSourcePathsByPathType(SourcePath.PathType pathType);
 }
 

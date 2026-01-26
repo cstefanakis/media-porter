@@ -1,6 +1,7 @@
 package org.sda.mediaporter.services.movieServices;
 
 import org.sda.mediaporter.dtos.MovieFilterDto;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbMovieSearchDTO;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.VideoFilePath;
@@ -27,4 +28,20 @@ public interface MovieService {
     Page<Movie> filterByAudioLanguage(Pageable page, List<Long> aLanguageIds);
 
     void updateModificationDateTime(Movie movie, Path filePath);
+
+    List<Long> getMoviesIdsOlderThanXDays(int days);
+
+    void deleteMoviesWithoutVideoFilePaths();
+
+    void deleteVideoFilePathFromMovieWithUnveiledPath();
+
+    void deleteMovieVideoFilePath(VideoFilePath videoFilePath);
+
+    TheMovieDbMovieSearchDTO getMovieAPISearchDTO(String fileTitle);
+
+    void deleteCharactersWithoutVideoFilePaths(Movie movie);
+
+    boolean isMovieByTheMovieDbIdExist(Long movieTheMovieDbId);
+
+    void deleteMovieWithoutVideoFilePathsByMovieId(Long movieId);
 }

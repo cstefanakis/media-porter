@@ -15,4 +15,6 @@ public interface CharacterService {
     List<Character> createCharactersForTvShow(List<TheMovieDbCastDto> actors, TvShow tvShow);
 
     List<Character> createCharactersForTvShowEpisode(List<TheMovieDbCastDto> actors, TvShowEpisode tvShowEpisode);
+
+    void deleteMovieCharactersIds(Movie movie);
 }

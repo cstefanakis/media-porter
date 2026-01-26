@@ -2,6 +2,7 @@ package org.sda.mediaporter.services.audioServices.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.sda.mediaporter.dtos.AudioDto;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.services.audioServices.AudioChannelService;
@@ -60,25 +61,56 @@ public class AudioServiceImpl implements AudioService {
         return audios;
     }
 
-    private Audio generatedAudiosFromFFMpeg(String ffMpegProperties){
+    @Override
+    @Transactional
+    public void deleteAudioById(Long audioId) {
+        audioRepository.deleteById(audioId);
+    }
+
+    @Override
+    public List<AudioDto> getAudiosDetails(Path file) {
+        String[] audiosLines = audioInfo(file).split("\\R");
+        List<AudioDto> audios = new ArrayList<>();
+        for (String ffMpegProperties : audiosLines) {
+            AudioDto audioDto = getAudioDto(ffMpegProperties);
+            audios.add(audioDto);
+        }
+        return audios;
+    }
+
+    private AudioDto getAudioDto(String ffMpegProperties){
         String[] properties = ffMpegProperties.split(",", -1);
 
         String codecName = getValidatedStringProperty(properties[0]);
-        Integer audioChannels = getValidatedIntegerProperty(properties[1]);
-        Integer audioBitrate = getValidatedIntegerProperty(properties[2]);
-        String languageCode = getValidatedStringProperty(properties[3]);
+        Integer audioChannels = properties.length > 1 ? getValidatedIntegerProperty(properties[1]) : null;
+        Integer audioBitrate = properties.length > 2 ? getValidatedIntegerProperty(properties[2]) : null;
+        String languageCode = properties.length > 3 ? getValidatedStringProperty(properties[3]) : null;
 
+        return AudioDto.builder()
+                .audioCodec(codecName)
+                .audioChannel(audioChannels)
+                .audioBitrate(audioBitrate)
+                .audioLanguage(languageCode)
+                .build();
+    }
+
+    private Audio generatedAudiosFromFFMpeg(String ffMpegProperties){
+        AudioDto audioDto = getAudioDto(ffMpegProperties);
+        Integer audioChannel = audioDto.getAudioChannel();
+        String audioCodec = audioDto.getAudioCodec();
+        Integer audioBitrate = audioDto.getAudioBitrate();
+        String audioLanguage = audioDto.getAudioLanguage();
         return Audio.builder()
-                .audioChannel(audioChannels == null
+                .audioChannel(audioChannel == null
                         ? null
-                        : audioChannelService.getAudioChannelByChannelsOrNull(audioChannels))
-                .codec(codecName == null
+                        : audioChannelService.getAudioChannelByChannelsOrNull(audioChannel))
+                .codec(audioCodec == null
                         ? null
-                        : codecService.getOrCreateCodecByCodecNameAndMediaType(codecName, MediaTypes.AUDIO))
+                        : codecService.getOrCreateCodecByCodecNameAndMediaType(audioCodec, MediaTypes.AUDIO))
                 .bitrate(audioBitrate)
-                .language(languageCode == null
+                .language(audioLanguage == null
                         ? null
-                        : getLanguageByCodeTitleOrNull(languageCode))
+                        : getLanguageByCodeTitleOrNull(audioLanguage))
                 .build();
     }
 

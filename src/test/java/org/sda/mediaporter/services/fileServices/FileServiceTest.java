@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -17,7 +22,17 @@ class FileServiceTest {
     }
 
     @Test
-    void copyFile() {
+    void copyFile() throws IOException {
+        //Arrest
+        Path file = Path.of("src/test/resources/files/notitled (720p_24fps_H264-128kbit_AAC).mp4");
+        Path newFilePath = Path.of("src/test/resources/movies/notitled (720p_24fps_H264-128kbit_AAC).mp4");
+        //Act
+        fileService.copyFile(file, newFilePath);
+        //Assert
+        assertTrue(Files.exists(newFilePath));
+        assertTrue(Files.exists(file));
+        //After
+        Files.delete(newFilePath);
     }
 
     @Test
@@ -66,5 +81,38 @@ class FileServiceTest {
         String result = fileService.getStringWithoutDiacritics(text);
         //Assert
         assertEquals("Tri orisky pro Popelku", result);
+    }
+
+    @Test
+    void deleteAllFilesInDirectory() {
+        //Arrest
+        Path path = Path.of("C:\\Users\\chris\\Downloads\\Movies\\Warfare (2025)");
+        //Act
+        fileService.deleteAllFilesInDirectory(path);
+        boolean result = fileService.isDirectoryEmpty(path);
+        //Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void deleteAllEmptyDirectories() {
+        //Arrest
+        Path rootDirectory = Path.of("C:\\Users\\chris\\Downloads\\Movies");
+        //Act
+        fileService.deleteAllEmptyDirectories(rootDirectory);
+        boolean result = fileService.isDirectoryEmpty(rootDirectory);
+        //Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void getFileSizeInMB() {
+        //Arrest
+        Path filePath = Path.of("src\\test\\resources\\files\\notitled (720p_24fps_H264-128kbit_AAC).mp4");
+        //Act
+        double result = fileService.getFileSizeInMB(filePath);
+        //Assert
+        assertTrue(result > 0);
+        assertEquals(22.618480682373047, result);
     }
 }

@@ -1,6 +1,7 @@
 package org.sda.mediaporter.dataLoader;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
 import org.sda.mediaporter.models.enums.MediaTypes;
@@ -16,6 +17,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import javax.xml.transform.Source;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -591,56 +594,189 @@ public class DataLoader implements CommandLineRunner {
             resolutionRepository.save(Resolution.builder().name("8K").build());
         }
 
-        //Configuration data loader
-        if(configurationRepository.count() == 0){
-            configurationRepository.save(Configuration.builder()
-                            .id(1L)
-                            .maxDatesSaveFile(9000)
-                            .maxDatesControlFilesFromExternalSource(0)
-                            .videoResolutions(resolutionRepository.findAll())
-                            .firstVideoBitrateValueRange(0)
-                            .secondVideoBitrateValueRange(200000000)
-                            .firstAudioBitrateValueRange(0)
-                            .secondAudioBitrateValueRange(2048000)
-                            .audioChannels(audioChannelsRepository.findAll())
-                            .firstVideoSizeRange(0.0)
-                            .secondVideoSizeRange(31457280.0)
-                            .audioCodecs(codecRepository.findByMediaType(MediaTypes.AUDIO))
-                            .videoCodecs(codecRepository.findByMediaType(MediaTypes.VIDEO))
-                            .genres(genreRepository.findAll())
-                            .audioLanguages(languageRepository.findAll())
-                    .build());
-        }
-
         //Sources data loader
         if(sourcePathRepository.count() == 0){
-            sourcePathRepository.save(SourcePath.builder()
-                            .libraryItem(LibraryItems.MOVIE)
-                            .path("Z:\\Downloads\\Movies")
-                            .title("Movies Download Path")
-                            .pathType(SourcePath.PathType.DOWNLOAD)
+            Configuration configurationMoviesDownload = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(5000)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
                     .build());
 
-            sourcePathRepository.save(SourcePath.builder()
+            Configuration configurationMoviesSource = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(null)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
+            Configuration configurationTvShowsDownload = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(null)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
+            Configuration configurationTvShowSource = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(null)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
+            Configuration configurationMoviesExternal = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(5000)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
+            Configuration configurationTvShowExternal = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(5000)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
+            SourcePath sourcePathMoviesDownload = sourcePathRepository.save(SourcePath.builder()
                     .libraryItem(LibraryItems.MOVIE)
-                    .path("Z:\\MultiMedia\\Movies")
+                    .path("src\\test\\resources\\downloads\\movies")
+                    .title("Movies Download Path")
+                    .pathType(SourcePath.PathType.DOWNLOAD)
+                    .build());
+
+            SourcePath sourcePathMovieSource = sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.MOVIE)
+                    .path("src\\test\\resources\\movies")
                     .title("Movies Main Path")
                     .pathType(SourcePath.PathType.SOURCE)
                     .build());
 
-            sourcePathRepository.save(SourcePath.builder()
+            SourcePath sourcePathTvShowSource = sourcePathRepository.save(SourcePath.builder()
                     .libraryItem(LibraryItems.TV_SHOW)
-                    .path("Z:\\MultiMedia\\Serials")
+                    .path("src\\test\\resources\\tvShows")
                     .title("TvShows Main Path")
                     .pathType(SourcePath.PathType.SOURCE)
                     .build());
 
-            sourcePathRepository.save(SourcePath.builder()
+            SourcePath sourcePathTvShowDownload = sourcePathRepository.save(SourcePath.builder()
                     .libraryItem(LibraryItems.TV_SHOW)
-                    .path("Z:\\Downloads\\Serials")
+                    .path("src\\test\\resources\\downloads\\tvShows")
                     .title("TvShows Download Path")
                     .pathType(SourcePath.PathType.DOWNLOAD)
                     .build());
+
+            SourcePath sourcePathMovieExternal = sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.MOVIE)
+                    .path("src\\test\\resources\\externalSources\\movies")
+                    .title("Moves External Path")
+                    .pathType(SourcePath.PathType.EXTERNAL)
+                    .build());
+
+            SourcePath sourcePathTvShowExternal = sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.TV_SHOW)
+                    .path("src\\test\\resources\\externalSources\\tvShows")
+                    .title("Tv Show External Path")
+                    .pathType(SourcePath.PathType.EXTERNAL)
+                    .build());
+
+            saveSourcePathWithConfiguration(sourcePathMovieExternal, configurationMoviesExternal);
+            saveSourcePathWithConfiguration(sourcePathMovieSource, configurationMoviesSource);
+            saveSourcePathWithConfiguration(sourcePathMoviesDownload, configurationMoviesDownload);
+            saveSourcePathWithConfiguration(sourcePathTvShowExternal, configurationTvShowExternal);
+            saveSourcePathWithConfiguration(sourcePathTvShowSource, configurationTvShowSource);
+            saveSourcePathWithConfiguration(sourcePathTvShowDownload, configurationTvShowsDownload);
         }
+    }
+
+    @Transactional
+    private void saveSourcePathWithConfiguration(SourcePath sourcePath, Configuration configuration){
+            configuration.setSourcePath(sourcePath);
+            sourcePath.setConfiguration(configuration);
+            sourcePathRepository.save(sourcePath);
     }
 }

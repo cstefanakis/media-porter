@@ -1,6 +1,8 @@
 package org.sda.mediaporter.services.tvShowServices;
 
 public interface TvShowEpisodeSchedulerService {
-    void moveTvShowEpisodeFromDownloadsRootPathToMovieRootPath();
+    void moveTvShowEpisodeFromDownloadsRootPathToTvShowsRootPath();
     void scanTvShowSourcePath();
+    void deleteTvShowsOlderThan();
+    void copyTvShowsEpisodesFromExternalSources();
 }

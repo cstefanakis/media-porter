@@ -1,5 +1,6 @@
 package org.sda.mediaporter.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,6 +18,7 @@ import java.util.List;
 @Builder
 public class Configuration {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "max_dates_save_files")
@@ -96,4 +98,11 @@ public class Configuration {
 
     @Column(name = "second_video_sizes_range")
     private Double secondVideoSizeRange;
+
+    @OneToOne(
+            mappedBy = "configuration",
+            fetch = FetchType.LAZY
+    )
+    @JsonBackReference
+    private SourcePath sourcePath;
 }

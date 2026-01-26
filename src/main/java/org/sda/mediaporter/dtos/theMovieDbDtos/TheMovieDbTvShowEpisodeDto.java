@@ -2,11 +2,13 @@ package org.sda.mediaporter.dtos.theMovieDbDtos;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Getter
+@Setter
 @Builder
 public class TheMovieDbTvShowEpisodeDto {
     private LocalDate airDate;
@@ -21,4 +23,5 @@ public class TheMovieDbTvShowEpisodeDto {
     private Double rate;
     private String poster;
     private Long theMovieDbId;
+    private Long tvShowTheMovieDbId;
 }

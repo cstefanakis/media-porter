@@ -1,16 +1,13 @@
 package org.sda.mediaporter.services.tvShowServices.impl;
 
-import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowEpisodeDto;
-import org.sda.mediaporter.models.SourcePath;
+import org.sda.mediaporter.dtos.theMovieDbDtos.TheMovieDbTvShowSearchDTO;
+import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.metadata.Character;
 import org.sda.mediaporter.services.*;
 import org.sda.mediaporter.api.TheMovieDbTvShowEpisodes;
-import org.sda.mediaporter.models.Contributor;
-import org.sda.mediaporter.models.TvShow;
-import org.sda.mediaporter.models.TvShowEpisode;
 import org.sda.mediaporter.repositories.TvShowEpisodeRepository;
 import org.sda.mediaporter.services.fileServices.FileService;
 import org.sda.mediaporter.services.tvShowServices.TvShowEpisodeService;
@@ -22,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -100,6 +96,44 @@ public class TvShowEpisodeServiceImpl implements TvShowEpisodeService {
     public TvShowEpisode getTvShowEpisodeByPathOrNull(String filePathWithoutTvShowSourcePath) {
         Optional<TvShowEpisode> tvShowEpisodeOptional = tvShowEpisodeRepository.findTvShowEpisodeByPath(filePathWithoutTvShowSourcePath);
         return tvShowEpisodeOptional.orElse(null);
+    }
+
+    @Override
+    public Long getTvShowEpisodeIdByVideoFilePathId(Long videoFilePathId) {
+        return tvShowEpisodeRepository.findTvShowEpisodeIdByVideoFilePathId(videoFilePathId);
+    }
+
+    @Override
+    public void deleteTvShowEpisodeWithoutVideoFilePaths(Long tvShowEpisodeId) {
+        tvShowEpisodeRepository.deleteTvShowEpisodeWithoutVideoFilePaths(tvShowEpisodeId);
+    }
+
+    @Override
+    public void deleteTvShowEpisodesWithoutVideoFilePaths() {
+        tvShowEpisodeRepository.deleteTvShowEpisodesWithoutVideoFilePaths();
+    }
+
+    @Override
+    public TheMovieDbTvShowEpisodeDto getTvShowEpisodeDtoByPath(Path filePath) {
+        String filename = filePath.getFileName().toString();
+        Integer season = getEpisodeSeasonNumberFromVideoFile(filename, seasonRegexes());
+        Integer episode = getEpisodeSeasonNumberFromVideoFile(filename, episodeRegexes());
+        String filteredFileTitle = filename.replace(fileService.getFileExtensionWithDot(filename), "");
+        filteredFileTitle = fileService.getSafeFileName(filteredFileTitle);
+        TheMovieDbTvShowSearchDTO theMovieDbTvShowSearchDTO = tvShowService.getTvShowAPISearchDTO(filteredFileTitle);
+        if(theMovieDbTvShowSearchDTO != null && season != null && episode != null){
+            Long theMovieDbId = theMovieDbTvShowSearchDTO.getTheMovieDbId();
+            TheMovieDbTvShowEpisodes tvShowEpisode = new TheMovieDbTvShowEpisodes(theMovieDbId, season, episode);
+            TheMovieDbTvShowEpisodeDto theMovieDbTvShowEpisodeDto = tvShowEpisode.getTheMovieDbTvShowEpisodeDto();
+            theMovieDbTvShowEpisodeDto.setTvShowTheMovieDbId(theMovieDbTvShowSearchDTO.getTheMovieDbId());
+            return theMovieDbTvShowEpisodeDto;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isExistTvShowEpisodeWithTheMovieDbId(Long tvShowEpisodeTheMovieDbId) {
+        return tvShowEpisodeRepository.isExistTvShowEpisodeWithTheMovieDbId(tvShowEpisodeTheMovieDbId);
     }
 
     private void updateTvShowEpisodeModificationDateTime(TvShowEpisode tvShowEpisode, LocalDateTime modificationDateTime){

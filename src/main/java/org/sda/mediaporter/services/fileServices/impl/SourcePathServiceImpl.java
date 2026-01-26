@@ -75,6 +75,28 @@ public class SourcePathServiceImpl implements SourcePathService {
                 .orElseThrow(() -> new EntityNotFoundException("File path does not include sourcePath"));
     }
 
+    @Override
+    public List<SourcePath> getSourcePathsByLibraryItem(LibraryItems libraryItems) {
+        return sourcePathRepository.findSourcePathsByLibraryItem(libraryItems);
+    }
+
+    @Override
+    public Path replaceRootOfFilePathWithOtherRoot(Path filePath, Path filePathRoot, Path newPathRoot) {
+        filePathRoot = filePathRoot.normalize();
+        newPathRoot = newPathRoot.normalize();
+        filePath = filePath.normalize();
+        if(!filePath.startsWith(filePathRoot)){
+            throw new IllegalArgumentException("File path does not start with the given root");
+        }
+        Path relative = filePathRoot.relativize(filePath);
+        return newPathRoot.resolve(relative.getFileName());
+    }
+
+    @Override
+    public List<SourcePath> getSourcePathsByPathType(SourcePath.PathType pathType) {
+        return sourcePathRepository.findSourcePathsByPathType(pathType);
+    }
+
     private SourcePath toEntity(SourcePath updatedSourcePath, SourcePathDto sourcePathDto) {
 
         updatedSourcePath.setTitle(validatedTitle(updatedSourcePath, sourcePathDto));

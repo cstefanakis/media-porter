@@ -22,17 +22,18 @@ public class ConfigurationController {
     }
 
     @PreAuthorize("hasAnyRole('LEVEL_USER', 'ADMIN')")
-    @GetMapping()
-    public ResponseEntity<Configuration> getConfiguration(){
-        Configuration configuration = configurationService.getConfiguration();
+    @GetMapping("/{id}")
+    public ResponseEntity<Configuration> getConfigurationById(@PathVariable("id") Long id){
+        Configuration configuration = configurationService.getConfigurationById(id);
         return ResponseEntity.ok().body(configuration);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping()
-    public ResponseEntity<Configuration> updateConfiguration(@RequestBody ConfigurationDto configurationDto){
-        configurationService.updateConfiguration(configurationDto);
-        Configuration configuration = configurationService.getConfiguration();
+    @PutMapping("/{id}")
+    public ResponseEntity<Configuration> updateConfigurationById(@PathVariable("id") Long id,
+                                                                 @RequestBody ConfigurationDto configurationDto){
+        configurationService.updateConfiguration(id, configurationDto);
+        Configuration configuration = configurationService.getConfigurationById(id);
         return ResponseEntity.ok().body(configuration);
     }
 

@@ -17,8 +17,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import javax.xml.transform.Source;
-import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -722,6 +720,90 @@ public class DataLoader implements CommandLineRunner {
                     .secondVideoSizeRange(null)
                     .build());
 
+            Configuration configurationTvShowTvRecord = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(5000)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
+            Configuration configurationMoviesTvRecord = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(5000)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
+            Configuration configurationMovieRecs = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(5000)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
+            Configuration configurationTvShowsRecs = configurationRepository.save(Configuration.builder()
+                    .maxDatesSaveFile(null)
+                    .maxDatesControlFilesFromExternalSource(5000)
+                    //Video
+                    .videoCodecs(null)
+                    .videoResolutions(null)
+                    .firstVideoBitrateValueRange(null)
+                    .secondVideoSizeRange(null)
+                    //Audio
+                    .audioCodecs(null)
+                    .audioChannels(null)
+                    .audioLanguages(null)
+                    .firstAudioBitrateValueRange(null)
+                    .secondAudioBitrateValueRange(null)
+                    //Genres
+                    .genres(null)
+                    //file size range
+                    .firstVideoSizeRange(null)
+                    .secondVideoSizeRange(null)
+                    .build());
+
             SourcePath sourcePathMoviesDownload = sourcePathRepository.save(SourcePath.builder()
                     .libraryItem(LibraryItems.MOVIE)
                     .path("src\\test\\resources\\downloads\\movies")
@@ -764,12 +846,44 @@ public class DataLoader implements CommandLineRunner {
                     .pathType(SourcePath.PathType.EXTERNAL)
                     .build());
 
+            SourcePath sourcePathTvRecordsTvShowsExternal = sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.TV_SHOW)
+                    .path("src/test/resources/externalSources/tvRecords/tvShows")
+                    .title("Tv Shows tvRecords External Path")
+                    .pathType(SourcePath.PathType.TV_RECORDS)
+                    .build());
+
+            SourcePath sourcePathTvRecordsMoviesExternal = sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.MOVIE)
+                    .path("src/test/resources/externalSources/tvRecords/movies")
+                    .title("movies tvRecords External Path")
+                    .pathType(SourcePath.PathType.TV_RECORDS)
+                    .build());
+
+            SourcePath sourcePathMoviesRecordsSource = sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.MOVIE_RECORDS)
+                    .path("src\\test\\resources\\tvRecords\\Movies")
+                    .title("movies movies tv record source")
+                    .pathType(SourcePath.PathType.SOURCE)
+                    .build());
+
+            SourcePath sourcePathTvShowsRecordsSource = sourcePathRepository.save(SourcePath.builder()
+                    .libraryItem(LibraryItems.TV_SHOW_RECORDS)
+                    .path("src\\test\\resources\\tvRecords\\TvShows")
+                    .title("movies movies tv shows source")
+                    .pathType(SourcePath.PathType.SOURCE)
+                    .build());
+
             saveSourcePathWithConfiguration(sourcePathMovieExternal, configurationMoviesExternal);
             saveSourcePathWithConfiguration(sourcePathMovieSource, configurationMoviesSource);
             saveSourcePathWithConfiguration(sourcePathMoviesDownload, configurationMoviesDownload);
             saveSourcePathWithConfiguration(sourcePathTvShowExternal, configurationTvShowExternal);
             saveSourcePathWithConfiguration(sourcePathTvShowSource, configurationTvShowSource);
             saveSourcePathWithConfiguration(sourcePathTvShowDownload, configurationTvShowsDownload);
+            saveSourcePathWithConfiguration(sourcePathTvRecordsTvShowsExternal, configurationTvShowTvRecord);
+            saveSourcePathWithConfiguration(sourcePathTvRecordsMoviesExternal, configurationMoviesTvRecord);
+            saveSourcePathWithConfiguration(sourcePathTvShowsRecordsSource, configurationTvShowsRecs);
+            saveSourcePathWithConfiguration(sourcePathMoviesRecordsSource, configurationMovieRecs);
         }
     }
 

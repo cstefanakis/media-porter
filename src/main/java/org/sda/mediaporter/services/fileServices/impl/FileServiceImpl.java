@@ -4,13 +4,11 @@ import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.enums.*;
 import org.sda.mediaporter.repositories.SourcePathRepository;
 import org.sda.mediaporter.services.fileServices.FileService;
-import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -55,6 +53,7 @@ public class FileServiceImpl implements FileService {
         if((Files.exists(destinationFilePath) && !isSameSizeBetweenTowFiles(filePath,destinationFilePath)) ||
                 !Files.exists(destinationFilePath)){
             try {
+                createDirectoriesForPath(destinationFilePath);
                 Files.copy(filePath, prepareFullPath);
                 FileTime now = localDateTimeToFileTime(LocalDateTime.now());
                 Files.setLastModifiedTime(prepareFullPath, now);
@@ -227,6 +226,18 @@ public class FileServiceImpl implements FileService {
             return bytes / (1024.0 * 1024.0);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void setLastModifiedTimeToFilePath(Path filePath, LocalDateTime localDateTime) {
+        try {
+            Files.setLastModifiedTime(
+                    filePath,
+                    localDateTimeToFileTime(localDateTime)
+            );
+        } catch (IOException e) {
+            throw new RuntimeException("file cant change modification date");
         }
     }
 

@@ -19,7 +19,6 @@ import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.metadata.AudioChannelRepository;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
-import org.sda.mediaporter.services.fileServices.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -159,7 +158,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 LocalDateTime.now()
         );
         return validDatesBeforeNow == null || datesBeforeNow <= validDatesBeforeNow;
-
     }
 
     @Override
@@ -185,6 +183,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             boolean validModificationDate = isFileModificationDateValid(fileModificationDateTime, validDatesBeforeNow);
             if(!resolutionSupport || !videoCodec || !videoBitrate || !genre || !fileSizeSupport || !validModificationDate) {result = false;}
             return result;
+    }
+
+    @Override
+    public boolean isFileOld(LocalDateTime fileModificationDateTime, Integer maxDatesSaveFile) {
+        if(maxDatesSaveFile == null) {return false;}
+        LocalDateTime deleteDates = LocalDateTime.now().minusDays(maxDatesSaveFile);
+        return fileModificationDateTime.isBefore(deleteDates);
     }
 
 

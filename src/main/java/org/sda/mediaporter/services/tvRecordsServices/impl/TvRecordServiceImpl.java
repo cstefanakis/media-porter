@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 
 @Service
 public class TvRecordServiceImpl implements TvRecordService {
@@ -23,15 +24,35 @@ public class TvRecordServiceImpl implements TvRecordService {
     }
 
     @Override
-    public void copyMovieToSourcePath(Path filePath, String originalTitle, Integer year, Path destinationRootPath) {
-        Path destinationPath = createMovieDestinationPath(filePath, originalTitle, year, destinationRootPath);
-        fileService.copyFile(filePath, destinationPath);
-    }
-
-    private Path createMovieDestinationPath(Path filePath, String originalTitle, Integer year, Path destinationRootPath) {
+    public Path getMovieDestinationPath(Path filePath, String originalTitle, Integer year, Path destinationRootPath) {
         String fileExtension = fileService.getFileExtensionWithDot(filePath.toString());
         String movieName = String.format("%s (%s)", originalTitle, year);
         return Path.of(destinationRootPath + File.separator +  movieName + fileExtension);
+    }
+
+    @Override
+    public Path getTvShowsDestinationPath(Path filePath, String originalTitle, Integer year, Path destinationRootPath) {
+        String dateFormat = getDateFormat(filePath);
+        String fileExtensionWithDot = fileService.getFileExtensionWithDot(filePath.toString());
+        String directoryName = String.format("%s (%s)", originalTitle, year);
+        String fileName = String.format("%s (%s)", originalTitle, dateFormat);
+        return Path.of(destinationRootPath +
+                File.separator +
+                directoryName +
+                File.separator +
+                fileName +
+                fileExtensionWithDot).normalize();
+    }
+
+    private String getDateFormat(Path filePath) {
+        LocalDateTime fileLocalDateTime = fileService.getModificationLocalDateTimeOfPath(filePath);
+        return String.format("%s.%02d.%02d (%02d_%02d)",
+                fileLocalDateTime.getYear(),
+                fileLocalDateTime.getMonthValue(),
+                fileLocalDateTime.getDayOfMonth(),
+                fileLocalDateTime.getHour(),
+                fileLocalDateTime.getMinute()
+        );
     }
 
     private String getFilteredFileName(String fileName) {

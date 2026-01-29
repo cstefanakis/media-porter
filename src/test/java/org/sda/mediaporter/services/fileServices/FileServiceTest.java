@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -114,5 +114,17 @@ class FileServiceTest {
         //Assert
         assertTrue(result > 0);
         assertEquals(22.618480682373047, result);
+    }
+
+    @Test
+    void setLastModifiedTimeToFilePath() {
+        //Arrest
+        Path filePath = Path.of("src\\test\\resources\\externalSources\\tvRecords\\movies\\[K12] Λούφα και Παραλλαγή.mp4");
+        LocalDateTime localDateTime = LocalDateTime.now().minusDays(5);
+        //Act
+        fileService.setLastModifiedTimeToFilePath(filePath, localDateTime);
+        LocalDateTime result = fileService.getModificationLocalDateTimeOfPath(filePath);
+        //Assert
+        assertEquals(localDateTime, result);
     }
 }

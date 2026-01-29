@@ -5,5 +5,7 @@ import java.nio.file.Path;
 public interface TvRecordService {
     String getFileNameOfPath(Path file);
 
-    void copyMovieToSourcePath(Path filePath, String originalTitle, Integer year, Path destinationRootPath);
+    Path getMovieDestinationPath(Path filePath, String originalTitle, Integer year, Path destinationRootPath);
+
+    Path getTvShowsDestinationPath(Path file, String originalTitle, Integer year, Path destinationRootPath);
 }

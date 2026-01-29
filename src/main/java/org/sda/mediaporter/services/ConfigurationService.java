@@ -11,7 +11,6 @@ import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Resolution;
-import org.sda.mediaporter.services.fileServices.FileService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,4 +46,6 @@ public interface ConfigurationService {
     boolean isFileModificationDateValid(LocalDateTime fileModificationDateTime, Integer validDatesBeforeNow);
 
     boolean isFileForCopy(VideoDto videoDto, List<AudioDto> audiosDto, List<Genre> movieGenres, SourcePath sourcePath, double fileSize, LocalDateTime fileModificationDateTime);
+
+    boolean isFileOld(LocalDateTime fileModificationDate, Integer maxDatesSaveFile);
 }

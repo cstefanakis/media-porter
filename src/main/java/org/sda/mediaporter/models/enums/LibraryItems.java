@@ -1,5 +1,5 @@
 package org.sda.mediaporter.models.enums;
 
 public enum LibraryItems {
-    MOVIE, TV_SHOW, EBOOK, MUSIC, PHOTO
+    MOVIE, MOVIE_RECORDS, TV_SHOW, TV_SHOW_RECORDS, EBOOK, MUSIC, PHOTO
 }

@@ -19,7 +19,6 @@ import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.metadata.AudioChannelRepository;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
-import org.sda.mediaporter.services.fileServices.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -27,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Validated
@@ -159,7 +159,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 LocalDateTime.now()
         );
         return validDatesBeforeNow == null || datesBeforeNow <= validDatesBeforeNow;
-
     }
 
     @Override
@@ -185,6 +184,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             boolean validModificationDate = isFileModificationDateValid(fileModificationDateTime, validDatesBeforeNow);
             if(!resolutionSupport || !videoCodec || !videoBitrate || !genre || !fileSizeSupport || !validModificationDate) {result = false;}
             return result;
+    }
+
+    @Override
+    public boolean isFileOld(LocalDateTime fileModificationDateTime, Integer maxDatesSaveFile) {
+        if(maxDatesSaveFile == null) {return false;}
+        LocalDateTime deleteDates = LocalDateTime.now().minusDays(maxDatesSaveFile);
+        return fileModificationDateTime.isBefore(deleteDates);
     }
 
 
@@ -320,7 +326,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .getGenreIds()
                 .stream()
                 .map(id -> genreRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -336,7 +342,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return codecsFromDto
                 .stream()
                 .map(id -> codecRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -354,7 +360,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .getLanguageIds()
                 .stream()
                 .map(id -> languageRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -371,7 +377,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .getVideoResolutionIds()
                 .stream()
                 .map(id -> resolutionRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -388,7 +394,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .getAudioChannelIds()
                 .stream()
                 .map(id -> audioChannelRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 }

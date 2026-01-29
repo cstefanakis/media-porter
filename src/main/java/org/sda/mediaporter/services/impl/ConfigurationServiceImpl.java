@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Validated
@@ -325,7 +326,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .getGenreIds()
                 .stream()
                 .map(id -> genreRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -341,7 +342,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return codecsFromDto
                 .stream()
                 .map(id -> codecRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -359,7 +360,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .getLanguageIds()
                 .stream()
                 .map(id -> languageRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -376,7 +377,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .getVideoResolutionIds()
                 .stream()
                 .map(id -> resolutionRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -393,7 +394,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .getAudioChannelIds()
                 .stream()
                 .map(id -> audioChannelRepository.findById(id).orElse(null))
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 }

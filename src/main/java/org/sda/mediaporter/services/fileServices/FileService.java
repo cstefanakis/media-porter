@@ -33,7 +33,6 @@ public interface FileService {
 
     void deleteAllDirectoriesWithoutVideFiles(Path rootDirectory);
 
-
     List<Path> getVideoFilesUntil(Path directory, LocalDateTime maxDateCopyFiles);
 
     double getFileSizeInMB(Path filePath);

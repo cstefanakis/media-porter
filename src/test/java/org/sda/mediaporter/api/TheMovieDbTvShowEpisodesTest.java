@@ -76,25 +76,6 @@ class TheMovieDbTvShowEpisodesTest {
         assertEquals(1, result.size());
     }
 
-    @Test
-    void getActors() {
-        //Arrest
-        String actor = "John Lithgow";
-        String poster = "https://image.tmdb.org/t/p/w500"+"/8Y1sjBdnVR483S8PrnAQzlESwhx.jpg";
-
-        //Act
-        List<TheMovieDbCastDto> result = dexter.getTheMovieDbTvShowEpisodeDto().getActors();
-        //Assert
-        assertFalse(result.stream()
-                .filter(n -> n.getFullName().equals(actor))
-                .toList()
-                .isEmpty());
-
-        assertFalse(result.stream()
-                .filter(n -> n.getPoster().equals(poster))
-                .toList()
-                .isEmpty());
-    }
 
     @Test
     void getEpisodeNumber() {

@@ -4,13 +4,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sda.mediaporter.models.Configuration;
 import org.sda.mediaporter.models.Genre;
+import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.enums.LibraryItems;
+import org.sda.mediaporter.models.enums.MediaTypes;
+import org.sda.mediaporter.models.metadata.Codec;
+import org.sda.mediaporter.models.metadata.Resolution;
+import org.sda.mediaporter.repositories.metadata.CodecRepository;
+import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,12 +38,29 @@ class ConfigurationRepositoryTest {
     @Autowired
     private GenreRepository genreRepository;
 
+    @Autowired
+    private CodecRepository codecRepository;
+
+    @Autowired
+    private ResolutionRepository resolutionRepository;
+
+    @Autowired
+    private MovieRepository movieRepository;
+
     private SourcePath sourcePath;
     private Configuration configuration = new Configuration();
     private Genre action = new Genre();
     private Genre comedy = new Genre();
+
     @BeforeEach
     void setup(){
+        movieRepository.save(Movie.builder()
+                        .title("movie")
+                        .originalTitle("originalMovieTitle")
+                .theMovieDbId(100L)
+                .lastModificationDateTime(LocalDateTime.now())
+                .build());
+
         this.action = genreRepository.save(Genre.builder()
                         .title("Action")
                 .build());
@@ -40,7 +69,27 @@ class ConfigurationRepositoryTest {
                         .title("Comedy")
                 .build());
 
+        codecRepository.save(Codec.builder()
+                        .name("AAC")
+                        .mediaType(MediaTypes.AUDIO)
+                .build());
+
+        codecRepository.save(Codec.builder()
+                .name("H264")
+                .mediaType(MediaTypes.VIDEO)
+                .build());
+
+        resolutionRepository.save(Resolution.builder()
+                        .name("720p")
+                .build());
+
+        resolutionRepository.save(Resolution.builder()
+                .name("1080p")
+                .build());
+
+
         this.configuration = configurationRepository.save(Configuration.builder()
+
                 .maxDatesSaveFile(null)
                 .maxDatesControlFilesFromExternalSource(5000)
                 //Video
@@ -61,9 +110,6 @@ class ConfigurationRepositoryTest {
                 .secondVideoSizeRange(null)
                 .build());
 
-//        configuration.getVideoResolutions().add(resolution720p);
-//        configurationRepository.save(configuration);
-
         SourcePath sourcePath = sourcePathRepository.save(SourcePath.builder()
                 .libraryItem(LibraryItems.MOVIE)
                 .path("C:\\Users\\chris\\Downloads\\Movies")
@@ -74,6 +120,8 @@ class ConfigurationRepositoryTest {
         configuration.setSourcePath(sourcePath);
         sourcePath.setConfiguration(configuration);
         this.sourcePath = sourcePathRepository.save(sourcePath);
+
+
     }
 
     @Test
@@ -230,5 +278,17 @@ class ConfigurationRepositoryTest {
         boolean result = configurationRepository.isFileSupportGenres(genre, this.sourcePath);
         //Assert
         assertFalse(result);
+    }
+
+    @Test
+    void findConfigurationBySourcePathId() {
+        //Arrest
+        Long sourcePathId = this.sourcePath.getId();
+        Long configurationId = this.configuration.getId();
+        //Act
+        Optional<Configuration> result = configurationRepository.findConfigurationBySourcePathId(sourcePathId);
+        //Assert
+        assertTrue(result.isPresent());
+        assertEquals(configurationId, result.get().getId());
     }
 }

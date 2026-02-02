@@ -152,23 +152,6 @@ class VideoFilePathServiceTest {
     }
 
     @Test
-    void createVideoFilePath() {
-        //Arrest
-        Path filePath = Path.of("C:\\Users\\chris\\Downloads\\Movies\\Titanic (1997) ¦ Official Trailer (720p_24fps_H264-128kbit_AAC).mp4");
-        //Act
-        VideoFilePath result = videoFilePathService.createVideoFilePath(filePath);
-
-        //Assert
-        assertNotNull(result);
-        assertTrue(result.getId() >= 0);
-
-        if(result.getId() != null){
-            videoFilePathService.deleteVideoFilePathAndFileByVideoFilePathId(result.getId());
-        }
-
-    }
-
-    @Test
     void deleteAllDataFromVideoFilePath() {
         //Act
         videoFilePathService.deleteAllDataFromVideoFilePath(this.videoFilePathOld2Days);

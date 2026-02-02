@@ -11,6 +11,7 @@ import org.sda.mediaporter.models.metadata.Resolution;
 import java.util.List;
 
 @Entity
+@Table(name = "configurations")
 @Getter
 @Setter
 @NoArgsConstructor

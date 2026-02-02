@@ -19,6 +19,7 @@ import org.sda.mediaporter.repositories.LanguageRepository;
 import org.sda.mediaporter.repositories.metadata.AudioChannelRepository;
 import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.sda.mediaporter.repositories.metadata.ResolutionRepository;
+import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Validated
@@ -38,6 +40,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final LanguageRepository languageRepository;
     private final ResolutionRepository resolutionRepository;
     private final AudioChannelRepository audioChannelRepository;
+    private final SourcePathService sourcePathService;
 
 
     private double maxFileSize = 31457280;
@@ -46,13 +49,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private int maxDaysToPast = 9000;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GenreRepository genreRepository, CodecRepository codecRepository, LanguageRepository languageRepository, ResolutionRepository resolutionRepository, AudioChannelRepository audioChannelRepository) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GenreRepository genreRepository, CodecRepository codecRepository, LanguageRepository languageRepository, ResolutionRepository resolutionRepository, AudioChannelRepository audioChannelRepository, SourcePathService sourcePathService) {
         this.configurationRepository = configurationRepository;
         this.genreRepository = genreRepository;
         this.codecRepository = codecRepository;
         this.languageRepository = languageRepository;
         this.resolutionRepository = resolutionRepository;
         this.audioChannelRepository = audioChannelRepository;
+        this.sourcePathService = sourcePathService;
     }
 
     @Override
@@ -191,6 +195,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if(maxDatesSaveFile == null) {return false;}
         LocalDateTime deleteDates = LocalDateTime.now().minusDays(maxDatesSaveFile);
         return fileModificationDateTime.isBefore(deleteDates);
+    }
+
+    @Override
+    public Configuration updateConfigurationBySourcePathId(Long id, ConfigurationDto configurationDto) {
+        Optional<Configuration> configurationOptional = configurationRepository.findConfigurationBySourcePathId(id);
+        if(configurationOptional.isPresent()){
+            Configuration configuration = configurationOptional.get();
+            return configurationRepository.save(toEntity(configuration, configurationDto));
+        }
+        return null;
     }
 
 

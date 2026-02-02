@@ -176,21 +176,4 @@ class TvShowRepositoryTest {
         //Assert
         assertFalse(result.isPresent());
     }
-
-    @AfterEach
-    void end(){
-        videoFilePathRepository.delete(this.videoFilePath1);
-        videoFilePathRepository.delete(this.videoFilePath2);
-
-        tvShowEpisodeRepository.delete(this.tvShowEpisode1);
-        tvShowEpisodeRepository.delete(this.tvShowEpisode2);
-
-        tvShowRepository.delete(this.tvShow1);
-        tvShowRepository.delete(this.tvShow2);
-        tvShowRepository.delete(this.tvShow3);
-
-        sourcePathRepository.delete(this.sourcePath1);
-        sourcePathRepository.delete(this.sourcePath2);
-    }
-
 }

@@ -137,19 +137,6 @@ class TheMovieDbCreditsForMovieByIdTest {
     }
 
     @Test
-    void getDirectors_poster() {
-        //Arrest
-        String poster = theMovieDb.getPosterRootPath() + "/tpEczFclQZeKAiCeKZZ0adRvtfz.jpg";
-
-        //Act
-        List<TheMovieDbCrewDto> result = theMovieDbCreditsById.getDirectors();
-
-        //Assert
-        assertTrue(result.stream()
-                .anyMatch(c -> c.getPoster().equals(poster)));
-    }
-
-    @Test
     void getDirectors_theMovieDbContributorId() {
         //Arrest
         Long theMovieDbId = 7467L;

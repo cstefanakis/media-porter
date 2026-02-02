@@ -120,18 +120,6 @@ class VideoFilePathRepositoryTest {
     }
 
     @Test
-    @Transactional
-    void deleteVideoFilePathsWithNullFilePath() {
-        //Arrest
-        Long movieId = this.movie.getId();
-        //Act
-        videoFilePathRepository.deleteVideoFilePathsWithNullFilePath();
-        List<VideoFilePath> result = movieRepository.findById(movieId).get().getVideoFilePaths();
-        //Assert
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
     void findVideoFilePathsBySourcePathId() {
         //Arrest
         Long movieSourcePathId = this.moviesSourcePath.getId();

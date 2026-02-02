@@ -51,7 +51,8 @@ public class TvRecordSchedulerServiceImpl implements TvRecordSchedulerService {
                 Path rootDirectory = Path.of(sourcePath.getPath()).normalize();
                 List<Path> directoryFiles = fileService.getVideoFiles(rootDirectory);
                 for(Path file : directoryFiles){
-                    String movieTitle = tvRecordService.getFileNameOfPath(file);
+                    String fileNameOfPath = file.getFileName().toString();
+                    String movieTitle = tvRecordService.getFilteredFileName(fileNameOfPath);
                     TheMovieDbMovieSearchDTO theMovieDbMovieSearchDTO = movieService.getMovieAPISearchDTO(movieTitle);
                     if(theMovieDbMovieSearchDTO != null) {
                         Long movieTheMovieDbId = theMovieDbMovieSearchDTO.getTheMovieDbId();
@@ -90,7 +91,8 @@ public class TvRecordSchedulerServiceImpl implements TvRecordSchedulerService {
                 Path rootDirectory = Path.of(sourcePath.getPath()).normalize();
                 List<Path> directoryFiles = fileService.getVideoFiles(rootDirectory);
                 for(Path file : directoryFiles){
-                    String tvShowTitle = tvRecordService.getFileNameOfPath(file);
+                    String fileNameOfPath = file.getFileName().toString();
+                    String tvShowTitle = tvRecordService.getFilteredFileName(fileNameOfPath);
                     TheMovieDbTvShowSearchDTO theMovieDbTvShowSearchDTO = tvShowService.getTvShowAPISearchDTO(tvShowTitle);
                     if(theMovieDbTvShowSearchDTO != null) {
                         String originalTitle = theMovieDbTvShowSearchDTO.getOriginalTitle();

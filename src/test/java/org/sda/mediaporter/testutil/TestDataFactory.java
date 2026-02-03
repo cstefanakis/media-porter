@@ -212,7 +212,7 @@ public class TestDataFactory {
                 .theMovieDbId(1L)
                 .seasonNumber(1)
                 .episodeNumber(1)
-                        .tvShow(tvShow)
+                .tvShow(tvShow)
                         .modificationDateTime(tvShow.getLastModificationDateTime())
                 .build());
     }

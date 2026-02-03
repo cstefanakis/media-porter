@@ -19,17 +19,10 @@ class MovieRepositoryTest {
     private MovieRepository movieRepository;
 
     @Autowired
-    private VideoFilePathRepository videoFilePathRepository;
-
-    @Autowired
-    private SourcePathRepository sourcePathRepository;
-
-    @Autowired
     private TestDataFactory testDataFactory;
 
     @BeforeEach
     void setup(){
-        testDataFactory.createTestMovie();
     }
 
     @Test

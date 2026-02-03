@@ -28,14 +28,12 @@ class TvShowEpisodeRepositoryTest {
 
     private Long tvShowId;
     private VideoFilePath videoFilePath;
-    private Long tvShowEpisodeId;
     private TvShowEpisode tvShowEpisodeWithoutVideoFilePath;
 
     @BeforeEach
     void loadData(){
-        this.videoFilePath = testDataFactory.createVideoFilePath();
+        this.videoFilePath = testDataFactory.createTvShowVideoFilePath();
         this.tvShowId = this.videoFilePath.getTvShowEpisode().getTvShow().getId();
-        this.tvShowEpisodeId = this.videoFilePath.getTvShowEpisode().getId();
         this.tvShowEpisodeWithoutVideoFilePath = testDataFactory.createTvShowEpisodeWithoutVideoFilePath();
     }
 

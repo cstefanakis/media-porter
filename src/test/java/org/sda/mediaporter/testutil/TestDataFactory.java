@@ -3,8 +3,11 @@ package org.sda.mediaporter.testutil;
 import jakarta.transaction.Transactional;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
-import org.sda.mediaporter.models.metadata.Video;
+import org.sda.mediaporter.models.enums.MediaTypes;
+import org.sda.mediaporter.models.metadata.*;
+import org.sda.mediaporter.models.metadata.Character;
 import org.sda.mediaporter.repositories.*;
+import org.sda.mediaporter.repositories.metadata.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -52,68 +55,30 @@ public class TestDataFactory {
     @Autowired
     private VideoFilePathRepository videoFilePathRepository;
 
-    public Video createVideoTvShow(){
-        return null;
-    }
+    @Autowired
+    private UserRepository userRepository;
 
-    public Movie createTestMovie() {
-        // Language
-        Language language = languageRepository.save(Language.builder()
-                .englishTitle("English")
-                .originalTitle("English")
-                .iso6391("en")
-                .iso6392B("eng")
-                .iso6392T("eng")
-                .build()
-        );
-        // Genres
-        Genre genre1 = genreRepository.save(Genre.builder().title("Action").build());
-        Genre genre2 = genreRepository.save(Genre.builder().title("Adventure").build());
+    @Autowired
+    private AudioChannelRepository audioChannelsRepository;
 
-        // Contributors (Director, Writer, Actor)
-        Contributor director = contributorRepository.save(Contributor.builder().fullName("John Doe").build());
-        Contributor writer = contributorRepository.save(Contributor.builder().fullName("Jane Smith").build());
-        Contributor actor = contributorRepository.save(Contributor.builder().fullName("Chris Example").build());
+    @Autowired
+    private CodecRepository codecRepository;
 
-        // Build movie
-        Movie movie = movieRepository.save(Movie.builder()
-                .title("Test Movie")
-                .originalTitle("Test Movie Original")
-                .year(2026)
-                .rate(8.5)
-                .releaseDate(LocalDate.of(2026, 2, 2))
-                .poster("test_poster.jpg")
-                .overview("This is a test movie for unit testing.")
-                .lastModificationDateTime(LocalDateTime.now())
-                .theMovieDbId(123456L)
-                .originalLanguage(language)
-                .genres(List.of(genre1, genre2))
-                .directors(List.of(director))
-                .writers(List.of(writer))
-                .actors(List.of(actor))
-                .countries(List.of())
-                .characters(List.of())
-                .videoFilePaths(List.of())
-                .build());
+    @Autowired
+    private ResolutionRepository resolutionRepository;
 
-        // Link genres back to movie (optional for bidirectional mapping)
-        genre1.setMovieGenres(List.of(movie));
-        genre2.setMovieGenres(List.of(movie));
-        genreRepository.save(genre1);
-        genreRepository.save(genre2);
+    @Autowired
+    private VideoRepository videoRepository;
 
-        // Link contributors back to movie (optional)
-        director.setMovieDirectors(List.of(movie));
-        contributorRepository.save(director);
+    @Autowired
+    private AudioRepository audioRepository;
 
-        writer.setMovieWriters(List.of(movie));
-        contributorRepository.save(writer);
+    @Autowired
+    private SubtitleRepository subtitleRepository;
 
-        actor.setMovieActors(List.of(movie));
-        contributorRepository.save(actor);
+    @Autowired
+    private ConfigurationRepository configurationRepository;
 
-        return movie;
-    }
 
     public Contributor createDirector(){
         return contributorRepository.save(Contributor.builder()
@@ -175,6 +140,29 @@ public class TestDataFactory {
                 .build());
     }
 
+    public Configuration createMovieDownloadsConfiguration(){
+        return configurationRepository.save(Configuration.builder()
+                .maxDatesSaveFile(5)
+                .maxDatesControlFilesFromExternalSource(5000)
+                //Video
+                .videoCodecs(null)
+                .videoResolutions(null)
+                .firstVideoBitrateValueRange(null)
+                .secondVideoSizeRange(null)
+                //Audio
+                .audioCodecs(null)
+                .audioChannels(null)
+                .audioLanguages(null)
+                .firstAudioBitrateValueRange(null)
+                .secondAudioBitrateValueRange(null)
+                //Genres
+                .genres(null)
+                //file size range
+                .firstVideoSizeRange(null)
+                .secondVideoSizeRange(null)
+                .build());
+    }
+
     public SourcePath createSourcePathMovieDownloads(){
         String path = Path.of("src/test/resources/downloadSources/movies").normalize().toString();
         return sourcePathRepository.save(SourcePath.builder()
@@ -182,15 +170,74 @@ public class TestDataFactory {
                         .path(path)
                         .pathType(SourcePath.PathType.DOWNLOAD)
                         .libraryItem(LibraryItems.MOVIE)
+                        .configuration(createMovieDownloadsConfiguration())
+                .build());
+    }
+
+    public Configuration createTvShowSourceConfiguration(){
+        return configurationRepository.save(Configuration.builder()
+                .maxDatesSaveFile(5)
+                .maxDatesControlFilesFromExternalSource(5000)
+                //Video
+                .videoCodecs(null)
+                .videoResolutions(null)
+                .firstVideoBitrateValueRange(null)
+                .secondVideoSizeRange(null)
+                //Audio
+                .audioCodecs(null)
+                .audioChannels(null)
+                .audioLanguages(null)
+                .firstAudioBitrateValueRange(null)
+                .secondAudioBitrateValueRange(null)
+                //Genres
+                .genres(null)
+                //file size range
+                .firstVideoSizeRange(null)
+                .secondVideoSizeRange(null)
                 .build());
     }
 
     public SourcePath createSourcePathTvShowSource(){
-        String path = Path.of("c:/tvShow").normalize().toString();
+        String path = Path.of("src/test/resources/mainSources/tvShows").normalize().toString();
         return sourcePathRepository.save(SourcePath.builder()
                 .path(path)
                 .pathType(SourcePath.PathType.SOURCE)
                 .libraryItem(LibraryItems.TV_SHOW)
+                        .configuration(createTvShowSourceConfiguration())
+                .build());
+    }
+
+    public Configuration createMovieSourceConfiguration(){
+        return configurationRepository.save(Configuration.builder()
+                .maxDatesSaveFile(5)
+                .maxDatesControlFilesFromExternalSource(5000)
+                //Video
+                .videoCodecs(null)
+                .videoResolutions(null)
+                .firstVideoBitrateValueRange(null)
+                .secondVideoSizeRange(null)
+                //Audio
+                .audioCodecs(null)
+                .audioChannels(null)
+                .audioLanguages(null)
+                .firstAudioBitrateValueRange(null)
+                .secondAudioBitrateValueRange(null)
+                //Genres
+                .genres(null)
+                //file size range
+                .firstVideoSizeRange(null)
+                .secondVideoSizeRange(null)
+                .build());
+    }
+
+    @Transactional
+    public SourcePath createSourcePathMovieSource(){
+        String path = Path.of("src/test/resources/mainSources/movies").normalize().toString();
+        return sourcePathRepository.save(SourcePath.builder()
+                .path(path)
+                .pathType(SourcePath.PathType.SOURCE)
+                .libraryItem(LibraryItems.TV_SHOW)
+                        .configuration(createMovieSourceConfiguration())
                 .build());
     }
 
@@ -218,7 +265,7 @@ public class TestDataFactory {
     }
 
     @Transactional
-    public VideoFilePath createVideoFilePath(){
+    public VideoFilePath createTvShowVideoFilePath(){
         TvShowEpisode tvShowEpisode = createTvShowEpisode();
         SourcePath sourcePath = createSourcePathTvShowSource();
         String path = Path.of("/test1.mp4").normalize().toString();
@@ -251,6 +298,224 @@ public class TestDataFactory {
                 .tvShow(tvShow)
                 .modificationDateTime(tvShow.getLastModificationDateTime())
                         .videoFilePaths(new ArrayList<>())
+                .build());
+    }
+
+    public User createUserUser(){
+        return userRepository.save(User.builder()
+                        .email("user@email.com")
+                        .username("user")
+                        .password("password")
+                        .name("user name")
+                .build());
+    }
+
+    public User createUserAdmin(){
+        return userRepository.save(User.builder()
+                .email("admin@email.com")
+                .username("admin")
+                .password("password")
+                .name("admin name")
+                .build());
+    }
+
+    public AudioChannel createAudioChannelMono(){
+        return audioChannelsRepository.save(AudioChannel.builder()
+                .title("1 Mono")
+                .channels(1)
+                .description("Single audio channel")
+                .build());
+    }
+
+    public AudioChannel createAudioChannelStereo(){
+        return audioChannelsRepository.save(AudioChannel.builder()
+                .title("2 Stereo")
+                .channels(2)
+                .description("Two-channel stereo sound")
+                .build());
+    }
+
+    public Codec createCodecH264(){
+        return codecRepository.save(Codec.builder()
+                .mediaType(MediaTypes.VIDEO)
+                .name("H264")
+                .build());
+    }
+
+    public Codec createCodecH265(){
+        return codecRepository.save(Codec.builder()
+                .mediaType(MediaTypes.VIDEO)
+                .name("H265")
+                .build());
+    }
+
+    private Codec createCodecSRT() {
+        return codecRepository.save(Codec.builder()
+                .mediaType(MediaTypes.SUBTITLE)
+                .name("SRT")
+                .build());
+    }
+
+    public Codec createCodecAAC(){
+        return codecRepository.save(Codec.builder()
+                .mediaType(MediaTypes.AUDIO)
+                .name("AAC")
+                .build());
+    }
+
+    public Resolution createResolutionHd(){
+        return resolutionRepository.save(Resolution.builder()
+                .name("720p")
+                .build());
+    }
+
+    public Resolution createResolutionFullHd(){
+        return resolutionRepository.save(Resolution.builder()
+                .name("1080p")
+                .build());
+    }
+
+    @Transactional
+    public Video createTvShowVideo(){
+        return videoRepository.save(Video.builder()
+                        .bitrate(1000)
+                        .codec(createCodecH264())
+                        .resolution(createResolutionFullHd())
+                        .videoFilePath(createTvShowVideoFilePath())
+                .build());
+    }
+
+    @Transactional
+    public Audio createTvShowAudio(){
+        return audioRepository.save(Audio.builder()
+                        .audioChannel(createAudioChannelMono())
+                        .bitrate(128)
+                        .codec(createCodecAAC())
+                        .language(createLanguageEn())
+                        .videoFilePath(createTvShowVideoFilePath())
+                .build());
+    }
+
+    @Transactional
+    public Subtitle createTvShowSubtitle(){
+        return subtitleRepository.save(Subtitle.builder()
+                .codec(createCodecSRT())
+                .language(createLanguageEn())
+                .videoFilePath(createTvShowVideoFilePath())
+                .build());
+    }
+
+
+
+    public Language createLanguageEn(){
+        return languageRepository.save(Language.builder()
+                .englishTitle("English")
+                .originalTitle("English")
+                .iso6391("en")
+                .iso6392B("eng")
+                .iso6392T("eng")
+                .build());
+    }
+
+    @Transactional
+    public Movie createMovie(){
+        List<Genre> genres = new ArrayList<>();
+        genres.add(createGenreAdventure());
+        genres.add(createGenreAction());
+
+        List<Contributor> actors = new ArrayList<>();
+        actors.add(createActor());
+
+        List<Contributor> writers = new ArrayList<>();
+        writers.add(createWriter());
+
+        List<Contributor> directors = new ArrayList<>();
+        directors.add(createDirector());
+
+        List<Country> countries = new ArrayList<>();
+        countries.add(createCountryAlbania());
+
+        List<Character> characters = new ArrayList<>();
+
+        return movieRepository.save(Movie.builder()
+                .title("Test Movie")
+                .originalTitle("Test Movie Original")
+                .year(2026)
+                .rate(8.5)
+                .releaseDate(LocalDate.of(2026, 2, 2))
+                .poster("test_poster.jpg")
+                .overview("This is a test movie for unit testing.")
+                .lastModificationDateTime(LocalDateTime.now())
+                .theMovieDbId(123456L)
+                .originalLanguage(createLanguageEn())
+                .genres(genres)
+                .directors(directors)
+                .writers(writers)
+                .actors(actors)
+                .countries(countries)
+                .characters(characters)
+                .build());
+    }
+
+    @Transactional
+    public VideoFilePath createMovieVideoFilePath(){
+        TvShowEpisode tvShowEpisode = createTvShowEpisode();
+        SourcePath sourcePath = createSourcePathMovieSource();
+        String path = Path.of("/movieFile.mp4").normalize().toString();
+        VideoFilePath videoFilePath = videoFilePathRepository.save(VideoFilePath.builder()
+                .filePath(path)
+                        .movie(createMovie())
+                .modificationDateTime(tvShowEpisode.getModificationDateTime())
+                .sourcePath(sourcePath)
+                .build());
+
+        createMovieVideo();
+        createMovieAudio();
+        createMovieSubtitle();
+
+        return videoFilePath;
+    }
+
+    @Transactional
+    public Video createMovieVideo(){
+        return videoRepository.save(Video.builder()
+                .bitrate(1000)
+                .codec(createCodecH264())
+                .resolution(createResolutionFullHd())
+                .videoFilePath(createMovieVideoFilePath())
+                .build());
+    }
+
+    @Transactional
+    public Audio createMovieAudio(){
+        return audioRepository.save(Audio.builder()
+                .audioChannel(createAudioChannelMono())
+                .bitrate(128)
+                .codec(createCodecAAC())
+                .language(createLanguageEn())
+                .videoFilePath(createMovieVideoFilePath())
+                .build());
+    }
+
+    @Transactional
+    public Subtitle createMovieSubtitle(){
+        return subtitleRepository.save(Subtitle.builder()
+                .codec(createCodecSRT())
+                .language(createLanguageEn())
+                .videoFilePath(createMovieVideoFilePath())
+                .build());
+    }
+
+    //Genres
+    public Genre createGenreAction(){
+        return genreRepository.save(Genre.builder()
+                .title("Action")
+                .build());
+    }
+
+    public Genre createGenreAdventure(){
+        return genreRepository.save(Genre.builder()
+                .title("Adventure")
                 .build());
     }
 }

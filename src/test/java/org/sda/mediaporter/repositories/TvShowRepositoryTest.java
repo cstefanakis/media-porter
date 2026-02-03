@@ -43,7 +43,7 @@ class TvShowRepositoryTest {
 
     @BeforeEach
     void setup(){
-        this.videoFilePath1 = testDataFactory.createVideoFilePath();
+        this.videoFilePath1 = testDataFactory.createTvShowVideoFilePath();
         TvShowEpisode tvShowEpisode = this.videoFilePath1.getTvShowEpisode();
         this.tvShow = tvShowEpisode.getTvShow();
         this.sourcePath1 = this.videoFilePath1.getSourcePath();

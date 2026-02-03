@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +19,8 @@ public interface VideoFilePathRepository extends JpaRepository<VideoFilePath, Lo
     @Query("""
             SELECT vfp
             FROM VideoFilePath vfp
-            WHERE vfp.filePath = :filePath
+            JOIN vfp.sourcePath sp
+            WHERE CONCAT(sp.path, vfp.filePath) = :filePath
             """)
     Optional<VideoFilePath> findVideoFilePathByPath(@Param("filePath") String filePath);
 

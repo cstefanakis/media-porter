@@ -70,7 +70,7 @@ public class TvShowEpisode {
     @Column (name = "types")
     private String type;
 
-    @Column (name = "episode_mames")
+    @Column (name = "episode_names")
     private String episodeName;
 
     @Column (name = "ratings")

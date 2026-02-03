@@ -47,7 +47,7 @@ public class Movie {
     @Column(name = "last_modification_date")
     private LocalDateTime lastModificationDateTime;
 
-    @Column(name = "theMovieDb_id")
+    @Column(name = "the_movie_db_id")
     private Long theMovieDbId;
 
     @ManyToOne

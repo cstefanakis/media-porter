@@ -13,15 +13,12 @@ import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.repositories.LanguageRepository;
-import org.sda.mediaporter.repositories.metadata.AudioChannelRepository;
 import org.sda.mediaporter.repositories.metadata.AudioRepository;
-import org.sda.mediaporter.repositories.metadata.CodecRepository;
 import org.sda.mediaporter.services.CodecService;
 import org.sda.mediaporter.services.audioServices.impl.AudioServiceImpl;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

@@ -29,7 +29,7 @@ public interface VideoFilePathService {
 
     String getVideoFileNamePart(Video video);
 
-    String getAudioFileNamePart(Set<Audio> audios);
+    String getAudioFileNamePart(List<Audio> audios);
 
     String getFilePathWithoutSourcePath(Path filePath, SourcePath sourcePath);
 

@@ -1,6 +1,5 @@
 package org.sda.mediaporter.services.fileServices.impl;
 
-
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -165,7 +163,7 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
     }
 
     @Override
-    public String getAudioFileNamePart(Set<Audio> audios) {
+    public String getAudioFileNamePart(List<Audio> audios) {
         if(audios == null || audios.isEmpty()){
             return "";
         }

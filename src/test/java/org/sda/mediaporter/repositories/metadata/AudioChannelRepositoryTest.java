@@ -2,7 +2,6 @@ package org.sda.mediaporter.repositories.metadata;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.testutil.TestDataFactory;
 import org.springframework.beans.factory.annotation.Autowired;

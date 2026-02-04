@@ -8,6 +8,7 @@ import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Resolution;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,7 +38,8 @@ public class Configuration {
             joinColumns = @JoinColumn(name = "configuration_id"),
             inverseJoinColumns = @JoinColumn(name = "resolution_id")
     )
-    private List<Resolution> videoResolutions;
+    @Builder.Default
+    private List<Resolution> videoResolutions = new ArrayList<>();
 
     @Column(name = "first_video_bitrates_range")
     private Integer firstVideoBitrateValueRange;
@@ -52,7 +54,8 @@ public class Configuration {
             joinColumns = @JoinColumn(name = "configuration_id"),
             inverseJoinColumns = @JoinColumn(name = "video_codec_id")
     )
-    private List<Codec> videoCodecs;
+    @Builder.Default
+    private List<Codec> videoCodecs = new ArrayList<>();
 
     @Column(name = "first_audio_bitrates_range")
     private Integer firstAudioBitrateValueRange;
@@ -67,7 +70,8 @@ public class Configuration {
             joinColumns = @JoinColumn(name = "configuration_id"),
             inverseJoinColumns = @JoinColumn(name = "audio_channel_id")
     )
-    private List<AudioChannel> audioChannels;
+    @Builder.Default
+    private List<AudioChannel> audioChannels = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JsonManagedReference("audioCodecs")
@@ -86,7 +90,7 @@ public class Configuration {
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
     @Builder.Default
-    private Set<Genre> genres = new HashSet<>();
+    private List<Genre> genres = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JsonManagedReference("configurationAudioLanguages")
@@ -95,7 +99,8 @@ public class Configuration {
             joinColumns = @JoinColumn(name = "configuration_id"),
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
-    private List<Language> audioLanguages;
+    @Builder.Default
+    private List<Language> audioLanguages = new ArrayList<>();
 
     @Column(name = "first_video_sizes_range")
     private Double firstVideoSizeRange;

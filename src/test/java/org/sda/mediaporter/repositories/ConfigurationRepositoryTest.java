@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -166,10 +167,12 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileAudioBitrateInRange_outOfRangeEnd() {
         //Arrest
-        SourcePath sourcePath = this.tvShowSP;
+        this.tvShowConfig.setFirstAudioBitrateValueRange(128);
+        this.tvShowConfig.setSecondAudioBitrateValueRange(512);
+        this.tvShowConfig = configurationRepository.save(tvShowConfig);
         Integer audioBitrate = 64;
         //Act
-        boolean result = configurationRepository.isFileAudioBitrateInRange(audioBitrate, sourcePath);
+        boolean result = configurationRepository.isFileAudioBitrateInRange(audioBitrate, this.tvShowSP);
         //Assert
         assertFalse(result);
     }
@@ -189,8 +192,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileSupportGenres_configurationGenreIsIncludeGenre() {
         //Arrest
-        this.tvShowConfig.getGenres().add(this.action);
-        this.tvShowConfig.getGenres().add(this.adventure);
+        this.tvShowConfig.setGenres(new ArrayList<>(List.of(this.action, this.adventure)));
         this.tvShowConfig = configurationRepository.save(this.tvShowConfig);
         //Act
         boolean result = configurationRepository.isFileSupportGenres(this.action, this.tvShowSP);
@@ -202,7 +204,7 @@ class ConfigurationRepositoryTest {
     void isFileSupportGenres_configurationGenreIsNotIncludeGenre() {
         //Arrest
         Genre genre = this.action;
-        this.tvShowConfig.setGenres(List.of(this.adventure));
+        this.tvShowConfig.setGenres(new ArrayList<>(List.of(this.adventure)));
         this.tvShowConfig = configurationRepository.save(this.tvShowConfig);
         //Act
         boolean result = configurationRepository.isFileSupportGenres(genre, this.tvShowSP);

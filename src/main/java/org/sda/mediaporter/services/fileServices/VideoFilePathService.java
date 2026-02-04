@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public interface VideoFilePathService {
@@ -28,7 +29,7 @@ public interface VideoFilePathService {
 
     String getVideoFileNamePart(Video video);
 
-    String getAudioFileNamePart(List<Audio> audios);
+    String getAudioFileNamePart(Set<Audio> audios);
 
     String getFilePathWithoutSourcePath(Path filePath, SourcePath sourcePath);
 

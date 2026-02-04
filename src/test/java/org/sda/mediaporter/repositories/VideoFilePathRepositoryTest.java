@@ -4,7 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.VideoFilePath;
+import org.sda.mediaporter.models.enums.LibraryItems;
 import org.sda.mediaporter.models.metadata.Audio;
+import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.repositories.metadata.AudioRepository;
 import org.sda.mediaporter.testutil.TestDataFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,13 +110,42 @@ class VideoFilePathRepositoryTest {
 
     @Test
     void deleteSubtitlesFromVideoFilePath() {
+        //Arrest
+        List<Long> subtitles = this.tvShowVideoFilePath.getSubtitles().stream()
+                .map(Subtitle::getId)
+                .toList();
+        Long tvShowVideoFilePathId = this.tvShowVideoFilePath.getId();
+        //Act
+        videoFilePathRepository.deleteAudiosFromVideoFilePath(this.tvShowVideoFilePath);
+        VideoFilePath videoFilePath = videoFilePathRepository.findById(tvShowVideoFilePathId).orElse(null);
+        assertNotNull(videoFilePath);
+        assertNotNull(videoFilePath.getSubtitles());
+        assertTrue(videoFilePath.getAudios().isEmpty());
+        subtitles.forEach(id -> assertFalse(audioRepository.findById(id).isPresent()));
     }
 
     @Test
     void findStringFullPathFromVideoFilePathId() {
+        //Arrest
+        Long vfpId = this.tvShowVideoFilePath.getId();
+        String spPath = this.tvShowVideoFilePath.getSourcePath().getPath();
+        String vfpPath = this.tvShowVideoFilePath.getFilePath();
+        String path = Path.of(spPath + vfpPath).normalize().toString();
+        //Act
+        String result = videoFilePathRepository.findStringFullPathFromVideoFilePathId(vfpId);
+        //Assert
+        assertNotNull(result);
+        assertEquals(path, result);
     }
 
     @Test
     void findTvShowsVideoFilePathIdsByLibraryItems() {
+        //Arrest
+        Long vfpId = this.tvShowVideoFilePath.getId();
+        //Act
+        List<Long> result = videoFilePathRepository.findTvShowsVideoFilePathIdsByLibraryItems(LibraryItems.TV_SHOW);
+        //Assert
+        assertNotNull(result);
+        assertTrue(result.contains(vfpId));
     }
 }

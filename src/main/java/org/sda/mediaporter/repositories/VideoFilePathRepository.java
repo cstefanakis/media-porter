@@ -74,7 +74,7 @@ public interface VideoFilePathRepository extends JpaRepository<VideoFilePath, Lo
     List<VideoFilePath> findTvShowEpisodeVideoFilePathsBySourcePathId(Long sourcePathId);
 
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             DELETE FROM Audio a
             WHERE a.videoFilePath = :videoFilePath
@@ -82,7 +82,7 @@ public interface VideoFilePathRepository extends JpaRepository<VideoFilePath, Lo
     void deleteAudiosFromVideoFilePath(@Param("videoFilePath") VideoFilePath videoFilePath);
 
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             DELETE FROM Subtitle s
             WHERE s.videoFilePath = :videoFilePath

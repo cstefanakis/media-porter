@@ -37,9 +37,9 @@ public class AudioServiceImpl implements AudioService {
 
     @Override
     @Transactional
-    public List<Audio> getCreatedAudiosFromPathFile(Path filePath, VideoFilePath videoFilePath){
+    public Set<Audio> getCreatedAudiosFromPathFile(Path filePath, VideoFilePath videoFilePath){
         String[] audiosLines = audioInfo(filePath).split("\\R");
-        List<Audio> audios = new ArrayList<>();
+        Set<Audio> audios = new HashSet<>();
         for (String ffMpegProperties : audiosLines) {
             Audio audio = generatedAudiosFromFFMpeg(ffMpegProperties);
             audio.setVideoFilePath(videoFilePath);
@@ -50,9 +50,9 @@ public class AudioServiceImpl implements AudioService {
     }
 
     @Override
-    public List<Audio> getAudiosFromPathFile(Path filePath, VideoFilePath videoFilePath){
+    public Set<Audio> getAudiosFromPathFile(Path filePath, VideoFilePath videoFilePath){
         String[] audiosLines = audioInfo(filePath).split("\\R");
-        List<Audio> audios = new ArrayList<>();
+        Set<Audio> audios = new HashSet<>();
         for (String ffMpegProperties : audiosLines) {
             Audio audio = generatedAudiosFromFFMpeg(ffMpegProperties);
             audio.setVideoFilePath(videoFilePath);

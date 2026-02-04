@@ -276,7 +276,7 @@ public class TestDataFactory {
                         .sourcePath(sourcePath)
                 .build();
         videoFilePath.getAudios().add(audio(videoFilePath));
-        videoFilePath.setVideo(video(videoFilePath));
+        videoFilePath.setVideo(videoRepository.save(video(videoFilePath)));
         videoFilePath.getSubtitles().add(subtitle(videoFilePath));
         return videoFilePathRepository.save(videoFilePath);
     }

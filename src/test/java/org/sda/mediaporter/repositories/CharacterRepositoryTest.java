@@ -8,7 +8,6 @@ import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.metadata.Character;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;

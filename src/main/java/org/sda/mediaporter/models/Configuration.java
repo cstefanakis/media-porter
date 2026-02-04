@@ -8,7 +8,9 @@ import org.sda.mediaporter.models.metadata.AudioChannel;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.sda.mediaporter.models.metadata.Resolution;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "configurations")
@@ -83,7 +85,8 @@ public class Configuration {
             joinColumns = @JoinColumn(name = "configuration_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
-    private List<Genre> genres;
+    @Builder.Default
+    private Set<Genre> genres = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JsonManagedReference("configurationAudioLanguages")

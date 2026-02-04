@@ -1,6 +1,5 @@
 package org.sda.mediaporter.repositories.metadata;
 
-import org.apache.tomcat.util.http.parser.MediaType;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
 import org.springframework.data.jpa.repository.JpaRepository;

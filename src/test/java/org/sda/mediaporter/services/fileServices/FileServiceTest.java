@@ -1,83 +1,92 @@
 package org.sda.mediaporter.services.fileServices;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class FileServiceTest {
+    @Test
+    void getVideoFiles() {
+    }
 
-//    @Autowired
-//    private FileService fileService;
-//
-//    @Test
-//    void getVideoFiles() {
-//    }
-//
-//    @Test
-//    void deleteFile() {
-//    }
-//
-//    @Test
-//    void moveFile() {
-//    }
-//
-//    @Test
-//    void renameFile() {
-//    }
-//
-//    @Test
-//    void getFileExtensionWithDot() {
-//    }
-//
-//    @Test
-//    void getSafeFileName() {
-//        //Arrest
-//        String fileName = "this.is&unsafe(filě)/";
-//        //Act
-//        String result = fileService.getSafeFileName(fileName);
-//        //Assert
-//        assertEquals("this is unsafe filě", result);
-//    }
-//
-//    @Test
-//    void createdDirectories() {
-//    }
-//
-//    @Test
-//    void getModificationLocalDateTimeOfPath() {
-//    }
-//
-//    @Test
-//    void localDateTimeToFileTime() {
-//    }
-//
-//    @Test
-//    void getStringWithoutDiacritics() {
-//        //Arrest
-//        String text = "Tři oříšky pro Popelku";
-//        //Act
-//        String result = fileService.getStringWithoutDiacritics(text);
-//        //Assert
-//        assertEquals("Tri orisky pro Popelku", result);
-//    }
-//
-//    @Test
-//    void deleteAllEmptyDirectories() {
-//        //Arrest
-//        Path rootDirectory = Path.of("C:\\Users\\chris\\Downloads\\Movies");
-//        //Act
-//        fileService.deleteAllEmptyDirectories(rootDirectory);
-//        boolean result = fileService.isDirectoryEmpty(rootDirectory);
-//        //Assert
-//        assertTrue(result);
-//    }
+    @Test
+    void copyFile() {
+    }
 
+    @Test
+    void deleteFile() {
+    }
+
+    @Test
+    void moveFile() {
+    }
+
+    @Test
+    void renameFile() {
+    }
+
+    @Test
+    void deleteSubDirectories() {
+    }
+
+    @Test
+    void getFileExtensionWithDot() {
+    }
+
+    @Test
+    void getSafeFileName() {
+    }
+
+    @Test
+    void createdDirectories() {
+    }
+
+    @Test
+    void getModificationLocalDateTimeOfPath() {
+    }
+
+    @Test
+    void localDateTimeToFileTime() {
+    }
+
+    @Test
+    void getStringWithoutDiacritics() {
+    }
+
+    @Test
+    void isFilePathExist() {
+    }
+
+    @Test
+    void deleteAllFilesInDirectory() {
+    }
+
+    @Test
+    void isDirectoryEmpty() {
+    }
+
+    @Test
+    void getAllEmptyDirectories() {
+    }
+
+    @Test
+    void deleteAllEmptyDirectories() {
+    }
+
+    @Test
+    void deleteAllDirectoriesWithoutVideFiles() {
+    }
+
+    @Test
+    void getVideoFilesUntil() {
+    }
+
+    @Test
+    void getFileSizeInMB() {
+    }
+
+    @Test
+    void setLastModifiedTimeToFilePath() {
+    }
 }

@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ConfigurationRepository extends JpaRepository<Configuration, Long> {
@@ -167,4 +168,11 @@ public interface ConfigurationRepository extends JpaRepository<Configuration, Lo
         """)
     boolean isFileSupportGenres(@Param("genre") Genre genre,
                                 @Param("sourcePath")SourcePath sourcePath);
+
+    @Query("""
+            SELECT c FROM Configuration c
+            LEFT JOIN c.sourcePath sp
+            WHERE sp.id = :sourcePathId
+            """)
+    Optional<Configuration> findConfigurationBySourcePathId(@Param("sourcePathId") Long sourcePathId);
 }

@@ -8,8 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.sda.mediaporter.models.metadata.Character;
 
-import java.util.List;
-
 @Repository
 public interface CharacterRepository extends JpaRepository<Character, Long> {
 

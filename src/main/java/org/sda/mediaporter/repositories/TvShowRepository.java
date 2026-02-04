@@ -51,7 +51,7 @@ public interface TvShowRepository extends JpaRepository<TvShow, Long> {
     Long findTvShowIdByVideoFilePathId(@Param("videoFilePathId") Long videoFilePathId);
 
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             DELETE FROM TvShow ts
             WHERE ts.tvShowEpisodes IS EMPTY
@@ -60,7 +60,7 @@ public interface TvShowRepository extends JpaRepository<TvShow, Long> {
     void deleteTvShowWithoutTvShowEpisodes(@Param("tvShowId") Long tvShowId);
 
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             DELETE FROM TvShow ts
             WHERE ts.tvShowEpisodes IS EMPTY

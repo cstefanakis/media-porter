@@ -11,10 +11,4 @@ class GlobalSchedulerServiceTest {
 
     @Autowired
     private GlobalSchedulerService globalSchedulerService;
-
-    @Test
-    void cleanVideoFilePaths() {
-        //Act
-        globalSchedulerService.cleanVideoFilePaths();
-    }
 }

@@ -36,5 +36,4 @@ public class ConfigurationController {
         Configuration configuration = configurationService.getConfigurationById(id);
         return ResponseEntity.ok().body(configuration);
     }
-
 }

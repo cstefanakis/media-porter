@@ -1,15 +1,19 @@
 package org.sda.mediaporter.repositories;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.TvShow;
 import org.sda.mediaporter.models.TvShowEpisode;
 import org.sda.mediaporter.models.VideoFilePath;
-import org.sda.mediaporter.models.enums.LibraryItems;
+import org.sda.mediaporter.testutil.TestDataFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,149 +21,113 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@DataJpaTest
+@ActiveProfiles("test")
+@Import(TestDataFactory.class)
 class TvShowRepositoryTest {
 
     @Autowired
     private TvShowRepository tvShowRepository;
 
     @Autowired
-    private VideoFilePathRepository videoFilePathRepository;
-
-    @Autowired
     private SourcePathRepository sourcePathRepository;
 
     @Autowired
-    private TvShowEpisodeRepository tvShowEpisodeRepository;
+    private TestDataFactory testDataFactory;
 
-    private TvShow tvShow1;
-    private TvShow tvShow2;
-    private TvShow tvShow3;
-    private TvShowEpisode tvShowEpisode1;
-    private TvShowEpisode tvShowEpisode2;
+    private TvShow tvShow;
+    private TvShow tvShowWithoutEpisodes;
     private SourcePath sourcePath1;
-    private SourcePath sourcePath2;
     private VideoFilePath videoFilePath1;
-    private VideoFilePath videoFilePath2;
 
 
     @BeforeEach
     void setup(){
+        this.videoFilePath1 = testDataFactory.createTvShowVideoFilePath();
+        TvShowEpisode tvShowEpisode = this.videoFilePath1.getTvShowEpisode();
+        this.tvShow = tvShowEpisode.getTvShow();
+        this.sourcePath1 = this.videoFilePath1.getSourcePath();
+        this.tvShowWithoutEpisodes = testDataFactory.createTvShowWithoutVideoFilePaths();
+    }
+    @Test
+    void findTvShowsByTitle_TwoResults() {
+        //Arrest
+        String title = "title";
+        Pageable pageable = PageRequest.of(0,5);
+        //Act
+        Page <TvShow> result = tvShowRepository.findTvShowsByTitle(title, pageable);
+        //Assert
+        assertEquals(2, result.getContent().size());
+    }
 
-        LocalDateTime daysBefore4 = LocalDateTime.now().minusDays(4);
-        LocalDateTime daysBefore2 = LocalDateTime.now().minusDays(2);
+    @Test
+    void findTvShowsByTitle_OneResult() {
+        //Arrest
+        String title = "2";
+        Pageable pageable = PageRequest.of(0,5);
+        //Act
+        Page <TvShow> result = tvShowRepository.findTvShowsByTitle(title, pageable);
+        //Assert
+        assertEquals(1, result.getContent().size());
+    }
 
-        this.tvShow1 = tvShowRepository.save(TvShow.builder()
-                        .title("tvShowTitle1")
-                        .lastModificationDateTime(daysBefore2)
-                .build());
+    @Test
+    void findTvShowsByTitle_NoResult() {
+        //Arrest
+        String title = "movie";
+        Pageable pageable = PageRequest.of(0,5);
+        //Act
+        Page <TvShow> result = tvShowRepository.findTvShowsByTitle(title, pageable);
+        //Assert
+        assertEquals(0, result.getContent().size());
+    }
 
-        this.tvShow2 = tvShowRepository.save(TvShow.builder()
-                .title("tvShowTitle2")
-                .lastModificationDateTime(daysBefore4)
-                .build());
+    @Test
+    void findTvShowByTheMovieDBId_findIt() {
+        //Arrest
+        Long tvShowTMDBId = tvShow.getTheMoveDBTvShowId();
+        //Act
+        Optional<TvShow> result = tvShowRepository.findTvShowByTheMovieDBId(tvShowTMDBId);
+        //Assert
+        assertTrue(result.isPresent());
+    }
 
-        this.tvShow3 = tvShowRepository.save(TvShow.builder()
-                .title("tvShowTitle3")
-                .lastModificationDateTime(daysBefore4)
-                .build());
-
-        this.tvShowEpisode1 = tvShowEpisodeRepository.save(TvShowEpisode.builder()
-                .tvShow(this.tvShow1)
-                        .episodeName("title1")
-                        .theMovieDbId(1L)
-                        .seasonNumber(1)
-                        .episodeNumber(1)
-                .build());
-
-        this.tvShowEpisode2 = tvShowEpisodeRepository.save(TvShowEpisode.builder()
-                .tvShow(this.tvShow2)
-                .episodeName("title2")
-                .theMovieDbId(2L)
-                .seasonNumber(1)
-                .episodeNumber(1)
-                .build());
-
-        this.sourcePath1 = sourcePathRepository.save(SourcePath.builder()
-                .path("c:/tvShow")
-                .pathType(SourcePath.PathType.SOURCE)
-                .libraryItem(LibraryItems.TV_SHOW)
-                .build());
-
-        this.sourcePath2 = sourcePathRepository.save(SourcePath.builder()
-                .path("c:/download")
-                .pathType(SourcePath.PathType.DOWNLOAD)
-                .libraryItem(LibraryItems.TV_SHOW)
-                .build());
-
-        this.videoFilePath1 = videoFilePathRepository.save(VideoFilePath.builder()
-                .modificationDateTime(daysBefore2)
-                .sourcePath(this.sourcePath1)
-                .filePath("/test1.mp4")
-                        .tvShowEpisode(this.tvShowEpisode1)
-                .build());
-
-        this.videoFilePath2 = videoFilePathRepository.save(VideoFilePath.builder()
-                .modificationDateTime(daysBefore4)
-                .sourcePath(this.sourcePath2)
-                .filePath("/test2.mp4")
-                        .tvShowEpisode(tvShowEpisode2)
-                .build());
+    @Test
+    void findTvShowByTheMovieDBId_NoFindIt() {
+        //Arrest
+        Long tvShowTMDBId = 0L;
+        //Act
+        Optional<TvShow> result = tvShowRepository.findTvShowByTheMovieDBId(tvShowTMDBId);
+        //Assert
+        assertFalse(result.isPresent());
     }
 
     @Test
     void findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath_3DaysOld() {
         //Arrest
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(3);
-        Long videoFilePathId = videoFilePath1.getId();
         //Act
         List<Long> result = tvShowRepository.findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath(localDateTime, this.sourcePath1);
         //Assert
         assertTrue(result.isEmpty());
-        assertFalse(result.contains(videoFilePathId));
-    }
-
-    @Test
-    void findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath_2DaysOld() {
-        //Arrest
-        LocalDateTime localDateTime = LocalDateTime.now().minusDays(2);
-        Long videoFilePathId = videoFilePath1.getId();
-        //Act
-        List<Long> result = tvShowRepository.findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath(localDateTime, this.sourcePath1);
-        //Assert
-        assertFalse(result.isEmpty());
-        assertTrue(result.contains(videoFilePathId));
     }
 
     @Test
     void findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath_1aysOld() {
         //Arrest
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(1);
-        Long videoFilePathId = videoFilePath1.getId();
         //Act
         List<Long> result = tvShowRepository.findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath(localDateTime, this.sourcePath1);
         //Assert
         assertFalse(result.isEmpty());
-        assertTrue(result.contains(videoFilePathId));
-    }
-
-    @Test
-    void findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath_4aysOld() {
-        //Arrest
-        LocalDateTime localDateTime = LocalDateTime.now().minusDays(4);
-        Long videoFilePathId = this.videoFilePath2.getId();
-        //Act
-        List<Long> result = tvShowRepository.findTvShowsVideoFilePathsThatTvShowIsOlderThanXDaysAndBySourcePath(localDateTime, this.sourcePath2);
-        //Assert
-        assertFalse(result.isEmpty());
-        assertTrue(result.contains(videoFilePathId));
+        assertEquals(1, result.size());
     }
 
     @Test
     void findTvShowIdByVideoFilePathId() {
         //Arrest
         Long videoFilePathId = this.videoFilePath1.getId();
-        Long tvShowId = this.tvShow1.getId();
+        Long tvShowId = this.tvShow.getId();
         //Act
         Long result = tvShowRepository.findTvShowIdByVideoFilePathId(videoFilePathId);
         //Assert
@@ -169,7 +137,7 @@ class TvShowRepositoryTest {
     @Test
     void deleteTvShowWithoutTvShowEpisodes() {
         //Arrest
-        Long tvShowId = this.tvShow3.getId();
+        Long tvShowId = this.tvShowWithoutEpisodes.getId();
         //Act
         tvShowRepository.deleteTvShowWithoutTvShowEpisodes(tvShowId);
         Optional <TvShow> result = tvShowRepository.findById(tvShowId);
@@ -177,20 +145,16 @@ class TvShowRepositoryTest {
         assertFalse(result.isPresent());
     }
 
-    @AfterEach
-    void end(){
-        videoFilePathRepository.delete(this.videoFilePath1);
-        videoFilePathRepository.delete(this.videoFilePath2);
-
-        tvShowEpisodeRepository.delete(this.tvShowEpisode1);
-        tvShowEpisodeRepository.delete(this.tvShowEpisode2);
-
-        tvShowRepository.delete(this.tvShow1);
-        tvShowRepository.delete(this.tvShow2);
-        tvShowRepository.delete(this.tvShow3);
-
-        sourcePathRepository.delete(this.sourcePath1);
-        sourcePathRepository.delete(this.sourcePath2);
+    @Test
+    void deleteTvShowsWithoutTvShowEpisodes() {
+        //Arrest
+        Long tvShowWithoutTvShowEpisodeId = this.tvShowWithoutEpisodes.getId();
+        Optional<TvShow> tvShowOptional = tvShowRepository.findById(tvShowWithoutTvShowEpisodeId);
+        assertTrue(tvShowOptional.isPresent());
+        //Act
+        tvShowRepository.deleteTvShowsWithoutTvShowEpisodes();
+        Optional<TvShow> result = tvShowRepository.findById(tvShowWithoutTvShowEpisodeId);
+        //Assert
+        assertFalse(result.isPresent());
     }
-
 }

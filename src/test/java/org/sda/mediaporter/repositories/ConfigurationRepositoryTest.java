@@ -2,83 +2,49 @@ package org.sda.mediaporter.repositories;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.sda.mediaporter.models.Configuration;
-import org.sda.mediaporter.models.Genre;
-import org.sda.mediaporter.models.SourcePath;
-import org.sda.mediaporter.models.enums.LibraryItems;
+import org.sda.mediaporter.models.*;
+import org.sda.mediaporter.testutil.TestDataFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@DataJpaTest
+@ActiveProfiles("test")
+@Import(TestDataFactory.class)
 class ConfigurationRepositoryTest {
 
     @Autowired
     private ConfigurationRepository configurationRepository;
 
     @Autowired
-    private SourcePathRepository sourcePathRepository;
+    private TestDataFactory testDataFactory;
 
-    @Autowired
-    private GenreRepository genreRepository;
+    private Genre action;
+    private Genre adventure;
+    private Configuration tvShowConfig;
+    private SourcePath tvShowSP;
 
-    private SourcePath sourcePath;
-    private Configuration configuration = new Configuration();
-    private Genre action = new Genre();
-    private Genre comedy = new Genre();
     @BeforeEach
     void setup(){
-        this.action = genreRepository.save(Genre.builder()
-                        .title("Action")
-                .build());
-
-        this.comedy = genreRepository.save(Genre.builder()
-                        .title("Comedy")
-                .build());
-
-        this.configuration = configurationRepository.save(Configuration.builder()
-                .maxDatesSaveFile(null)
-                .maxDatesControlFilesFromExternalSource(5000)
-                //Video
-                .videoCodecs(null)
-                .videoResolutions(new ArrayList<>())
-                .firstVideoBitrateValueRange(2000)
-                .secondVideoBitrateValueRange(5000)
-                //Audio
-                .audioCodecs(new ArrayList<>())
-                .audioChannels(new ArrayList<>())
-                .audioLanguages(new ArrayList<>())
-                .firstAudioBitrateValueRange(128)
-                .secondAudioBitrateValueRange(640)
-                //Genres
-                .genres(new ArrayList<>())
-                //file size range
-                .firstVideoSizeRange(null)
-                .secondVideoSizeRange(null)
-                .build());
-
-//        configuration.getVideoResolutions().add(resolution720p);
-//        configurationRepository.save(configuration);
-
-        SourcePath sourcePath = sourcePathRepository.save(SourcePath.builder()
-                .libraryItem(LibraryItems.MOVIE)
-                .path("C:\\Users\\chris\\Downloads\\Movies")
-                .title("Movies Download Path")
-                .pathType(SourcePath.PathType.DOWNLOAD)
-                .build());
-
-        configuration.setSourcePath(sourcePath);
-        sourcePath.setConfiguration(configuration);
-        this.sourcePath = sourcePathRepository.save(sourcePath);
+        VideoFilePath tvShowVfp = testDataFactory.createTvShowVideoFilePath();
+        this.action = testDataFactory.createGenreAction();
+        this.tvShowSP = tvShowVfp.getSourcePath();
+        this.tvShowConfig = this.tvShowSP.getConfiguration();
+        this.adventure = testDataFactory.createGenreAdventure();
     }
 
     @Test
     void isFileSupportSourceResolution() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         String resolution = "720p";
         //Act
         boolean result = configurationRepository.isFileSupportSourceResolution(resolution, sourcePath);
@@ -89,6 +55,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileAudioCodecSupport() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         String audioCodec = "AAC";
         //Act
         boolean result = configurationRepository.isFileAudioCodecSupport(audioCodec, sourcePath);
@@ -99,6 +66,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileSupportVideoCodec() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         String videoCodec = "H264";
         //Act
         boolean result = configurationRepository.isFileSupportVideoCodec(videoCodec, sourcePath);
@@ -109,6 +77,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileVideoBitrateInRange_bitrateIsNull() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         Integer videoBitrate = null;
         //Act
         boolean result = configurationRepository.isFileVideoBitrateInRange(videoBitrate, sourcePath);
@@ -119,6 +88,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileVideoBitrateInRangeBitrateIsInRange() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         Integer videoBitrate = 2500;
         //Act
         boolean result = configurationRepository.isFileVideoBitrateInRange(videoBitrate, sourcePath);
@@ -129,6 +99,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileVideoBitrateInRangeBitrateIsOutOfRange() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         Integer videoBitrate = 1000;
         //Act
         boolean result = configurationRepository.isFileVideoBitrateInRange(videoBitrate, sourcePath);
@@ -140,6 +111,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileAudioChannelsSupport() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         Integer audioChannels = 5;
         //Act
         boolean result = configurationRepository.isFileAudioChannelsSupport(audioChannels, sourcePath);
@@ -150,6 +122,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileAudioLanguageSupport() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         String audioLanguage = "EN";
         //Act
         boolean result = configurationRepository.isFileAudioLanguageSupport(audioLanguage, sourcePath);
@@ -161,6 +134,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileAudioBitrateInRange_toRangeStart() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         Integer audioBitrate = 128;
         //Act
         boolean result = configurationRepository.isFileAudioBitrateInRange(audioBitrate, sourcePath);
@@ -171,6 +145,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileAudioBitrateInRange_toRangeEnd() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         Integer audioBitrate = 640;
         //Act
         boolean result = configurationRepository.isFileAudioBitrateInRange(audioBitrate, sourcePath);
@@ -181,6 +156,7 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileAudioBitrateInRange_inRangeEnd() {
         //Arrest
+        SourcePath sourcePath = this.tvShowSP;
         Integer audioBitrate = 320;
         //Act
         boolean result = configurationRepository.isFileAudioBitrateInRange(audioBitrate, sourcePath);
@@ -191,9 +167,12 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileAudioBitrateInRange_outOfRangeEnd() {
         //Arrest
+        this.tvShowConfig.setFirstAudioBitrateValueRange(128);
+        this.tvShowConfig.setSecondAudioBitrateValueRange(512);
+        this.tvShowConfig = configurationRepository.save(tvShowConfig);
         Integer audioBitrate = 64;
         //Act
-        boolean result = configurationRepository.isFileAudioBitrateInRange(audioBitrate, sourcePath);
+        boolean result = configurationRepository.isFileAudioBitrateInRange(audioBitrate, this.tvShowSP);
         //Assert
         assertFalse(result);
     }
@@ -201,9 +180,11 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileSupportGenres_configurationGenreIsEmpty() {
         //Arrest
+
+        SourcePath sourcePath = this.tvShowSP;
         Genre genre = this.action;
         //Act
-        boolean result = configurationRepository.isFileSupportGenres(genre, this.sourcePath);
+        boolean result = configurationRepository.isFileSupportGenres(genre, sourcePath);
         //Assert
         assertTrue(result);
     }
@@ -211,11 +192,10 @@ class ConfigurationRepositoryTest {
     @Test
     void isFileSupportGenres_configurationGenreIsIncludeGenre() {
         //Arrest
-        Genre genre = this.action;
-        this.configuration.setGenres(List.of(this.action, this.comedy));
-        this.configuration = configurationRepository.save(this.configuration);
+        this.tvShowConfig.setGenres(new ArrayList<>(List.of(this.action, this.adventure)));
+        this.tvShowConfig = configurationRepository.save(this.tvShowConfig);
         //Act
-        boolean result = configurationRepository.isFileSupportGenres(genre, this.sourcePath);
+        boolean result = configurationRepository.isFileSupportGenres(this.action, this.tvShowSP);
         //Assert
         assertTrue(result);
     }
@@ -224,11 +204,23 @@ class ConfigurationRepositoryTest {
     void isFileSupportGenres_configurationGenreIsNotIncludeGenre() {
         //Arrest
         Genre genre = this.action;
-        this.configuration.setGenres(List.of(this.comedy));
-        this.configuration = configurationRepository.save(this.configuration);
+        this.tvShowConfig.setGenres(new ArrayList<>(List.of(this.adventure)));
+        this.tvShowConfig = configurationRepository.save(this.tvShowConfig);
         //Act
-        boolean result = configurationRepository.isFileSupportGenres(genre, this.sourcePath);
+        boolean result = configurationRepository.isFileSupportGenres(genre, this.tvShowSP);
         //Assert
         assertFalse(result);
+    }
+
+    @Test
+    void findConfigurationBySourcePathId() {
+        //Arrest
+        Long sourcePathId = this.tvShowSP.getId();
+        Long configurationId = this.tvShowConfig.getId();
+        //Act
+        Optional<Configuration> result = configurationRepository.findConfigurationBySourcePathId(sourcePathId);
+        //Assert
+        assertTrue(result.isPresent());
+        assertEquals(configurationId, result.get().getId());
     }
 }

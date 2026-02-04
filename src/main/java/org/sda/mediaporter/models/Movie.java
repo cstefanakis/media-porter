@@ -47,7 +47,7 @@ public class Movie {
     @Column(name = "last_modification_date")
     private LocalDateTime lastModificationDateTime;
 
-    @Column(name = "theMovieDb_id")
+    @Column(name = "the_movie_db_id")
     private Long theMovieDbId;
 
     @ManyToOne
@@ -56,7 +56,7 @@ public class Movie {
     private Language originalLanguage;
 
     // Many-to-Many relationship between Movie and Genre.
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JsonManagedReference
     @Builder.Default
     @JoinTable(
@@ -66,7 +66,7 @@ public class Movie {
     )
     private List<Genre> genres = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JsonManagedReference
     @Builder.Default
     @JoinTable(
@@ -76,7 +76,7 @@ public class Movie {
     )
     private List<Contributor> directors = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JsonManagedReference
     @Builder.Default
     @JoinTable(
@@ -86,7 +86,7 @@ public class Movie {
     )
     private List<Contributor> writers = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JsonBackReference
     @Builder.Default
     @JoinTable(
@@ -96,7 +96,7 @@ public class Movie {
     )
     private List<Contributor> actors = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JsonManagedReference
     @Builder.Default
     @JoinTable(

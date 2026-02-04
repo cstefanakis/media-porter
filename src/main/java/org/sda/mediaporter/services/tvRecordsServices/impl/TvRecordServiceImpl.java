@@ -18,9 +18,16 @@ public class TvRecordServiceImpl implements TvRecordService {
     }
 
     @Override
-    public String getFileNameOfPath(Path file) {
-        String fileName = file.getFileName().toString();
-        return getFilteredFileName(fileName);
+    public String getFilteredFileName(String fileNameOfPath) {
+        String extensionWithDot = fileService.getFileExtensionWithDot(fileNameOfPath);
+        String filteredName = fileNameOfPath
+                .replace(extensionWithDot, "")
+                .replaceAll("\\[.*?\\]|\\(.*?\\)", "")
+                .replaceAll("\\d{2,4}-\\d{2}-\\d{2}|\\d{2}-\\d{2}", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        return filteredName + extensionWithDot;
     }
 
     @Override
@@ -53,17 +60,5 @@ public class TvRecordServiceImpl implements TvRecordService {
                 fileLocalDateTime.getHour(),
                 fileLocalDateTime.getMinute()
         );
-    }
-
-    private String getFilteredFileName(String fileName) {
-        String extensionWithDot = fileService.getFileExtensionWithDot(fileName);
-        String filteredName = fileName
-                .replace(extensionWithDot, "")
-                .replaceAll("\\[.*?\\]|\\(.*?\\)", "")
-                .replaceAll("\\d{2,4}-\\d{2}-\\d{2}|\\d{2}-\\d{2}", "")
-                .replaceAll("\\s+", " ")
-                .trim();
-
-        return filteredName + extensionWithDot;
     }
 }

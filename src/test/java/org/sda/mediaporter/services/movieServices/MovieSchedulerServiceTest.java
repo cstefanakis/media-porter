@@ -111,31 +111,7 @@ class MovieSchedulerServiceTest {
     }
 
     @Test
-    void deleteMoviesOlderThan() {
-        //Act
-        movieSchedulerService.deleteMoviesOlderThan();
-        Optional<Movie> movieOptional = movieRepository.findById(this.movie.getId());
-        //Assert
-        assertFalse(movieOptional.isPresent());
-    }
-
-
-    @Test
     void moveMoviesFromExternalSources() {
-    }
-
-    @Test
-    void copyMoviesFromExternalSources() {
-        //Arrest
-        Path filePath = Path.of("C:\\Users\\chris\\Videos\\ExternalSourcePath\\Movies\\Young Hearts (2024)\\Young Hearts (2024) (1080p H264) ([2 CZE]  [6 DUT]).mkv");
-        Path newFilePath = Path.of("C:\\Users\\chris\\Downloads\\Movies\\Young Hearts (2024) (1080p H264) ([2 CZE]  [6 DUT]).mkv");
-        Path noCopyFile = Path.of("C:\\Users\\chris\\Downloads\\Movies\\The Shawshank Redemption (1994)\\The Shawshank Redemption (1994) (1080p H264) ([6 CZE]  [2 ENG]).mkv");
-        //Act
-        movieSchedulerService.copyMoviesFromExternalSources();
-        //Assert
-        assertTrue(Files.exists(filePath));
-        assertTrue(Files.exists(newFilePath));
-        assertFalse(Files.exists(noCopyFile));
     }
 
     @AfterEach

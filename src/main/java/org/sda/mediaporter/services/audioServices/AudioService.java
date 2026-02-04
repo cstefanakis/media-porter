@@ -6,6 +6,7 @@ import org.sda.mediaporter.models.metadata.Audio;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 public interface AudioService {
     List<Audio> getCreatedAudiosFromPathFile(Path filePath, VideoFilePath videoFilePath);

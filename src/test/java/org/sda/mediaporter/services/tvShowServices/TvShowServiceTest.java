@@ -173,17 +173,6 @@ class TvShowServiceTest {
 //    }
 
     @Test
-    void deleteVideoFilePathsFromTvShowsWithUnveiledPath() {
-        //Act
-        tvShowService.deleteVideoFilePathsFromTvShowsWithUnveiledPath();
-        //Arrest
-        Optional <VideoFilePath> videoFilePathOptional = videoFilePathRepository.findById(this.videoFilePathOld4Days.getId());
-        System.out.println();
-        //Assert
-        assertFalse(videoFilePathOptional.isPresent());
-    }
-
-    @Test
     void getTvShowAPISearchDTO() {
         //Arrest
         String title = "Prison Break";

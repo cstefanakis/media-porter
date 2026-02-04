@@ -48,4 +48,6 @@ public interface ConfigurationService {
     boolean isFileForCopy(VideoDto videoDto, List<AudioDto> audiosDto, List<Genre> movieGenres, SourcePath sourcePath, double fileSize, LocalDateTime fileModificationDateTime);
 
     boolean isFileOld(LocalDateTime fileModificationDate, Integer maxDatesSaveFile);
+
+    Configuration updateConfigurationBySourcePathId(Long id, ConfigurationDto configurationDto);
 }

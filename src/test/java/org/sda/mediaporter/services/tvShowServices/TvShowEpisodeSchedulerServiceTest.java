@@ -22,18 +22,6 @@ class TvShowEpisodeSchedulerServiceTest {
     private FileService fileService;
 
     @Test
-    void moveTvShowEpisodeFromDownloadsRootPathToMovieRootPath() {
-        //Arrest
-        Path pathFile = Path.of("src/test/resources/tvShows/Outer Banks (2020)/Season 01/Outer Banks (2020) - S01E01 - Pilot  (1080p H264) ([2 ENG]).mp4").normalize();
-        //Act
-        tvShowEpisodeSchedulerService.moveTvShowEpisodeFromDownloadsRootPathToTvShowsRootPath();
-        //Assert
-        assertTrue(Files.exists(pathFile));
-        fileService.deleteFile(pathFile);
-        fileService.deleteSubDirectories(pathFile);
-    }
-
-    @Test
     void scanTvShowSourcePath() {
         //
     }

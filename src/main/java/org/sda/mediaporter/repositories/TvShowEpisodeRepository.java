@@ -21,7 +21,8 @@ public interface TvShowEpisodeRepository extends JpaRepository<TvShowEpisode, Lo
     @Query("""
             SELECT te FROM TvShowEpisode te
             JOIN te.videoFilePaths vfp
-            WHERE vfp.filePath = :filePath
+            JOIN vfp.sourcePath sp
+            WHERE CONCAT(sp.path, vfp.filePath) = :filePath
             """)
     Optional<TvShowEpisode> findTvShowEpisodeByPath(@Param("filePath") String filePath);
 
@@ -34,7 +35,7 @@ public interface TvShowEpisodeRepository extends JpaRepository<TvShowEpisode, Lo
     Long findTvShowEpisodeIdByVideoFilePathId(@Param("videoFilePathId") Long videoFilePathId);
 
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             DELETE FROM TvShowEpisode tse
             WHERE tse.id = :tvShowEpisodeId
@@ -43,7 +44,7 @@ public interface TvShowEpisodeRepository extends JpaRepository<TvShowEpisode, Lo
     void deleteTvShowEpisodeWithoutVideoFilePaths(@Param("tvShowEpisodeId") Long tvShowEpisodeId);
 
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             DELETE FROM TvShowEpisode tse
             WHERE tse.videoFilePaths IS EMPTY

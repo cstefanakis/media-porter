@@ -28,7 +28,7 @@ class AudioRepositoryTest {
 
     @BeforeEach
     void loadData(){
-        this.audio = testDataFactory.createTvShowAudio();
+        this.audio = testDataFactory.createTvShowAudio(null);
     }
 
     @Test

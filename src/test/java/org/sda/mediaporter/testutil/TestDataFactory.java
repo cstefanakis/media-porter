@@ -268,14 +268,46 @@ public class TestDataFactory {
     public VideoFilePath createTvShowVideoFilePath(){
         TvShowEpisode tvShowEpisode = createTvShowEpisode();
         SourcePath sourcePath = createSourcePathTvShowSource();
-        String path = Path.of("/test1.mp4").normalize().toString();
-        return videoFilePathRepository.save(VideoFilePath.builder()
+        String path = Path.of("/tvShow.mp4").normalize().toString();
+        VideoFilePath videoFilePath =  VideoFilePath.builder()
                 .filePath(path)
                         .tvShowEpisode(tvShowEpisode)
                         .modificationDateTime(tvShowEpisode.getModificationDateTime())
                         .sourcePath(sourcePath)
-                .build());
+                .build();
+        videoFilePath.getAudios().add(audio(videoFilePath));
+        videoFilePath.setVideo(video(videoFilePath));
+        videoFilePath.getSubtitles().add(subtitle(videoFilePath));
+        return videoFilePathRepository.save(videoFilePath);
     }
+
+    private Video video(VideoFilePath videoFilePath){
+        return Video.builder()
+                .bitrate(1000)
+                .codec(createCodecH264())
+                .resolution(createResolutionFullHd())
+                .videoFilePath(videoFilePath)
+                .build();
+    }
+
+    private Audio audio(VideoFilePath videoFilePath){
+        return Audio.builder()
+                .audioChannel(createAudioChannelMono())
+                .bitrate(128)
+                .codec(createCodecAAC())
+                .language(createLanguageEn())
+                .videoFilePath(videoFilePath)
+                .build();
+    }
+
+    private Subtitle subtitle(VideoFilePath videoFilePath){
+        return Subtitle.builder()
+                .codec(createCodecSRT())
+                .language(createLanguageEn())
+                .videoFilePath(videoFilePath)
+                .build();
+    }
+
 
     public TvShow createTvShowWithoutVideoFilePaths(){
         LocalDateTime daysBefore2 = LocalDateTime.now().minusDays(4);
@@ -376,32 +408,32 @@ public class TestDataFactory {
     }
 
     @Transactional
-    public Video createTvShowVideo(){
+    public Video createTvShowVideo(VideoFilePath videoFilePath){
         return videoRepository.save(Video.builder()
                         .bitrate(1000)
                         .codec(createCodecH264())
                         .resolution(createResolutionFullHd())
-                        .videoFilePath(createTvShowVideoFilePath())
+                        .videoFilePath(videoFilePath)
                 .build());
     }
 
     @Transactional
-    public Audio createTvShowAudio(){
+    public Audio createTvShowAudio(VideoFilePath videoFilePath){
         return audioRepository.save(Audio.builder()
                         .audioChannel(createAudioChannelMono())
                         .bitrate(128)
                         .codec(createCodecAAC())
                         .language(createLanguageEn())
-                        .videoFilePath(createTvShowVideoFilePath())
+                        .videoFilePath(videoFilePath)
                 .build());
     }
 
     @Transactional
-    public Subtitle createTvShowSubtitle(){
+    public Subtitle createTvShowSubtitle(VideoFilePath videoFilePath){
         return subtitleRepository.save(Subtitle.builder()
                 .codec(createCodecSRT())
                 .language(createLanguageEn())
-                .videoFilePath(createTvShowVideoFilePath())
+                .videoFilePath(videoFilePath)
                 .build());
     }
 

@@ -49,7 +49,8 @@ public interface VideoFilePathRepository extends JpaRepository<VideoFilePath, Lo
             """)
     Long findMovieIdByVideoFilePathId(@Param("videoFilePathId") Long videoFilePathId);
 
-    @Modifying
+    @Transactional
+    @Modifying (clearAutomatically = true, flushAutomatically = true)
     @Query("""
             DELETE FROM VideoFilePath vfp
             WHERE vfp.filePath IS NULL

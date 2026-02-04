@@ -28,7 +28,7 @@ class SubtitleRepositoryTest {
 
     @BeforeEach
     void loadData(){
-        this.subtitle = testDataFactory.createTvShowSubtitle();
+        this.subtitle = testDataFactory.createTvShowSubtitle(null);
     }
 
     @Test

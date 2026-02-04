@@ -11,7 +11,9 @@ import org.sda.mediaporter.models.metadata.Subtitle;
 import org.sda.mediaporter.models.metadata.Video;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -42,14 +44,16 @@ public class VideoFilePath {
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     @JsonManagedReference
-    private List<Audio> audios;
+    @Builder.Default
+    private Set<Audio> audios = new HashSet<>();
 
     @OneToMany(mappedBy = "videoFilePath"
             ,fetch = FetchType.EAGER
             ,cascade = CascadeType.ALL
             ,orphanRemoval = true)
     @JsonManagedReference
-    private List<Subtitle> subtitles;
+    @Builder.Default
+    private Set<Subtitle> subtitles = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "source_path")

@@ -28,7 +28,7 @@ class VideoRepositoryTest {
 
     @BeforeEach
     void loadData(){
-        this.video = testDataFactory.createTvShowVideo();
+        this.video = testDataFactory.createTvShowVideo(null);
     }
 
     @Test

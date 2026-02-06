@@ -16,6 +16,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -146,61 +149,208 @@ class FileServiceTest {
 
     @Test
     void getFileExtensionWithDot() {
+        //Arrest
+        String fileName = "videoFile.mp4";
+        //Act
+        String result = fileService.getFileExtensionWithDot(fileName);
+        //Assert
+        assertNotNull(result);
+        assertEquals(".mp4", result);
     }
 
     @Test
-    void getSafeFileName() {
+    void getSafeFileName(){
+        //Arrest
+        String fileName = "(video)-file-1988";
+        //Act
+        String result = fileService.getSafeFileName(fileName);
+        //Assert
+        assertNotNull(result);
+        assertEquals("video file 1988", result);
     }
 
     @Test
-    void createdDirectories() {
+    void createdDirectories(){
+        String[] subDirs = new String[]{"movies", "titanic"};
+        //Act
+        fileService.createdDirectories(this.tempDir, subDirs);
+        //Assert
+        assertTrue(Files.exists(Path.of(this.tempDir + File.separator + "movies" + File.separator + "titanic")));
     }
 
     @Test
-    void getModificationLocalDateTimeOfPath() {
+    void getModificationLocalDateTimeOfPath() throws IOException {
+        //Arrest
+        LocalDateTime now = LocalDateTime.now();
+        Path filePath = this.tempDir.resolve("filePath.mp4").normalize();
+        Files.createFile(filePath);
+        Files.setLastModifiedTime(filePath, toFileTime(now));
+        //Act
+        LocalDateTime result = fileService.getModificationLocalDateTimeOfPath(filePath);
+        //Assert
+        assertNotNull(result);
+        assertEquals(now, result);
     }
 
     @Test
     void localDateTimeToFileTime() {
+        //Arrest
+        LocalDateTime localDateTime = LocalDateTime.of(2025, 1, 1, 20, 20, 20);
+        //Act
+        FileTime result = fileService.localDateTimeToFileTime(localDateTime);
+        //Assert
+        assertEquals("2025-01-01T19:20:20Z", result.toString());
     }
 
     @Test
     void getStringWithoutDiacritics() {
+        //Arrest
+        String fileName = "Parní pračky";
+        //Act
+        String result = fileService.getStringWithoutDiacritics(fileName);
+        //Assert
+        assertNotNull(result);
+        assertEquals("Parni pracky", result);
     }
 
     @Test
-    void isFilePathExist() {
+    void isFilePathExist() throws IOException {
+        //Arrest
+        Path filePath = this.tempDir.resolve("filePath.mp4").normalize();
+        Files.createFile(filePath);
+        //Act
+        boolean result = fileService.isFilePathExist(filePath);
+        //Assert
+        assertTrue(result);
     }
 
     @Test
-    void deleteAllFilesInDirectory() {
+    void deleteAllFilesInDirectory() throws IOException {
+        //Arrest
+        Path filePath1 = this.tempDir.resolve("filePath.mp4").normalize();
+        Path filePath2 = this.tempDir.resolve("subdirectory" + File.separator + "filePath.mp4").normalize();
+        Path dirPath = this.tempDir.resolve("subdirectory").normalize();
+        Files.createFile(filePath1);
+        Files.createDirectory(dirPath);
+        Files.createFile(filePath2);
+        //Act
+        fileService.deleteAllFilesInDirectory(this.tempDir);
+        //Assert
+        assertFalse(Files.exists(filePath1));
+        assertFalse(Files.exists(filePath2));
+        assertTrue(Files.exists(dirPath));
     }
 
     @Test
     void isDirectoryEmpty() {
+        //Act
+        boolean result = fileService.isDirectoryEmpty(this.tempDir);
+        //Assert
+        assertTrue(result);
     }
 
     @Test
-    void getAllEmptyDirectories() {
+    void getAllEmptyDirectories() throws IOException {
+        //Arrest
+        Path filePath1 = this.tempDir.resolve("filePath.mp4").normalize();
+        Path filePath2 = this.tempDir.resolve("directory" + File.separator + "filePath.mkv");
+        Path directory = this.tempDir.resolve("directory");
+        Path emptyDirectory = this.tempDir.resolve("subdirectory").normalize();
+        Files.createDirectory(directory);
+        Files.createFile(filePath2);
+        Files.createFile(filePath1);
+        Files.createDirectory(emptyDirectory);
+        //Act
+        List<Path> result = fileService.getAllEmptyDirectories(this.tempDir);
+        //Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.contains(emptyDirectory));
+        assertFalse(result.contains(directory));
     }
 
     @Test
-    void deleteAllEmptyDirectories() {
+    void deleteAllEmptyDirectories() throws IOException {
+        //Arrest
+        Path filePath1 = this.tempDir.resolve("filePath.mp4").normalize();
+        Path filePath2 = this.tempDir.resolve("directory" + File.separator + "filePath.mkv");
+        Path directory = this.tempDir.resolve("directory");
+        Path emptyDirectory = this.tempDir.resolve("subdirectory").normalize();
+        Files.createDirectory(directory);
+        Files.createFile(filePath2);
+        Files.createFile(filePath1);
+        Files.createDirectory(emptyDirectory);
+        //Act
+        fileService.deleteAllEmptyDirectories(this.tempDir);
+        //Assert
+        assertTrue(Files.exists(directory));
+        assertFalse(Files.exists(emptyDirectory));
     }
 
     @Test
-    void deleteAllDirectoriesWithoutVideFiles() {
+    void deleteAllDirectoriesWithoutVideFiles() throws IOException {
+        //Arrest
+        Path dir = this.tempDir.resolve("directory").normalize();
+        Files.createDirectory(dir);
+        Path videoFileDir = this.tempDir.resolve(dir).resolve("filePath.mp4").normalize();
+        Files.createFile(videoFileDir);
+        Path textFileDir = this.tempDir.resolve(dir).resolve("filePath.txt").normalize();
+        Files.createFile(textFileDir);
+        Path dir2 = this.tempDir.resolve("directory2").normalize();
+        Files.createDirectory(dir2);
+        Path textFileDir2 = this.tempDir.resolve(dir2).resolve("filePath.txt").normalize();
+        Files.createFile(textFileDir2);
+        //Act
+        fileService.deleteAllDirectoriesWithoutVideFiles(this.tempDir);
+        //Assert
+        assertTrue(Files.exists(textFileDir));
+        assertFalse(Files.exists(textFileDir2));
     }
 
     @Test
-    void getVideoFilesUntil() {
+    void getVideoFilesUntil() throws IOException {
+        //Arrest
+        Path videoFile1 = this.tempDir.resolve("filePath.mp4").normalize();
+        Files.createFile(videoFile1);
+        Files.setLastModifiedTime(videoFile1, toFileTime(LocalDateTime.now().minusDays(2)));
+        Path videoFile2 = this.tempDir.resolve("filePath.mkv").normalize();
+        Files.createFile(videoFile2);
+        Files.setLastModifiedTime(videoFile2, toFileTime(LocalDateTime.now()));
+        //Act
+        List <Path> result = fileService.getVideoFilesUntil(this.tempDir, LocalDateTime.now().minusDays(1));
+        //Assert
+        assertNotNull(result);
+        assertTrue(result.contains(videoFile2));
+        assertFalse(result.contains(videoFile1));
     }
 
     @Test
-    void getFileSizeInMB() {
+    void getFileSizeInMB() throws IOException {
+        //Arrest
+        Path file = tempDir.resolve("test.txt");
+        byte[] data = new byte[1024 * 1024];
+        Files.write(file, data);
+        //Act
+        double result = fileService.getFileSizeInMB(file);
+        //Assert
+        assertEquals(1, result);
     }
 
     @Test
-    void setLastModifiedTimeToFilePath() {
+    void setLastModifiedTimeToFilePath() throws IOException {
+        //Arrest
+        LocalDateTime localDateTime = LocalDateTime.now().minusDays(7);
+        FileTime fileTime = toFileTime(localDateTime);
+        Path videoFile1 = this.tempDir.resolve("filePath.mp4").normalize();
+        Files.createFile(videoFile1);
+        //Act
+        fileService.setLastModifiedTimeToFilePath(videoFile1, localDateTime);
+        //Assert
+        assertEquals(fileTime, Files.getLastModifiedTime(videoFile1));
+    }
+
+    private FileTime toFileTime(LocalDateTime localDateTime){
+        return FileTime.from(
+                localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 }

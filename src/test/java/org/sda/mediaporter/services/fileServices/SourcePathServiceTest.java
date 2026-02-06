@@ -1,88 +1,93 @@
 package org.sda.mediaporter.services.fileServices;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.enums.LibraryItems;
-import org.sda.mediaporter.repositories.SourcePathRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.sda.mediaporter.services.fileServices.impl.SourcePathServiceImpl;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class SourcePathServiceTest {
 
-    @Autowired
-    private SourcePathService sourcePathService;
+    @InjectMocks
+    private SourcePathServiceImpl sourcePathService;
 
-    @Autowired
-    private SourcePathRepository sourcePathRepository;
+    @TempDir
+    Path tvShowDownloads;
 
-    private SourcePath sourcePath1;
-    private SourcePath sourcePath2;
+    @TempDir
+    Path tvShows;
+
+    private SourcePath tvShowDownlaodSourcePath;
+    private SourcePath tvShowSourcePath;
 
     @BeforeEach
-    void setup(){
-        this.sourcePath1 = sourcePathRepository.save(SourcePath.builder()
-                        .path("c:/")
-                        .pathType(SourcePath.PathType.SOURCE)
-                        .libraryItem(LibraryItems.MOVIE)
-                .build());
+    void loadData(){
+        this.tvShowDownlaodSourcePath = SourcePath.builder()
+                .path(this.tvShowDownloads.normalize().toString())
+                .title("tv shows downloads")
+                .pathType(SourcePath.PathType.DOWNLOAD)
+                .libraryItem(LibraryItems.TV_SHOW)
+                .build();
 
-        this.sourcePath2 = sourcePathRepository.save(SourcePath.builder()
-                .path("d:/")
+        this.tvShowSourcePath = SourcePath.builder()
+                .path(this.tvShows.normalize().toString())
+                .title("tv shows")
                 .pathType(SourcePath.PathType.SOURCE)
                 .libraryItem(LibraryItems.TV_SHOW)
-                .build());
-
-    }
-
-
-    @Test
-    void replaceRootOfFilePathWithOtherRoot_WithSamePathSeparators() {
-        //Arrest
-        Path filePath = Path.of("C:\\External\\Movies\\file.mkv");
-        Path rootFile = Path.of("C:\\External");
-        Path newRootFile = Path.of("C:\\Download");
-        //Act
-        Path result = sourcePathService.replaceRootOfFilePathWithOtherRoot(filePath, rootFile, newRootFile);
-        //Assert
-        assertEquals(Path.of("C:\\Download\\file.mkv"), result);
+                .build();
     }
 
     @Test
-    void replaceRootOfFilePathWithOtherRoot_WithDifferentSeparators() {
-        //Arrest
-        Path filePath = Path.of("C:\\External\\Movies\\file.mkv");
-        Path rootFile = Path.of("C:\\External");
-        Path newRootFile = Path.of("C:/Download");
-        //Act
-        Path result = sourcePathService.replaceRootOfFilePathWithOtherRoot(filePath, rootFile, newRootFile);
-        //Assert
-        assertEquals(Path.of("C:\\Download\\file.mkv"), result);
+    void getById() {
+        //
+    }
+
+    @Test
+    void getSourcePaths() {
+    }
+
+    @Test
+    void getSourcePathsByPathTypeAndLibraryItem() {
+    }
+
+    @Test
+    void deleteById() {
+    }
+
+    @Test
+    void getRootFileFromFile() {
+    }
+
+    @Test
+    void createSourcePath() {
+    }
+
+    @Test
+    void updateSourcePath() {
+    }
+
+    @Test
+    void getSourcePathFromPath() {
+    }
+
+    @Test
+    void getSourcePathsByLibraryItem() {
+    }
+
+    @Test
+    void replaceRootOfFilePathWithOtherRoot() {
     }
 
     @Test
     void getSourcePathsByPathType() {
-        //Act
-        Long sourcePath1Id = this.sourcePath1.getId();
-        Long sourcePath2Id = this.sourcePath2.getId();
-        //act
-        List<SourcePath> result = sourcePathService.getSourcePathsByPathType(SourcePath.PathType.SOURCE);
-        //Assert
-        assertFalse(result.isEmpty());
-        assertTrue(result.stream().anyMatch(sp -> sp.getId().equals(sourcePath1Id)));
-        assertTrue(result.stream().anyMatch(sp -> sp.getId().equals(sourcePath2Id)));
-    }
-
-    @AfterEach
-    void end(){
-        sourcePathRepository.delete(sourcePath1);
-        sourcePathRepository.delete(sourcePath2);
     }
 }

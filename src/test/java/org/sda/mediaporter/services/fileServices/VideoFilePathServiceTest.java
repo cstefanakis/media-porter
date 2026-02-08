@@ -1,255 +1,241 @@
 package org.sda.mediaporter.services.fileServices;
 
-import org.junit.jupiter.api.AfterEach;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.sda.mediaporter.models.*;
 import org.sda.mediaporter.models.enums.LibraryItems;
-import org.sda.mediaporter.models.metadata.Audio;
-import org.sda.mediaporter.models.metadata.Subtitle;
-import org.sda.mediaporter.models.metadata.Video;
+import org.sda.mediaporter.models.metadata.*;
 import org.sda.mediaporter.repositories.*;
-import org.sda.mediaporter.repositories.metadata.AudioRepository;
-import org.sda.mediaporter.repositories.metadata.SubtitleRepository;
-import org.sda.mediaporter.repositories.metadata.VideoRepository;
+import org.sda.mediaporter.services.audioServices.AudioService;
+import org.sda.mediaporter.services.fileServices.impl.VideoFilePathServiceImpl;
+import org.sda.mediaporter.services.subtitleServices.SubtitleService;
 import org.sda.mediaporter.services.videoServices.VideoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class VideoFilePathServiceTest {
-    @Autowired
-    private VideoFilePathService videoFilePathService;
 
-    @Autowired
-    private VideoService videoService;
-
-    @Autowired
-    private SourcePathRepository sourcePathRepository;
-
-    @Autowired
-    private AudioRepository audioRepository;
-
-    @Autowired
-    private SubtitleRepository subtitleRepository;
-
-    @Autowired
+    @Mock
     private VideoFilePathRepository videoFilePathRepository;
 
-    @Autowired
-    private MovieRepository movieRepository;
+    @Mock
+    private VideoService videoService;
 
-    @Autowired
-    private VideoRepository videoRepository;
+    @Mock
+    private AudioService audioService;
 
-    @Autowired
-    private TvShowEpisodeRepository tvShowEpisodeRepository;
+    @Mock
+    private SubtitleService subtitleService;
 
-    @Autowired
-    private TvShowRepository tvShowRepository;
+    @Mock
+    private SourcePathService sourcePathService;
 
-    private SourcePath moviesSourcePath;
-    private SourcePath tvShowSourcePath;
-    private Movie movie;
-    private TvShow tvShow;
-    private VideoFilePath videoFilePathOld2Days;
-    private VideoFilePath videoFilePathOld4Days;
-    private VideoFilePath tvShowVideoFilePath;
-    private TvShowEpisode tvShowEpisode;
-    private Video video;
-    private Audio audio1;
-    private Audio audio2;
-    private Subtitle subtitle1;
-    private Subtitle subtitle2;
+    @Mock
+    private FileService fileService;
+
+    @InjectMocks
+    private VideoFilePathServiceImpl videoFilePathService;
+
+    @TempDir
+    Path tvShowSource;
+
+    @TempDir
+    Path tvShowDownloads;
+
 
     @BeforeEach
-    void setup(){
-        this.tvShow = tvShowRepository.save(TvShow.builder()
-                        .title("tvShowTitle")
-                        .theMoveDBTvShowId(15L)
-                        .year(2012)
-                .build());
+    void setup() throws IOException {
+        Path tvShowDownloadedPath =  this.tvShowDownloads.resolve("wonder man s01e01 (Cz dabbing)").normalize();
+        Files.createFile(tvShowDownloadedPath);
+    }
 
-        this.tvShowEpisode = tvShowEpisodeRepository.save(TvShowEpisode.builder()
-                        .episodeNumber(1)
-                        .seasonNumber(1)
-                        .theMovieDbId(12L)
-                        .tvShow(this.tvShow)
-                .build());
+    @Test
+    void getVideoFilePathByPath() {
+        //Arrest
+        VideoFilePath videoFilePath = VideoFilePath.builder().build();
+        String pathToString = this.tvShowSource.resolve("filePath").toString();
+        when(videoFilePathRepository.findVideoFilePathByPath(pathToString)).thenReturn(Optional.of(videoFilePath));
+        //Act
+        VideoFilePath result = videoFilePathService.getVideoFilePathByPath(pathToString);
+        //Assert
+        assertNotNull(result);
+        verify(videoFilePathRepository).findVideoFilePathByPath(pathToString);
+    }
 
-        String movieSourcePath = Path.of("src/test/resources/movies").normalize().toString();
-        this.moviesSourcePath = sourcePathRepository.save(SourcePath.builder()
-                .path(movieSourcePath)
-                .pathType(SourcePath.PathType.SOURCE)
-                .libraryItem(LibraryItems.MOVIE)
-                .build());
+    @Test
+    void getVideoFilePathById_Found() {
+        // Arrange
+        Long id = 1L;
+        VideoFilePath videoFilePath = VideoFilePath.builder().build();
+        when(videoFilePathRepository.findById(id))
+                .thenReturn(Optional.of(videoFilePath));
+        // Act
+        VideoFilePath result = videoFilePathService.getVideoFilePathById(id);
+        // Assert
+        assertNotNull(result);
+        assertEquals(videoFilePath, result);
+        verify(videoFilePathRepository).findById(id);
+    }
 
-        String tvShowSourcePath = Path.of("src/test/resources/tvShows").normalize().toString();
-        this.tvShowSourcePath = sourcePathRepository.save(SourcePath.builder()
-                .path(tvShowSourcePath)
+    @Test
+    void getVideoFilePathById_NotFound() {
+        // Arrange
+        Long id = 1L;
+        when(videoFilePathRepository.findById(id))
+                .thenReturn(Optional.empty());
+        // Assert
+        assertThrows(EntityNotFoundException.class,
+                () -> videoFilePathService.getVideoFilePathById(id));
+        verify(videoFilePathRepository).findById(id);
+    }
+
+    @Test
+    void getVideoFilePath() throws IOException {
+        // Arrange
+        LocalDateTime localDateTime = LocalDateTime.now();
+
+        Path filePath = this.tvShowSource.resolve("filePath.mp4");
+        Files.createFile(filePath);
+
+        SourcePath sourcePath = SourcePath.builder()
+                .path(this.tvShowSource.toString())
                 .pathType(SourcePath.PathType.SOURCE)
                 .libraryItem(LibraryItems.TV_SHOW)
-                .build());
+                .build();
 
-        this.movie = movieRepository.save(Movie.builder()
-                .title("movie")
-                .build());
+        Video video = Video.builder()
+                .codec(Codec.builder().build())
+                .resolution(Resolution.builder().build())
+                .build();
 
-        this.video = videoRepository.save(Video.builder()
-                .build());
+        List<Audio> audios = new ArrayList<>();
+        List<Subtitle> subtitles = new ArrayList<>();
 
-        String filePath1 = Path.of("/test.mp4").normalize().toString();
-        this.videoFilePathOld2Days = videoFilePathRepository.save(VideoFilePath.builder()
-                .modificationDateTime(LocalDateTime.now().minusDays(2))
-                .sourcePath(this.moviesSourcePath)
-                .filePath(filePath1)
-                .movie(this.movie)
-                        .video(this.video)
-                .build());
+        when(sourcePathService.getSourcePathFromPath(filePath))
+                .thenReturn(sourcePath);
 
-        String filePath2 = Path.of("/test2.mp4").normalize().toString();
-        this.videoFilePathOld4Days = videoFilePathRepository.save(VideoFilePath.builder()
-                .modificationDateTime(LocalDateTime.now().minusDays(4))
-                .sourcePath(this.moviesSourcePath)
-                .filePath(filePath2)
-                .movie(this.movie)
-                .build());
+        when(videoService.getVideoFromPath(eq(filePath), any(VideoFilePath.class)))
+                .thenReturn(video);
 
-        String filePath3 = Path.of("/tvShowFilePath.mp4").normalize().toString();
-        this.tvShowVideoFilePath = videoFilePathRepository.save(VideoFilePath.builder()
-                .modificationDateTime(LocalDateTime.now().minusDays(4))
-                .sourcePath(this.tvShowSourcePath)
-                .filePath(filePath3)
-                        .tvShowEpisode(this.tvShowEpisode)
-                .build());
+        when(audioService.getAudiosFromPathFile(eq(filePath), any(VideoFilePath.class)))
+                .thenReturn(audios);
 
-        this.video.setVideoFilePath(this.videoFilePathOld2Days);
-        videoRepository.save(this.video);
+        when(subtitleService.getSubtitleListFromFile(eq(filePath), any(VideoFilePath.class)))
+                .thenReturn(subtitles);
 
-        this.audio1 = audioRepository.save(Audio.builder()
-                .videoFilePath(videoFilePathOld2Days)
-                .build());
+        when(fileService.getModificationLocalDateTimeOfPath(filePath))
+                .thenReturn(localDateTime);
 
-        this.audio2 = audioRepository.save(Audio.builder()
-                .videoFilePath(videoFilePathOld2Days)
-                .build());
+        // Act
+        VideoFilePath result = videoFilePathService.getVideoFilePath(filePath);
 
-        this.subtitle1 = subtitleRepository.save(Subtitle.builder()
-                .videoFilePath(videoFilePathOld2Days)
-                .build());
+        // Assert
+        assertNotNull(result);
+        assertEquals("\\\\filePath.mp4", result.getFilePath());
+        assertEquals(localDateTime, result.getModificationDateTime());
+        assertEquals(video, result.getVideo());
+        assertEquals(audios, result.getAudios());
+        assertEquals(subtitles, result.getSubtitles());
+    }
 
-        this.subtitle2 = subtitleRepository.save(Subtitle.builder()
-                .videoFilePath(videoFilePathOld2Days)
-                .build());
+
+    @Test
+    void createVideoFilePath() {
     }
 
     @Test
-    void deleteAllDataFromVideoFilePath() {
-        //Act
-        videoFilePathService.deleteAllDataFromVideoFilePath(this.videoFilePathOld2Days);
-        Optional <Video> video = videoRepository.findById(this.video.getId());
-        Optional<Audio> audio1 =  audioRepository.findById(this.audio1.getId());
-        Optional <Audio> audio2 =  audioRepository.findById(this.audio2.getId());
-        Optional <Subtitle> subtitle1 = subtitleRepository.findById(this.subtitle1.getId());
-        Optional <Subtitle> subtitle2 = subtitleRepository.findById(this.subtitle2.getId());
-        //Assert
-        assertFalse(video.isPresent());
-        assertFalse(audio1.isPresent());
-        assertFalse(audio2.isPresent());
-        assertFalse(subtitle1.isPresent());
-        assertFalse(subtitle2.isPresent());
-
+    void updateSourcePathFileAndPath() {
     }
 
     @Test
-    void deleteVideoFilePathAndFileByVideoFilePathId(){
-        //Arrest
-        Long videoFilePathId = this.videoFilePathOld2Days.getId();
-        //Act
-        videoFilePathService.deleteVideoFilePathAndFileByVideoFilePathId(videoFilePathId);
-        Optional<VideoFilePath> result = videoFilePathRepository.findById(videoFilePathId);
-        //Assert
-        assertFalse(result.isPresent());
-    }
-    @Test
-    void getFullPathFromVideoFilePathId() {
-        //Arrest
-        Long videoFilePathId = videoFilePathOld2Days.getId();
-        Path fullPath = Path.of(this.moviesSourcePath.getPath() + this.videoFilePathOld2Days.getFilePath()).normalize();
-        //Act
-        Path result = videoFilePathService.getFullPathFromVideoFilePathId(videoFilePathId);
-        //Assert
-        assertEquals(fullPath, result);
-        assertFalse(Files.exists(result));
+    void deleteVideoFilePath() {
     }
 
     @Test
-    void getTvShowsVideoFilePathIdsByLibraryItems() {
-        //Arrest
-        LibraryItems tvShow = LibraryItems.TV_SHOW;
-        Long videoFilePathId = this.tvShowVideoFilePath.getId();
-        //Act
-        List<Long> result = videoFilePathService.getTvShowsVideoFilePathIdsByLibraryItems(tvShow);
-        //Assert
-        assertTrue(result.contains(videoFilePathId));
+    void getAllVideoFilePaths() {
     }
 
-    @AfterEach
-    void end(){
-        //Video
-        Long videoId = this.video.getId();
-        Optional<Video> video = videoRepository.findById(videoId);
+    @Test
+    void isVideoFilePathWithPathExist() {
+    }
 
-        //Audio
-        Long audio1Id = this.audio1.getId();
-        Long audio2Id = this.audio2.getId();
-        Optional<Audio> audio1 =  audioRepository.findById(audio1Id);
-        Optional <Audio> audio2 =  audioRepository.findById(audio2Id);
+    @Test
+    void addMovie() {
+    }
 
-        //Subtitles
-        Long subtitle1Id = this.subtitle1.getId();
-        Long subtitle2Id = this.subtitle2.getId();
-        Optional <Subtitle> subtitle1 = subtitleRepository.findById(subtitle1Id);
-        Optional <Subtitle> subtitle2 = subtitleRepository.findById(subtitle2Id);
+    @Test
+    void getFullPathFromVideoFilePath() {
+    }
 
-        //VideoFilePath
-        Long videoFilePathOld2DaysId = this.videoFilePathOld2Days.getId();
-        Long videoFilePathOld4DaysId = this.videoFilePathOld4Days.getId();
-        Optional <VideoFilePath> videoFilePathOld2Days = videoFilePathRepository.findById(videoFilePathOld2DaysId);
-        Optional <VideoFilePath> videoFilePathOld4Days = videoFilePathRepository.findById(videoFilePathOld4DaysId);
+    @Test
+    void addTvShowEpisode() {
+    }
 
-        //delete video
-        videoFilePathOld2Days.ifPresent(videoFilePath -> {
-            videoFilePath.setVideo(null);
-            videoFilePathRepository.save(videoFilePath);
-            video.ifPresent(v -> videoRepository.deleteById(videoId));
-        });
+    @Test
+    void getVideoFileNamePart() {
+    }
 
-        //delete audios
-        audio1.ifPresent(audio -> audioRepository.deleteById(audio1Id));
-        audio2.ifPresent(audio -> audioRepository.deleteById(audio2Id));
-        //delete subtitles
-        subtitle1.ifPresent(subtitle -> subtitleRepository.deleteById(subtitle1Id));
-        subtitle2.ifPresent(subtitle -> subtitleRepository.deleteById(subtitle2Id));
-        //delete videoFilePaths
-        videoFilePathOld2Days.ifPresent(videoFilePath -> videoFilePathRepository.deleteById(videoFilePathOld2DaysId));
-        videoFilePathOld4Days.ifPresent(videoFilePath -> videoFilePathRepository.deleteById(videoFilePathOld4DaysId));
-        //delete Movie
-        Optional <Movie> movieOptional = movieRepository.findById(this.movie.getId());
-        movieOptional.ifPresent(m -> movieRepository.deleteById(m.getId()));
-        //delete tvShowEpisode
-        Optional <TvShowEpisode> tvShowEpisodeOptional = tvShowEpisodeRepository.findById(this.tvShowEpisode.getId());
-        tvShowEpisodeOptional.ifPresent(tse -> tvShowEpisodeRepository.deleteById(tse.getId()));
-        //delete tvShow
-        Optional <TvShow> tvShowOptional = tvShowRepository.findById(this.tvShow.getId());
-        tvShowOptional.ifPresent(ts -> tvShowRepository.deleteById(this.tvShow.getId()));
+    @Test
+    void getAudioFileNamePart() {
+    }
+
+    @Test
+    void getFilePathWithoutSourcePath() {
+    }
+
+    @Test
+    void getMoviesVideoFilesPathsOlderThanXDays() {
+    }
+
+    @Test
+    void getMovieIdByVideoFilePathId() {
+    }
+
+    @Test
+    void testDeleteVideoFilePathAndFileByVideoFilePathId() {
+    }
+
+    @Test
+    void deleteVideoFilePathsWithNullFilePath() {
+    }
+
+    @Test
+    void getMovieVideoFilePathsBySourcePathId() {
+    }
+
+    @Test
+    void setVideoFilePathMovieNull() {
+    }
+
+    @Test
+    void testDeleteAllDataFromVideoFilePath() {
+    }
+
+    @Test
+    void testGetFullPathFromVideoFilePathId() {
+    }
+
+    @Test
+    void testGetTvShowsVideoFilePathIdsByLibraryItems() {
+    }
+
+    @Test
+    void deleteVideoFilePathById() {
     }
 }

@@ -61,10 +61,12 @@ public class VideoFilePathServiceImpl implements VideoFilePathService {
     public VideoFilePath getVideoFilePath(Path filePath) {
         SourcePath sourcePath = sourcePathService.getSourcePathFromPath(filePath);
         VideoFilePath videoFilePath = toEntity(filePath, sourcePath);
-        videoService.getVideoFromPath(filePath, videoFilePath);
-        audioService.getAudiosFromPathFile(filePath, videoFilePath);
-        subtitleService.getSubtitleListFromFile(filePath, videoFilePath);
-
+        Video video = videoService.getVideoFromPath(filePath, videoFilePath);
+        List<Audio> audios = audioService.getAudiosFromPathFile(filePath, videoFilePath);
+        List<Subtitle> subtitles = subtitleService.getSubtitleListFromFile(filePath, videoFilePath);
+        videoFilePath.setVideo(video);
+        videoFilePath.setAudios(audios);
+        videoFilePath.setSubtitles(subtitles);
         return videoFilePath;
     }
 

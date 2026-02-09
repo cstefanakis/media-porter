@@ -117,12 +117,17 @@ class FileServiceTest {
     @Test
     void renameFile() throws IOException {
         //Arrest
+        SourcePath sourcePath = SourcePath.builder()
+                .path(this.tempDir.toString())
+                .build();
         Path filePath = this.tempDir.resolve("videoFile.mp4");
         Files.createFile(filePath);
         String newName = "video";
         String subdirectory = "movie";
         Path renamedPath = this.tempDir.resolve(subdirectory + File.separator + newName + ".mp4");
         String[] subdirectories = new String[]{subdirectory};
+
+        when(sourcePathRepository.findAll()).thenReturn(List.of(sourcePath));
         //Act
         fileService.renameFile(filePath, newName, subdirectories);
         //Assert

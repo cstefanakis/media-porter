@@ -1,131 +1,102 @@
 package org.sda.mediaporter.services.movieServices;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.sda.mediaporter.models.Configuration;
 import org.sda.mediaporter.models.Movie;
 import org.sda.mediaporter.models.SourcePath;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.models.enums.LibraryItems;
-import org.sda.mediaporter.models.metadata.Video;
-import org.sda.mediaporter.repositories.ConfigurationRepository;
-import org.sda.mediaporter.repositories.MovieRepository;
-import org.sda.mediaporter.repositories.SourcePathRepository;
-import org.sda.mediaporter.repositories.VideoFilePathRepository;
 import org.sda.mediaporter.services.fileServices.FileService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.sda.mediaporter.services.fileServices.SourcePathService;
+import org.sda.mediaporter.services.fileServices.VideoFilePathService;
+import org.sda.mediaporter.services.movieServices.impl.MovieSchedulerServiceImpl;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class MovieSchedulerServiceTest {
 
-    @Autowired
-    private MovieSchedulerService movieSchedulerService;
+    @InjectMocks
+    private MovieSchedulerServiceImpl movieSchedulerService;
 
-    @Autowired
-    private MovieRepository movieRepository;
+    @Mock
+    private SourcePathService sourcePathService;
 
-    @Autowired
-    private SourcePathRepository sourcePathRepository;
-
-    @Autowired
-    private ConfigurationRepository configurationRepository;
-
-    @Autowired
-    private VideoFilePathRepository videoFilePathRepository;
-
-    @Autowired
+    @Mock
     private FileService fileService;
 
-    private Movie movie;
-    private Configuration configuration;
-    private VideoFilePath videoFilePath;
+    @Mock
+    private MovieService movieService;
 
-    @BeforeEach
-    void setup(){
-        Path notitled = Path.of("src/test/resources/files/movies/notitled (720p_24fps_H264-128kbit_AAC).mp4").normalize();
-        Path destinationNotiledPath = Path.of("src/test/resources/downloads/movies/notitled (720p_24fps_H264-128kbit_AAC).mp4").normalize();
-        Path thor = Path.of("src/test/resources/files/movies/Thor (2011) - Official Trailer [HD] (816p_24fps_H264-128kbit_AAC).mp4").normalize();
-        Path destinationThor = Path.of("src/test/resources/files/moviessrc/test/resources/files/movies/Thor (2011) - Official Trailer [HD] (816p_24fps_H264-128kbit_AAC).mp4").normalize();
-        Path titanic = Path.of("src/test/resources/files/movies/Titanic (1997) ¦ Official Trailer (720p_24fps_H264-128kbit_AAC).mp4").normalize();
-        Path destinationTitanic = Path.of("src/test/resources/downloads/movies/Titanic (1997) ¦ Official Trailer (720p_24fps_H264-128kbit_AAC).mp4").normalize();
-        try {
-            if(!Files.exists(notitled)){
-                Files.copy(notitled, destinationNotiledPath);
-            };
-            if(!Files.exists(thor)){
-                Files.copy(thor, destinationThor);
-            };
-            if(!Files.exists(titanic)){
-                Files.copy(titanic, destinationTitanic);;
-            };
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-
-        LocalDateTime movieModificationDate = (LocalDateTime.now().minusDays(2));
-        List<SourcePath> movieSourcePaths = sourcePathRepository.findSourcePathByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.MOVIE);
-        SourcePath movieSourcePath = new SourcePath();
-        if(!movieSourcePaths.isEmpty()){
-            movieSourcePath = movieSourcePaths.getFirst();
-            Configuration configuration = movieSourcePath.getConfiguration();
-            this.configuration = configuration;
-            configuration.setMaxDatesSaveFile(1);
-            configurationRepository.save(configuration);
-        }
-
-        this.movie = movieRepository.save(Movie.builder()
-                        .title("Movie")
-                        .lastModificationDateTime(movieModificationDate)
-
-                .build());
-        this.videoFilePath = videoFilePathRepository.save(VideoFilePath.builder()
-                        .filePath(notitled.toString())
-                        .modificationDateTime(movieModificationDate)
-                        .sourcePath(movieSourcePath)
-                        .movie(movie)
-                .build());
-    }
+    @Mock
+    private VideoFilePathService videoFilePathService;
 
     @Test
-    void moveMoviesFromDownloadsRootPathToMovieRootPath() {
+    void testMoveMoviesFromDownloadsRootPathToMovieRootPath() {
+        // Arrange
+        Path fakeVideoPath = Paths.get("Thor.mp4");
+        Movie movie = Movie.builder().title("Thor").build();
+        VideoFilePath videoFilePath = VideoFilePath.builder().filePath("Thor.mp4").build();
+
+        Configuration configuration = Configuration.builder().maxDatesControlFilesFromExternalSource(10).build();
+
+        SourcePath downloadsSourcePath = SourcePath.builder()
+                .path("/downloads")
+                .configuration(configuration)
+                .build();
+
+        SourcePath moviesSourcePath = SourcePath.builder()
+                .path("/movies")
+                .configuration(configuration)
+                .build();
+
+        when(sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.DOWNLOAD, LibraryItems.MOVIE))
+                .thenReturn(List.of(downloadsSourcePath));
+
+        when(sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.MOVIE))
+                .thenReturn(List.of(moviesSourcePath));
+
+        when(fileService.getVideoFiles(any(Path.class))).thenReturn(List.of(fakeVideoPath));
+        when(fileService.getModificationLocalDateTimeOfPath(fakeVideoPath))
+                .thenReturn(LocalDateTime.now()); // recent file, passes filter
+
+        when(movieService.getOrCreateMovieFromPathFile(any(Path.class))).thenReturn(movie);
+        when(videoFilePathService.createVideoFilePath(any(Path.class))).thenReturn(videoFilePath);
+
+        doNothing().when(videoFilePathService).addMovie(any(Movie.class), any(VideoFilePath.class));
+        doNothing().when(videoFilePathService).updateSourcePathFileAndPath(any(VideoFilePath.class), any(Movie.class), isNull(), any(Path.class));
+        doNothing().when(movieService).updateModificationDateTime(any(Movie.class), any(Path.class));
+
         //Act
         movieSchedulerService.moveMoviesFromDownloadsRootPathToMovieRootPath();
+
+        verify(movieService).getOrCreateMovieFromPathFile(fakeVideoPath);
+        verify(videoFilePathService).createVideoFilePath(fakeVideoPath);
+        verify(videoFilePathService).addMovie(movie, videoFilePath);
+        verify(videoFilePathService).updateSourcePathFileAndPath(any(VideoFilePath.class), eq(movie), isNull(), any(Path.class));
+        verify(movieService).updateModificationDateTime(eq(movie), any(Path.class));
     }
 
     @Test
     void scanMovieSourcePath() {
         //Act
-        movieSchedulerService.scanMovieSourcePath();
+
     }
 
     @Test
     void moveMoviesFromExternalSources() {
-    }
+        //Act
 
-    @AfterEach
-    void end(){
-        Optional<Movie> movieOptional = movieRepository.findById(this.movie.getId());
-        if(movieOptional.isPresent()){
-            movieRepository.delete(this.movie);
-        }
-        Optional <Configuration> configurationOptional = configurationRepository.findById(this.configuration.getId());
-        if(configurationOptional.isPresent()){
-            Configuration configuration = configurationOptional.get();
-            configuration.setMaxDatesSaveFile(this.configuration.getMaxDatesSaveFile());
-            configurationRepository.save(configuration);
-        }
-        videoFilePathRepository.delete(this.videoFilePath);
     }
 }

@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import org.sda.mediaporter.dtos.VideoDto;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.services.CodecService;
-import org.sda.mediaporter.services.fileServices.impl.FileServiceImpl;
+import org.sda.mediaporter.services.fileServices.FileService;
 import org.sda.mediaporter.services.videoServices.ResolutionService;
 import org.sda.mediaporter.services.videoServices.VideoService;
 import org.sda.mediaporter.models.enums.MediaTypes;
@@ -23,13 +23,15 @@ import java.util.Map;
 public class VideoServiceImpl implements VideoService {
     private final VideoRepository videoRepository;
     private final CodecService codecService;
-    private final ResolutionService resolutionService;;
+    private final ResolutionService resolutionService;
+    private final FileService fileService;
 
     @Autowired
-    public VideoServiceImpl(VideoRepository videoRepository, CodecService codecService, ResolutionService resolutionService) {
+    public VideoServiceImpl(VideoRepository videoRepository, CodecService codecService, ResolutionService resolutionService, FileService fileService) {
         this.videoRepository = videoRepository;
         this.codecService = codecService;
         this.resolutionService = resolutionService;
+        this.fileService = fileService;
     }
 
     @Override
@@ -176,7 +178,7 @@ public class VideoServiceImpl implements VideoService {
 
     //Print String h264,1080,4567890
     private String videoInfo(Path videoFilePath){
-        return  FileServiceImpl.runCommand(new String[]{
+        return  fileService.runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "v:0",

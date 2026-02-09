@@ -11,7 +11,7 @@ import org.sda.mediaporter.services.CodecService;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Audio;
 import org.sda.mediaporter.repositories.metadata.AudioRepository;
-import org.sda.mediaporter.services.fileServices.impl.FileServiceImpl;
+import org.sda.mediaporter.services.fileServices.FileService;
 import org.sda.mediaporter.services.LanguageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,13 +26,15 @@ public class AudioServiceImpl implements AudioService {
     private final CodecService codecService;
     private final AudioChannelService audioChannelService;
     private final LanguageService languageService;
+    private final FileService fileService;
 
     @Autowired
-    public AudioServiceImpl(AudioRepository audioRepository, CodecService codecService, AudioChannelService audioChannelService, LanguageService languageService) {
+    public AudioServiceImpl(AudioRepository audioRepository, CodecService codecService, AudioChannelService audioChannelService, LanguageService languageService, FileService fileService) {
         this.audioRepository = audioRepository;
         this.codecService = codecService;
         this.languageService = languageService;
         this.audioChannelService = audioChannelService;
+        this.fileService = fileService;
     }
 
     @Override
@@ -140,8 +142,8 @@ public class AudioServiceImpl implements AudioService {
     }
 
     //Output aac,2,128000,eng
-    private String audioInfo(Path filePath){
-        return  FileServiceImpl.runCommand(new String[]{
+    public String audioInfo(Path filePath){
+        return  fileService.runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "a",

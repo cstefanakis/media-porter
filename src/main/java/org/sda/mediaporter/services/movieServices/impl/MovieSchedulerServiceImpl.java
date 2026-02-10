@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Service
 public class MovieSchedulerServiceImpl implements MovieSchedulerService {
@@ -67,7 +66,7 @@ public class MovieSchedulerServiceImpl implements MovieSchedulerService {
 
     }
 
-    void createAndMoveMoviesTo(List<Path> videoPaths, Path directory){
+    public void createAndMoveMoviesTo(List<Path> videoPaths, Path directory){
         for(Path filePath : videoPaths){
             //Create a Movie
             Movie movie = movieService.getOrCreateMovieFromPathFile(filePath);

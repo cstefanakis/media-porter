@@ -327,7 +327,8 @@ public class FileServiceImpl implements FileService {
         }return false;
     }
 
-    public static String runCommand(String[] command) {
+    @Override
+    public String runCommand(String[] command) {
         ProcessBuilder pb = new ProcessBuilder(command);
         try {
             Process process = pb.start();

@@ -38,4 +38,6 @@ public interface FileService {
     double getFileSizeInMB(Path filePath);
 
     void setLastModifiedTimeToFilePath(Path filePath, LocalDateTime localDateTime);
+
+    String runCommand(String[] command);
 }

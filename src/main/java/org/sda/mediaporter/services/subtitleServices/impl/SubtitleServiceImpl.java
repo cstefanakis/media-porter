@@ -3,7 +3,7 @@ package org.sda.mediaporter.services.subtitleServices.impl;
 import jakarta.transaction.Transactional;
 import org.sda.mediaporter.models.VideoFilePath;
 import org.sda.mediaporter.services.CodecService;
-import org.sda.mediaporter.services.fileServices.impl.FileServiceImpl;
+import org.sda.mediaporter.services.fileServices.FileService;
 import org.sda.mediaporter.models.Language;
 import org.sda.mediaporter.models.enums.MediaTypes;
 import org.sda.mediaporter.models.metadata.Codec;
@@ -26,13 +26,15 @@ public class SubtitleServiceImpl implements SubtitleService {
     private final LanguageRepository languageRepository;
     private final CodecService codecService;
     private final SubtitleRepository subtitleRepository;
+    private final FileService fileService;
 
     @Autowired
-    public SubtitleServiceImpl(CodecRepository codecRepository, LanguageRepository languageRepository, CodecService codecService, SubtitleRepository subtitleRepository) {
+    public SubtitleServiceImpl(CodecRepository codecRepository, LanguageRepository languageRepository, CodecService codecService, SubtitleRepository subtitleRepository, FileService fileService) {
         this.codecRepository = codecRepository;
         this.languageRepository = languageRepository;
         this.codecService = codecService;
         this.subtitleRepository = subtitleRepository;
+        this.fileService = fileService;
     }
 
     @Override
@@ -116,7 +118,7 @@ public class SubtitleServiceImpl implements SubtitleService {
 
     //Output String subrip,eng
     private String subtitleInfo(Path filePath){
-        String subtitlesOptions =  FileServiceImpl.runCommand(new String[]{
+        String subtitlesOptions =  fileService.runCommand(new String[]{
                 "ffprobe",
                 "-v", "error",
                 "-select_streams", "s",

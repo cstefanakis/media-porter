@@ -54,8 +54,8 @@ public class SourcePathController {
     @PutMapping("/{id}/configuration")
     public ResponseEntity<Configuration> updateConfigurationForSourcePath(@PathVariable("id") Long id,
                                                                           @RequestBody ConfigurationDto configurationDto) {
-        Configuration createdConfiguration = configurationService.updateConfigurationBySourcePathId(id, configurationDto);
-        return new ResponseEntity<>(createdConfiguration, HttpStatus.CREATED);
+        Configuration updateConfiguration = configurationService.updateConfigurationBySourcePathId(id, configurationDto);
+        return new ResponseEntity<>(updateConfiguration, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

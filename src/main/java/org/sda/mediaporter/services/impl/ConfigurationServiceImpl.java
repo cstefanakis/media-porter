@@ -40,6 +40,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final LanguageRepository languageRepository;
     private final ResolutionRepository resolutionRepository;
     private final AudioChannelRepository audioChannelRepository;
+    private final SourcePathService sourcePathService;
 
 
     private double maxFileSize = 31457280;
@@ -48,13 +49,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private int maxDaysToPast = 9000;
 
     @Autowired
-    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GenreRepository genreRepository, CodecRepository codecRepository, LanguageRepository languageRepository, ResolutionRepository resolutionRepository, AudioChannelRepository audioChannelRepository) {
+    public ConfigurationServiceImpl(ConfigurationRepository configurationRepository, GenreRepository genreRepository, CodecRepository codecRepository, LanguageRepository languageRepository, ResolutionRepository resolutionRepository, AudioChannelRepository audioChannelRepository, SourcePathService sourcePathService) {
         this.configurationRepository = configurationRepository;
         this.genreRepository = genreRepository;
         this.codecRepository = codecRepository;
         this.languageRepository = languageRepository;
         this.resolutionRepository = resolutionRepository;
         this.audioChannelRepository = audioChannelRepository;
+        this.sourcePathService = sourcePathService;
     }
 
     @Override

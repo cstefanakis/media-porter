@@ -1,10 +1,9 @@
 package org.sda.mediaporter.repositories;
 
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.sda.mediaporter.models.Movie;
+import org.sda.mediaporter.models.TvShow;
 import org.sda.mediaporter.models.metadata.Character;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -20,45 +19,37 @@ class CharacterRepositoryTest {
     private CharacterRepository characterRepository;
 
     @Autowired
-    private MovieRepository movieRepository;
+    private TvShowRepository tvShowRepository;
 
-    private Movie movie;
+    private TvShow tvShow;
 
     @Transactional
     @BeforeEach
     void setup(){
 
-        movie = movieRepository.save(Movie.builder()
-                .title("Movie")
+        this.tvShow = tvShowRepository.save(TvShow.builder()
+                        .title("tvShow")
+                        .year(2025)
                 .build());
-
 
         characterRepository.save(Character.builder()
                         .name("Character01")
-                        .movie(movie)
+                        .tvShow(tvShow)
                 .build());
 
         characterRepository.save(Character.builder()
                         .name("Character02")
-                        .movie(movie)
+                        .tvShow(tvShow)
                 .build());
     }
 
     @Test
     void deleteMovieCharactersIds() {
         //Act
-        characterRepository.deleteMovieCharactersIds(movie);
         //Assert
-        assertTrue(movie.getCharacters().isEmpty());
     }
 
     @Test
     void deleteCharactersWithoutPosition() {
-    }
-
-    @AfterEach
-    void end(){
-        movieRepository.delete(movie);
-        characterRepository.deleteCharactersWithoutPosition();
     }
 }

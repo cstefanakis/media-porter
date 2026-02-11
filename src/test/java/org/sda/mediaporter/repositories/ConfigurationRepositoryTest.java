@@ -223,4 +223,16 @@ class ConfigurationRepositoryTest {
         assertTrue(result.isPresent());
         assertEquals(configurationId, result.get().getId());
     }
+
+    @Test
+    void findConfigurationIdBySourcePathId() {
+        //Arrest
+        Long sourcePathId = this.tvShowSP.getId();
+        Long configurationId = this.tvShowConfig.getId();
+        //Act
+        Optional<Long> result = configurationRepository.findConfigurationIdBySourcePathId(sourcePathId);
+        //Assert
+        assertTrue(result.isPresent());
+        assertEquals(configurationId, result.get());
+    }
 }

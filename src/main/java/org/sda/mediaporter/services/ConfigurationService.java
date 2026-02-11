@@ -50,4 +50,8 @@ public interface ConfigurationService {
     boolean isFileOld(LocalDateTime fileModificationDate, Integer maxDatesSaveFile);
 
     Configuration updateConfigurationBySourcePathId(Long id, ConfigurationDto configurationDto);
+
+    Long getConfigurationIdBySourcePathId(Long id);
+
+    void deleteConfigurationById(Long configurationId);
 }

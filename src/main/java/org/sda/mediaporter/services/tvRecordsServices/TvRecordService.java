@@ -6,6 +6,8 @@ public interface TvRecordService {
 
     String getFilteredFileName(String fileNameOfPath);
 
+    String getFilteredDirectoryName(String fileNameOfPath, String extensionWithDot);
+
     Path getMovieDestinationPath(Path filePath, String originalTitle, Integer year, Path destinationRootPath);
 
     Path getTvShowsDestinationPath(Path file, String originalTitle, Integer year, Path destinationRootPath);

@@ -20,14 +20,17 @@ public class TvRecordServiceImpl implements TvRecordService {
     @Override
     public String getFilteredFileName(String fileNameOfPath) {
         String extensionWithDot = fileService.getFileExtensionWithDot(fileNameOfPath);
-        String filteredName = fileNameOfPath
+        return getFilteredDirectoryName(fileNameOfPath, extensionWithDot) + extensionWithDot;
+    }
+
+    @Override
+    public String getFilteredDirectoryName(String fileNameOfPath, String extensionWithDot) {
+        return fileNameOfPath
                 .replace(extensionWithDot, "")
                 .replaceAll("\\[.*?\\]|\\(.*?\\)", "")
                 .replaceAll("\\d{2,4}-\\d{2}-\\d{2}|\\d{2}-\\d{2}", "")
                 .replaceAll("\\s+", " ")
                 .trim();
-
-        return filteredName + extensionWithDot;
     }
 
     @Override

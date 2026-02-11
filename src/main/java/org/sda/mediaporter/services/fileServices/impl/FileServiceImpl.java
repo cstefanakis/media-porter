@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import static java.nio.file.Files.delete;
+import static java.nio.file.Files.newBufferedReader;
 
 @Service
 public class FileServiceImpl implements FileService {
@@ -346,6 +347,20 @@ public class FileServiceImpl implements FileService {
         }catch (IOException | InterruptedException e){
             throw new RuntimeException("not fount video command");
         }
+    }
+
+    @Override
+    public List<Path> getCopyFiles(Path directory) {
+        if(Files.exists(directory)) {
+            try {
+                return Files.walk(directory)
+                        .filter(p -> getFileExtensionWithDot(p.toString()).equals(".copy"))
+                        .toList();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return new ArrayList<>();
     }
 
 }

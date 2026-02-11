@@ -175,4 +175,11 @@ public interface ConfigurationRepository extends JpaRepository<Configuration, Lo
             WHERE sp.id = :sourcePathId
             """)
     Optional<Configuration> findConfigurationBySourcePathId(@Param("sourcePathId") Long sourcePathId);
+
+    @Query("""
+            SELECT c.id FROM Configuration c
+            LEFT JOIN c.sourcePath sp
+            WHERE sp.id = :sourcePathId
+            """)
+    Optional<Long> findConfigurationIdBySourcePathId(@Param("sourcePathId") Long sourcePathId);
 }

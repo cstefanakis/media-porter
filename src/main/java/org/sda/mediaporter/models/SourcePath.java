@@ -20,7 +20,7 @@ public class SourcePath {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "paths", nullable = false)
+    @Column(name = "paths", nullable = false, columnDefinition = "TEXT")
     private String path;
 
     @Column(name = "titles")

@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -85,34 +88,74 @@ public class TvRecordSchedulerServiceImpl implements TvRecordSchedulerService {
     public void copyTvShowsFromTvRecordSources() {
         List<SourcePath> tvShowTvRecordSourcePaths = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.SOURCE, LibraryItems.TV_SHOW_RECORDS);
         if(tvShowTvRecordSourcePaths != null){
-            SourcePath movieTvRecordSourcePath = tvShowTvRecordSourcePaths.getFirst();
+
+            SourcePath tvShowTvRecordSourcePath = tvShowTvRecordSourcePaths.getFirst();
+            Path tvShowTvRecRootPath = Path.of(tvShowTvRecordSourcePath.getPath()).normalize();
+            deleteCopyFilesFromDirectory(tvShowTvRecRootPath);
+
             List<SourcePath> tvShowTvExternalRecordSources = sourcePathService.getSourcePathsByPathTypeAndLibraryItem(SourcePath.PathType.TV_RECORDS, LibraryItems.TV_SHOW);
             for (SourcePath sourcePath : tvShowTvExternalRecordSources){
-                Path rootDirectory = Path.of(sourcePath.getPath()).normalize();
-                List<Path> directoryFiles = fileService.getVideoFiles(rootDirectory);
-                for(Path file : directoryFiles){
+
+                Path externalTvShowRecDirectory = Path.of(sourcePath.getPath()).normalize();
+                //list of video files from directory
+                List<Path> directoryVideoFiles = fileService.getVideoFiles(externalTvShowRecDirectory);
+
+                for(Path file : directoryVideoFiles){
+
                     String fileNameOfPath = file.getFileName().toString();
                     String tvShowTitle = tvRecordService.getFilteredFileName(fileNameOfPath);
                     TheMovieDbTvShowSearchDTO theMovieDbTvShowSearchDTO = tvShowService.getTvShowAPISearchDTO(tvShowTitle);
+
                     if(theMovieDbTvShowSearchDTO != null) {
-                        String originalTitle = theMovieDbTvShowSearchDTO.getOriginalTitle();
+
+                        String title = theMovieDbTvShowSearchDTO.getTitle();
                         Integer year = theMovieDbTvShowSearchDTO.getYear();
-                        Path destinationRootPath = Path.of(movieTvRecordSourcePath.getPath()).normalize();
-                        Path destinationFilePath = tvRecordService.getTvShowsDestinationPath(file, originalTitle, year, destinationRootPath);
-                        //Check if file path exist
-                        if (!fileService.isFilePathExist(destinationFilePath)) {
-                            Integer modificationDates = sourcePath.getConfiguration().getMaxDatesControlFilesFromExternalSource();
-                            LocalDateTime fileModificationDateTime = fileService.getModificationLocalDateTimeOfPath(file);
-                            boolean isValidModificationDateTime = configurationService.isFileModificationDateValid(fileModificationDateTime, modificationDates);
-                            //check if movie can download by properties
-                            if (isValidModificationDateTime) {
-                                fileService.copyFile(file, destinationFilePath);
-                            }
-                        }
+                        Path destinationFilePath = tvRecordService.getTvShowsDestinationPath(file, title, year, tvShowTvRecRootPath);
+
+                        //copy all files if not exist and validated with configuration of source
+                        copyValidatedFileIfNotExist(sourcePath, file, destinationFilePath);
+                    }else{
+
+                        Path destinationFilePath = destinationFilePath(file, tvShowTvRecRootPath);
+
+                        //copy all files if not exist and validated with configuration of source
+                        copyValidatedFileIfNotExist(sourcePath, file, destinationFilePath);
                     }
                 }
             }
         }
+    }
+
+    private Path destinationFilePath(Path file, Path destinationRootDirectory) {
+        String fileTitle = file.getFileName().toString();
+        String extensionWithDot = fileService.getFileExtensionWithDot(fileTitle);
+        String directory = tvRecordService.getFilteredDirectoryName(fileTitle, extensionWithDot);
+        String[] directories = new String[]{directory};
+        fileService.createdDirectories(destinationRootDirectory, directories);
+        return destinationRootDirectory.resolve(directory).resolve(fileTitle);
+    }
+
+    private void copyValidatedFileIfNotExist(SourcePath sourcePath, Path file, Path destinationFilePath) {
+        if(!fileService.isFilePathExist(destinationFilePath)){
+            Integer modificationDates = sourcePath.getConfiguration().getMaxDatesControlFilesFromExternalSource();
+            LocalDateTime fileModificationDateTime = fileService.getModificationLocalDateTimeOfPath(file);
+            boolean isValidModificationDateTime = configurationService.isFileModificationDateValid(fileModificationDateTime, modificationDates);
+            //check if movie can download by properties
+            if (isValidModificationDateTime) {
+                fileService.copyFile(file, destinationFilePath);
+            }
+        }
+    }
+
+    private void deleteCopyFilesFromDirectory(Path tvShowTvRecRootPath) {
+        List<Path> copyFilesFromDirectory = fileService.getCopyFiles(tvShowTvRecRootPath);
+        copyFilesFromDirectory.forEach(p -> {
+            try {
+                Files.delete(p);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override

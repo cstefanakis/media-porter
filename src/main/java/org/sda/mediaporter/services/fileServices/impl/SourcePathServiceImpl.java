@@ -2,6 +2,8 @@ package org.sda.mediaporter.services.fileServices.impl;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import org.sda.mediaporter.services.ConfigurationService;
 import org.sda.mediaporter.services.fileServices.SourcePathService;
 import org.sda.mediaporter.dtos.SourcePathDto;
 import org.sda.mediaporter.models.SourcePath;
@@ -20,10 +22,12 @@ import java.util.Optional;
 public class SourcePathServiceImpl implements SourcePathService {
 
     private final SourcePathRepository sourcePathRepository;
+    private final ConfigurationService configurationService;
 
     @Autowired
-    public SourcePathServiceImpl(SourcePathRepository sourcePathRepository) {
+    public SourcePathServiceImpl(SourcePathRepository sourcePathRepository, ConfigurationService configurationService) {
         this.sourcePathRepository = sourcePathRepository;
+        this.configurationService = configurationService;
     }
 
     @Override
@@ -42,7 +46,12 @@ public class SourcePathServiceImpl implements SourcePathService {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
+        Long configurationId = configurationService.getConfigurationIdBySourcePathId(id);
+        if(configurationId != null){
+            configurationService.deleteConfigurationById(configurationId);
+        }
         sourcePathRepository.delete(getById(id));
     }
 

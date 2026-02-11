@@ -40,4 +40,6 @@ public interface FileService {
     void setLastModifiedTimeToFilePath(Path filePath, LocalDateTime localDateTime);
 
     String runCommand(String[] command);
+
+    List<Path> getCopyFiles(Path tvShowTvRecRootPath);
 }
